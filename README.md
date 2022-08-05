@@ -64,45 +64,46 @@ The parameters of each instance creation can be initialized beforehand.
 
 ## Getting Started
 
-  0- Install `mid`:
-  ```sh
-  dart pub global activate mid
-  ```
+0. **Install `mid`:**
+      ```sh
+      dart pub global activate mid
+      ```
 
-  1- Create a shelf server project (skip if you have one)
-  ```
-  dart create -t server-shelf
-  ```
+1. **Create a shelf server project (skip if you have one)**
+      ```
+      dart create -t server-shelf
+      ```
 
-  2- In the root directory, run: 
-  ```sh
-  mid init
-  ```
-  this will create a folder called `mid` containing all of `mid`'s artificats.
+2. **In the root directory, run:**
+    ```sh
+    mid init
+    ```
+    This will create a folder called `mid` containing all of `mid`'s artificats.
 
-  3- clear `bin/server.dart` and replace it with:
+3. **Clear `bin/server.dart` and replace it with:**
 
-  ```dart
-  import '../mid/mid.dart';
-  void main(List<String> args) => mid();
-  ```
+    ```dart
+    import '../mid/mid.dart';
+    void main(List<String> args) => mid();
+    ```
 
-  4- open `mid/entrypoint.dart` and add your code there. 
-  You can create a `lib` folder, write your code there then import it to the entrypoint. 
+  4. **open `mid/entrypoint.dart` and add your code there.**
+  
+      You can create a `lib` folder, write your code there then import it to the entrypoint. 
 
-  5- Generate endpoints:
+  5. **Generate endpoints:**
 
-  ```sh
-  mid generate endpoints 
-  ```
+      ```sh
+      mid generate endpoints 
+      ```
 
-  This will generate the server side code on top of [shelf](https://pub.dev/packages/shelf) server within `mid` folder. 
+      This will generate the server side code on top of [shelf](https://pub.dev/packages/shelf) server within `mid` folder. 
 
-  6- Generate teh client code
+  6. **Generate teh client code**
 
-  ```sh
-  mid generate client --location='/path/to/client/code'
-  ```
+      ```sh
+      mid generate client --location='/path/to/client/code'
+      ```
 
 
 
