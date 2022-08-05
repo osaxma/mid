@@ -1,6 +1,5 @@
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:mid/src/common/analyzer.dart';
 import 'package:mid/src/generators/endpoints_generator/_visitors.dart';
 import 'package:path/path.dart' as p;
 
@@ -13,23 +12,26 @@ class EndPointsGenerator {
   Future<void> generate() async {
     final path = p.join(projectPath, 'mid', 'entrypoint.dart');
 
-
     final prog = logger.progress('resolving AST (this will take few seconds)');
-    final resolvedFile = await resolveFile2(path: path);
+
+    // note: for some reason this is preventing the progress from displying the rotatting thingie '/ - / | '
+    //       I tried  `await Future.delayed(Duration(seconds: 3));` and with that it worked.
+    final resolvedFile = await getResolvedUnit1(path);
     prog.finish(message: '\nresolved AST in  ${prog.elapsed.inMilliseconds}-ms');
-    
+
     final visitor = VisitEndPointsFunction(filePath: path);
-    if (resolvedFile is ResolvedUnitResult) {
-      try {
-        resolvedFile.unit.visitChildren(visitor);
-      } catch (e) {
-        print(e);
-        logger.stderr(e.toString());
-      }
+
+    try {
+      resolvedFile.unit.visitChildren(visitor);
+    } catch (e) {
+      print(e);
+      logger.stderr(e.toString());
     }
 
     visitor.routes.forEach((element) {
       element.getRoutes().forEach(print);
     });
+
+    await generate();
   }
 }
