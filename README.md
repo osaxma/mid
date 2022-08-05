@@ -83,8 +83,8 @@ The parameters of each instance creation can be initialized beforehand.
 3. **Clear `bin/server.dart` and replace it with:**
 
     ```dart
-    import '../mid/mid.dart';
-    void main(List<String> args) => mid();
+    import '../mid/server.dart';
+    void main(List<String> args) => server();
     ```
 
   4. **open `mid/entrypoint.dart` and add your code there.**

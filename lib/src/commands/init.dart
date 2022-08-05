@@ -13,6 +13,10 @@ class InitCommand extends MIDCommand {
 
   @override
   FutureOr<void>? run() async {
-  
+    
+    // creates a mid folder containing:
+    // - mid.dart -- the server
+    // - entrypoint.dart -- the entry point
+    // - 
   }
 }
