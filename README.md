@@ -1,9 +1,9 @@
 # `mid` - an API generation tool (WIP)
 > warning: The project is still a work in progress. Use cautiously and definitely it is not ready for production. 
 
-`mid` will generate an API server and a client library as well as handling requests and managing the connection between the server and the client. 
+`mid` will generate an API server and a client library as well as handling requests and managing the communication between the server and the client. 
 
-`mid` simply works by converting the public methods of a class into endpoints where the class name plus the method compose a route (e.g. `/class_name/method_name`). The return type and the parameters of each method are parsed to generate the requests handlers as well as generate the client library. 
+`mid` simply works by converting the public methods of a class into endpoints where the class name plus the method compose a route (e.g. `/class_name/method_name`). The return type and the parameters of each method are parsed to generate the requests handlers internally as well as generate the client library to be directly used by the frontend -- as simple as calling functions. 
 
 In short, all you have to write is the following _(plus the classes implementations, of course)_ in order to generate the API server and client code:
 
@@ -13,10 +13,16 @@ Future<List<Object>> entryPoint(Logger logger) async {
     final storageURL = String.fromEnvironment('STORAGE_KEY');
     final apiKey = String.fromEnvironment('API_KEY');
 
-    return <Object>[
-        Auth(database: database, logger: logger),
-        Storage(apiKey: apiKey, url: storageURL, database: database, logger: logger),
-        App(apiKey: apiKey, database: database, logger: logger),
+    final authAPI =  Auth(database: database, logger: logger);
+    
+    final storageAPI = Storage(apiKey: apiKey, url: storageURL, database: database, logger: logger);
+
+    final applicationAPI = App(apiKey: apiKey, database: database, logger: logger);
+
+    return [
+        authAPI,
+        storageAPI,
+        applicationAPI,
     ];
 }
 ```
@@ -28,7 +34,7 @@ For more details, see [Getting Started](#getting-started) or [Examples](#example
 
 To have the ability to call the backend code from the frontend in a type safe manner and as simple as calling a function in pure Dart. 
 
-In other words, `mid` is not intended to generate a REST API, but to generate an API server that can be easily used by a Dart or Flutter frontend. 
+`mid` is not intended to generate a REST API, but to generate an API server that can be seamlessly used by a Dart or Flutter frontend with a minimal effort. 
 
 ## Caveats
 
@@ -42,25 +48,6 @@ While `mid` can convert any class to an API server, the types for return stateme
 - Serializable Classes that contains `toJson` method and `fromJson` factory constructors. 
 - Iterables (i.e., `Map`, `Set`, `List`) of the Basic Types or Serializable Classes.
 - `Future` or `Stream` _(yes, stream)_ for any of the above. 
-
-### Entry Point 
-
-The entry point has two rules that must be followed:
-- The return statement must be a list literal
-- Each class must be instantiated within the list
-
-This means the return statement for the entry point would look like as follows:
-  ```dart
-    return <Object>[
-      Auth(....),
-      Storage(....),
-      App(....),
-    ];
-  ```
-
-The parameters of each instance creation can be initialized beforehand. 
-> This is kinda an intentional limitation to simplify the parsing process and to avoid complex lookup for variable declaration. 
-
 
 ## Getting Started
 
@@ -84,7 +71,7 @@ The parameters of each instance creation can be initialized beforehand.
 
     ```dart
     import '../mid/server.dart';
-    void main(List<String> args) => server();
+    void main(List<String> args) => server(args);
     ```
 
   4. **open `mid/entrypoint.dart` and add your code there.**
@@ -115,6 +102,7 @@ Examples will be added soon to the [examples](/examples/) folder.
 
 ## Roadmap 
 
-[ ] Track API changes to prevent breaking backward compatibility
+[ ] API versioning and Preventing Unintended Breaking Changes
 
-Unlike web, when 
+Disscusion: the idea here is to track methods return types and parameters so they do not break the api for apps, especially the one running an older version.
+For instance, adding a new required parameter to a method or changing the name of a parameter can break the api for existing apps. `mid` should keep track of API changes somehow and warn the user when such a change occurs. This could be done by storing the generated APIs in some sort of a database and whenever `mid generate endpoints` is called, `mid` would compare the newly generated API with the previous one and present the user with appropriate warning. 
