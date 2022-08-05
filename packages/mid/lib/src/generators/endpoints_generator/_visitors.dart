@@ -52,14 +52,7 @@ class VisitReturnStatement extends RecursiveAstVisitor {
         throw Exception('Uknown element in the list');
       }
 
-      print('endpoint name = ${staticType.getDisplayString(withNullability: false)}');
       routes.add(BaseRouteInfo.fromInterfaceType(staticType));
-      for (var method in staticType.methods) {
-        if (method.isPrivate) {
-          continue;
-        }
-        printMethodStuff(method);
-      }
     }
   }
 

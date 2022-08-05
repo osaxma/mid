@@ -1,4 +1,8 @@
 import 'dart:async';
+import 'dart:io';
+
+import 'package:mid/src/common/io_utils.dart';
+import 'package:mid/src/generators/endpoints_generator/endpoints_generator.dart';
 
 import 'base.dart';
 
@@ -36,10 +40,24 @@ class GenerateEndPointsCommand extends MIDCommand {
 
   @override
   FutureOr<void>? run() async {
-    print('GenerateEndPointsCommand called');
+    final path = Directory.current.path;
+
+    if (!isMidProject(path)) {
+      throw Exception('''
+  Could not find `mid` directory. 
+    - Make sure you ran `mid init`.
+    - If yes, then make sure you are in the root directory of the dart project.
+''');
+    }
+
+    final generator = EndPointsGenerator(
+      projectPath: path,
+      logger: logger,
+    );
+
+    await generator.generate();
   }
 }
-
 
 class GenerateClientLibCommand extends MIDCommand {
   GenerateClientLibCommand() {/*  */}
