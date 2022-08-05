@@ -22,6 +22,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.3.1"
+  asn1lib:
+    dependency: transitive
+    description:
+      name: asn1lib
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.0"
   async:
     dependency: transitive
     description:
@@ -50,6 +57,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.2"
+  corsac_jwt:
+    dependency: transitive
+    description:
+      name: corsac_jwt
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0-nullsafety.1"
   coverage:
     dependency: transitive
     description:
@@ -64,6 +78,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.2"
+  crypto_keys:
+    dependency: transitive
+    description:
+      name: crypto_keys
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0"
+  dbcrypt:
+    dependency: transitive
+    description:
+      name: dbcrypt
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
+  ffi:
+    dependency: transitive
+    description:
+      name: ffi
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.1"
   file:
     dependency: transitive
     description:
@@ -155,6 +190,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0"
+  mid_auth:
+    dependency: "direct main"
+    description:
+      path: "/Users/osaxma/Projects/mid/components/mid_auth"
+      relative: false
+    source: path
+    version: "1.0.0"
   mime:
     dependency: transitive
     description:
@@ -183,6 +225,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.2"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.6.1"
   pool:
     dependency: transitive
     description:
@@ -197,6 +246,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.1"
+  quiver:
+    dependency: transitive
+    description:
+      name: quiver
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.0"
+  rsa_pkcs:
+    dependency: transitive
+    description:
+      name: rsa_pkcs
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.1"
   shelf:
     dependency: "direct main"
     description:
@@ -253,6 +316,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.9.1"
+  sqlite3:
+    dependency: transitive
+    description:
+      name: sqlite3
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.7.2"
   stack_trace:
     dependency: transitive
     description:
@@ -337,6 +407,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
+  x509:
+    dependency: transitive
+    description:
+      name: x509
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.2"
   yaml:
     dependency: transitive
     description:

@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import '../../../../../components/mid_auth/lib/mid_auth.dart';
+import 'package:mid_auth/mid_auth.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
