@@ -12,7 +12,7 @@ class VisitEndPointsFunction extends SimpleAstVisitor {
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.name.name == 'endpoints') {
+    if (node.name.name == 'entryPoint') {
       node.visitChildren(VisitReturnStatement(filePath: filePath, routes: routes));
     }
     return super.visitFunctionDeclaration(node);
@@ -43,17 +43,18 @@ class VisitReturnStatement extends RecursiveAstVisitor {
     }
 
     for (var element in endpoints.elements) {
-      if (element is! InstanceCreationExpression) {
-        throw Exception(
-            'All EndPoints at the return statement of the `endpoints` function must created within the list.\n'
-            'Make sure to fix it $filePath');
+      if (element is! Expression) {
+        // TODO: create a useful statement
+        throw Exception('Uknown element in the list');
+      }
+      final staticType = element.staticType;
+      if (staticType is! InterfaceType) {
+        throw Exception('Uknown element in the list');
       }
 
-      final elementStaticType = element.staticType as InterfaceType;
-
-      print('endpoint name = ${elementStaticType.getDisplayString(withNullability: false)}');
-      routes.add(BaseRouteInfo.fromInterfaceType(elementStaticType));
-      for (var method in elementStaticType.methods) {
+      print('endpoint name = ${staticType.getDisplayString(withNullability: false)}');
+      routes.add(BaseRouteInfo.fromInterfaceType(staticType));
+      for (var method in staticType.methods) {
         if (method.isPrivate) {
           continue;
         }
