@@ -1,7 +1,7 @@
 name: mid
-description: A sample command-line application.
-version: 1.0.0
-# homepage: https://www.example.com
+description: an API generation tool
+version: 0.0.1
+homepage: https://www.github.com/osaxma/mid
 
 executable:
   mid:
@@ -9,8 +9,11 @@ executable:
 environment:
   sdk: '>=2.17.6 <3.0.0'
 
-# dependencies:
-#   path: ^1.8.0
+dependencies: 
+  analyzer: ^4.3.1
+  args: ^2.3.1
+  cli_util: ^0.3.5
+  path: ^1.8.2
 
 dev_dependencies:
   lints: ^2.0.0
