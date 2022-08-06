@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 
-import 'generated/router_generator.dart';
+import 'handlers.dart';
 import 'middlewares.dart';
 
 void server(List<String> args) async {
