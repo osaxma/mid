@@ -1,3 +1,5 @@
+import 'package:dart_style/dart_style.dart';
+
 import 'package:mid/src/common/extensions.dart';
 import 'package:mid/src/generators/endpoints_generator/_models.dart';
 import 'package:mid/src/generators/endpoints_generator/templates.dart';
@@ -15,7 +17,7 @@ class EndPointsSourceGenerator {
     _imports.clear();
     _source.clear();
     _imports.writeln(generatedCodeMessage);
-     _imports.writeln();
+    _imports.writeln();
     _addDefaultImports();
     _addDefaultTemplates();
 
@@ -29,7 +31,11 @@ class EndPointsSourceGenerator {
 
     _source.writeln(_generateHandlersList());
 
-    return _imports.toString() + _source.toString();
+    final source = _imports.toString() + _source.toString();
+
+    final formattedSource = DartFormatter().format(source);
+
+    return formattedSource;
   }
 
   void _addDefaultImports() {
@@ -149,7 +155,7 @@ class $handlerClassName extends FutureOrBaseHandler {
         from = null;
       }
 
-      // TODO: this does not handle iterables ... 
+      // TODO: this does not handle iterables ...
       if (from != null) {
         if (arg.isNullable) {
           buffer.writeln(
