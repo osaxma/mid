@@ -7,7 +7,7 @@ import '_models.dart';
 
 class VisitEndPointsFunction extends SimpleAstVisitor {
   final String filePath;
-  final List<BaseRouteInfo> routes = [];
+  final List<ClassInfo> routes = [];
   VisitEndPointsFunction({required this.filePath});
 
   @override
@@ -24,7 +24,7 @@ class VisitReturnStatement extends RecursiveAstVisitor {
 
   VisitReturnStatement({required this.filePath, required this.routes});
 
-  final List<BaseRouteInfo> routes;
+  final List<ClassInfo> routes;
 
   @override
   void visitReturnStatement(ReturnStatement node) {
@@ -52,7 +52,7 @@ class VisitReturnStatement extends RecursiveAstVisitor {
         throw Exception('Uknown element in the list');
       }
 
-      routes.add(BaseRouteInfo.fromInterfaceType(staticType));
+      routes.add(ClassInfo.fromInterfaceType(staticType));
     }
   }
 

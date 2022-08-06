@@ -1,0 +1,180 @@
+import 'package:mid/src/common/extensions.dart';
+import 'package:mid/src/generators/endpoints_generator/_models.dart';
+import 'package:mid/src/generators/endpoints_generator/templates.dart';
+
+class EndPointsSourceGenerator {
+  EndPointsSourceGenerator(this.routes);
+
+  final List<ClassInfo> routes;
+  final _imports = StringBuffer();
+  final _source = StringBuffer();
+
+  String generate() {
+    _imports.clear();
+    _source.clear();
+    _addDefaultImports();
+    _addDefaultTemplates();
+
+    for (final route in routes) {
+      _generateHandler(route);
+    }
+
+    _imports.write('\n\n\n\n');
+
+    return _imports.toString() + _source.toString();
+  }
+
+  void _addDefaultImports() {
+    _imports.writeln(asyncImport);
+    _imports.writeln(shelfImport);
+  }
+
+  void _addDefaultTemplates() {
+    _source.writeln(futureOrBaseHandler);
+    _source.writeln(streamBaseHandler);
+  }
+
+  void _addImport(String packageURI) {
+    _imports.writeln("import '$packageURI';");
+  }
+
+  void _generateHandler(ClassInfo route) {
+    _addImport(route.packageURI);
+    final className = route.className;
+
+    for (final methodInfo in route.methodInfos) {
+      _source.writeln(_generateHandlerClass(className, methodInfo));
+    }
+  }
+
+  String _generateHandlerClass(String className, MethodInfo methodInfo) {
+    final classInstanceName = className.toLowerCase();
+    final methodName = methodInfo.methodName;
+
+    final handlerClassName = '$className${methodName.capitalizeFirst()}Handler';
+    // In Dart, the convention is that classes are PascalCase and methods are camelCase
+    // we convert both to snake_case (this can be made optional)
+    // TODO(@osaxma): figure out if we need to have a `/` at the end of the route
+    final route = '${className.toSnakeCaseFromPascalCase()}/${methodName.toSnakeCaseFromCamelCase()}/';
+    final assignments = _generateArgumentAssignment(methodInfo);
+    final resultName = 'result';
+    final methodInvocation = _generateMethodInvocation(methodInfo, classInstanceName, resultName: resultName);
+    late final String responseBody;
+
+    // depending on how the data class is generated, toMap always return Map<String, dynamic>
+    // while toJson could return a json string if it has toMap already, and would return Map<String, dynamic>
+    // if it doesn't have toMap -- we try to cover both cases.
+    if (methodInfo.returnTypeInfo.typeContainsToMapMethod) {
+      responseBody = '$resultName.toMap()';
+    } else if (methodInfo.returnTypeInfo.typeContainsToJsonMethod) {
+      responseBody = '$resultName.toJson()';
+    } else if (methodInfo.returnTypeInfo.isVoid) {
+      responseBody = 'ok';
+    } else {
+      responseBody = resultName;
+    }
+
+    final isFuture = methodInfo.returnTypeInfo.isFuture;
+    final isStream = methodInfo.returnTypeInfo.isStream;
+    final returnType = isFuture ? 'Future<Response>' : 'Response';
+    final asyncKeyWord = isFuture ? 'async' : '';
+
+    return '''
+
+class $handlerClassName extends FutureOrBaseHandler {
+  final $className $classInstanceName;
+  $handlerClassName(this.$classInstanceName);
+
+  @override
+  String get route => '$route';
+  @override
+  $returnType handler(Map<String, dynamic> map) $asyncKeyWord {
+    $assignments
+    try {
+      $methodInvocation
+      return Response.ok($responseBody);
+    } catch (e) {
+      return Response.badRequest(body: e);
+    }
+  }
+}
+
+''';
+  }
+
+  /// Given a `Map<String, dynamic> map`, extract each argument based on its name
+  /// e.g. if the method at hand is:
+  ///    Future<String> myMethod(String x, {String? y}) { .... }
+  /// then the resulting source code is:
+  ///    final x = map['x'] as String;
+  ///    final y = map['y'] as String?;
+  String _generateArgumentAssignment(MethodInfo methodInfo, {String mapVariableName = 'map'}) {
+    final buffer = StringBuffer();
+
+    // create variable assignments
+    for (final arg in methodInfo.argumentsInfo) {
+      final name = arg.argName;
+      final type = arg.getType(withNullability: true);
+
+      // depending on how the data class is generated fromMap always accepts Map<String, dynamic>
+      // while fromJson could expect a json string if it has fromMap already, and would expect Map<String, dynamic>
+      // if it doesn't have fromMap -- we try to cover both cases
+      if (arg.typeContainsFromMapConstructor) {
+        buffer.writeln(
+            "final $name = $mapVariableName['$name'] == null ? null : $type.fromMap($mapVariableName['$name']);");
+      } else if (arg.typeContainsFromMapConstructor) {
+        buffer.writeln(
+            "final $name = $mapVariableName['$name'] == null ? null : $type.fromJson($mapVariableName['$name']);");
+      } else {
+        buffer.writeln("final $name = $mapVariableName['$name'] as $type;");
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  /// generates:
+  /// final [resultName] = [classInstanceName].[methodInfo.methodName](args)
+  ///
+  /// e.g.
+  /// final result = SomeClassInstance.Method(value1, {namedArg: value2, namedOptionalArg: value3 ?? defaultValue});
+  String _generateMethodInvocation(MethodInfo methodInfo, String classInstanceName, {required String resultName}) {
+    final buffer = StringBuffer();
+    if (!methodInfo.returnTypeInfo.isVoid) {
+      buffer.write('final $resultName = ');
+    }
+    if (methodInfo.returnTypeInfo.isFuture) {
+      buffer.write('await ');
+    }
+    buffer.write('$classInstanceName.${methodInfo.methodName}(');
+
+    // if there are named arguments
+    bool hasOpeningCurlyBracket = false;
+    // create variable assignments
+    for (final arg in methodInfo.argumentsInfo) {
+      final name = arg.argName;
+
+      // the assigned value
+      final value = arg.hasDefaultValue ? '$name ?? ${arg.defaultValue}' : name;
+
+      if (arg.isPositional) {
+        buffer.write(value);
+      } else if (arg.isNamed) {
+        if (!hasOpeningCurlyBracket) {
+          hasOpeningCurlyBracket = true;
+          buffer.write('{');
+        }
+        buffer.write('$name:$value');
+      }
+
+      buffer.write(',');
+    }
+
+    if (hasOpeningCurlyBracket) {
+      buffer.write('}');
+    }
+    buffer.writeln(");");
+
+    return buffer.toString();
+  }
+}

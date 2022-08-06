@@ -3,7 +3,7 @@ description: an API generation tool
 version: 0.0.1
 homepage: https://www.github.com/osaxma/mid
 
-executable:
+executables:
   mid:
 
 environment:
