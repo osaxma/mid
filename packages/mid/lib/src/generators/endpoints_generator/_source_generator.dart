@@ -6,6 +6,7 @@ class EndPointsSourceGenerator {
   EndPointsSourceGenerator(this.routes);
 
   final List<ClassInfo> routes;
+  final _handlerClassesInstances = <String>[];
   final _imports = StringBuffer();
   final _source = StringBuffer();
 
@@ -15,21 +16,29 @@ class EndPointsSourceGenerator {
     _addDefaultImports();
     _addDefaultTemplates();
 
+    int i = 0;
     for (final route in routes) {
-      _generateHandler(route);
+      _generateHandler(route, i);
+      i++;
     }
 
     _imports.write('\n\n\n\n');
+
+    _source.writeln(_generateHandlersList());
 
     return _imports.toString() + _source.toString();
   }
 
   void _addDefaultImports() {
     _imports.writeln(asyncImport);
+    _imports.writeln(dartConvertImport);
     _imports.writeln(shelfImport);
+    _imports.writeln(shelfRouterImport);
+    _imports.writeln(entryPointImport);
   }
 
   void _addDefaultTemplates() {
+    _source.writeln(generateRouterMethod);
     _source.writeln(futureOrBaseHandler);
     _source.writeln(streamBaseHandler);
   }
@@ -38,20 +47,27 @@ class EndPointsSourceGenerator {
     _imports.writeln("import '$packageURI';");
   }
 
-  void _generateHandler(ClassInfo route) {
+  void _generateHandler(ClassInfo route, int index) {
     _addImport(route.packageURI);
     final className = route.className;
 
     for (final methodInfo in route.methodInfos) {
-      _source.writeln(_generateHandlerClass(className, methodInfo));
+      _source.writeln(_generateHandlerClass(className, methodInfo, index));
     }
   }
 
-  String _generateHandlerClass(String className, MethodInfo methodInfo) {
+  // this is for the handler instance creation
+  void _addHandlerClassToListOfHandlers(String handlerName, String className, int handlerIndex) {
+    _handlerClassesInstances.add('$handlerName(list[$handlerIndex] as $className)');
+  }
+
+  String _generateHandlerClass(String className, MethodInfo methodInfo, int index) {
     final classInstanceName = className.toLowerCase();
     final methodName = methodInfo.methodName;
 
     final handlerClassName = '$className${methodName.capitalizeFirst()}Handler';
+
+    _addHandlerClassToListOfHandlers(handlerClassName, className, index);
     // In Dart, the convention is that classes are PascalCase and methods are camelCase
     // we convert both to snake_case (this can be made optional)
     // TODO(@osaxma): figure out if we need to have a `/` at the end of the route
@@ -69,7 +85,7 @@ class EndPointsSourceGenerator {
     } else if (methodInfo.returnTypeInfo.typeContainsToJsonMethod) {
       responseBody = '$resultName.toJson()';
     } else if (methodInfo.returnTypeInfo.isVoid) {
-      responseBody = 'ok';
+      responseBody = "'ok'";
     } else {
       responseBody = resultName;
     }
@@ -115,18 +131,36 @@ class $handlerClassName extends FutureOrBaseHandler {
     for (final arg in methodInfo.argumentsInfo) {
       final name = arg.argName;
       final type = arg.getType(withNullability: true);
-
+      bool isCoreType = false;
       // depending on how the data class is generated fromMap always accepts Map<String, dynamic>
       // while fromJson could expect a json string if it has fromMap already, and would expect Map<String, dynamic>
       // if it doesn't have fromMap -- we try to cover both cases
       if (arg.typeContainsFromMapConstructor) {
-        buffer.writeln(
-            "final $name = $mapVariableName['$name'] == null ? null : $type.fromMap($mapVariableName['$name']);");
-      } else if (arg.typeContainsFromMapConstructor) {
-        buffer.writeln(
-            "final $name = $mapVariableName['$name'] == null ? null : $type.fromJson($mapVariableName['$name']);");
+        if (arg.isNullable) {
+          buffer.writeln(
+            "final $name = $mapVariableName['$name'] == null ? null : $type.fromMap($mapVariableName['$name']);",
+          );
+        } else {
+          buffer.writeln(
+            "final $name =  $type.fromMap($mapVariableName['$name']);",
+          );
+        }
+      } else if (arg.typeContainsFromJsonConstructor) {
+        if (arg.isNullable) {
+          buffer.writeln(
+            "final $name = $mapVariableName['$name'] == null ? null : $type.fromJson($mapVariableName['$name']);",
+          );
+        }
       } else {
+        isCoreType = true;
         buffer.writeln("final $name = $mapVariableName['$name'] as $type;");
+      }
+
+      if (!isCoreType) {
+        final typePackageURI = arg.getTypePackageURI();
+        if (typePackageURI != null) {
+          _addImport(typePackageURI);
+        }
       }
     }
 
@@ -176,5 +210,20 @@ class $handlerClassName extends FutureOrBaseHandler {
     buffer.writeln(");");
 
     return buffer.toString();
+  }
+
+  String _generateHandlersList() {
+    final String handlers = _handlerClassesInstances.join(',');
+
+    return '''
+Future<List<FutureOrBaseHandler>> getHandlers() async {
+  final list = await entryPoint();
+  final handlers = <FutureOrBaseHandler>[
+    $handlers
+  ];
+
+  return handlers;
+}
+''';
   }
 }

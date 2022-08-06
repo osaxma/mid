@@ -1,5 +1,50 @@
+const entryPointImport = "import '../entrypoint.dart';";
 const shelfImport = "import 'package:shelf/shelf.dart';";
+const shelfRouterImport = "import 'package:shelf_router/shelf_router.dart';";
 const asyncImport = "import 'dart:async';";
+const dartConvertImport = "import 'dart:convert';";
+
+const handlersListName = "handlers";
+
+const generateRouterMethod = ''' 
+
+final Map<String, String> _defaultHeaders = {
+  'Content-Type': 'application/json',
+  // figure out how to make this defined by the EndPoint
+  // 'Access-Control-Allow-Origin': '*',
+};
+
+Future<Router> generateRouter() async {
+  final handlers = await getHandlers();
+  final router = Router();
+  for (final handler in handlers) {
+    router.add(handler.verb, handler.route, (Request request) => _defaultHandler(request, handler));
+  }
+  return router;
+}
+
+Future<Response> _defaultHandler(Request request, FutureOrBaseHandler baseHandler) async {
+  final contentType = request.headers['Content-Type'];
+
+  if (contentType == null || contentType != 'application/json') {
+    return Response.badRequest(body: 'content type must be application/json');
+  }
+
+  final body = await request.readAsString();
+  if (body.isEmpty) {
+    return Response.badRequest(body: 'the request does not have a body');
+  }
+
+  try {
+    final Map<String, dynamic> bodayMap = json.decode(body);
+    final response = await baseHandler.handler(bodayMap);
+    response.change(headers: _defaultHeaders);
+    return response;
+  } catch (e) {
+    return Response.badRequest(body: 'failed to decode request body');
+  }
+}
+''';
 
 const futureOrBaseHandler = '''
 abstract class FutureOrBaseHandler {
@@ -30,19 +75,19 @@ abstract class StreamBaseHandler {
 ///   ....
 ///   final varN = map['keyN'] as Type;
 /// ```
-/// 
+///
 /// The [methodInvocation] should be the call to the instance:
 /// ```dart
 /// final result = await classInstanceName.methodName(arguments);
 /// ```
-/// 
+///
 /// The [responseBody] is whatever should be returned -- for instance:
 /// ```dart
 /// result.toJson()
 /// // or
 /// result // if a basic type
 /// ```
-/// 
+///
 String generateHandlerClass({
   required String className,
   required String classInstanceName,
@@ -58,7 +103,6 @@ String generateHandlerClass({
 
   final returnType = isFuture ? 'Future<Response>' : 'Response';
   final asyncKeyWord = isFuture ? 'async' : '';
-
 
   return '''
 class $className extends FutureOrBaseHandler {
