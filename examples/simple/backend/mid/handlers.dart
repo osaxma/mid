@@ -7,7 +7,6 @@
   ╚════════════════════════════════════════════════════════════════════════════╝
 */
 
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
@@ -15,7 +14,6 @@ import 'package:shelf_router/shelf_router.dart';
 import 'entrypoint.dart';
 import 'package:mid_auth/src/server/server.dart';
 import 'package:mid_auth/src/models/user_data.dart';
-
 
 final Map<String, String> _defaultHeaders = {
   'Content-Type': 'application/json',
@@ -27,12 +25,14 @@ Future<Router> generateRouter() async {
   final handlers = await getHandlers();
   final router = Router();
   for (final handler in handlers) {
-    router.add(handler.verb, handler.route, (Request request) => _defaultHandler(request, handler));
+    router.add(handler.verb, handler.route,
+        (Request request) => _defaultHandler(request, handler));
   }
   return router;
 }
 
-Future<Response> _defaultHandler(Request request, FutureOrBaseHandler baseHandler) async {
+Future<Response> _defaultHandler(
+    Request request, FutureOrBaseHandler baseHandler) async {
   final contentType = request.headers['Content-Type'];
 
   if (contentType == null || contentType != 'application/json') {
@@ -59,7 +59,9 @@ abstract class FutureOrBaseHandler {
   String get route;
 
   /// The request handler
-  FutureOr<Response> handler(Map<String, dynamic> map); // need importing async =>  import 'dart:async';
+  FutureOr<Response> handler(
+      Map<String, dynamic>
+          map); // need importing async =>  import 'dart:async';
 
   /// The HTTP verb
   // for now only post is used for all types of requests
@@ -70,8 +72,8 @@ abstract class StreamBaseHandler {
   /* WIP */
 }
 
-
-class AuthServerCreateUserWithEmailAndPasswordHandler extends FutureOrBaseHandler {
+class AuthServerCreateUserWithEmailAndPasswordHandler
+    extends FutureOrBaseHandler {
   final AuthServer authserver;
   AuthServerCreateUserWithEmailAndPasswordHandler(this.authserver);
 
@@ -80,10 +82,13 @@ class AuthServerCreateUserWithEmailAndPasswordHandler extends FutureOrBaseHandle
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final email = map['email'] as String;
-final password = map['password'] as String;
+    final password = map['password'] as String;
 
     try {
-      final result = await authserver.createUserWithEmailAndPassword(email,password,);
+      final result = await authserver.createUserWithEmailAndPassword(
+        email,
+        password,
+      );
 
       return Response.ok(result);
     } catch (e) {
@@ -91,8 +96,6 @@ final password = map['password'] as String;
     }
   }
 }
-
-
 
 class AuthServerSignInWithEmailAndPasswordHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
@@ -103,10 +106,13 @@ class AuthServerSignInWithEmailAndPasswordHandler extends FutureOrBaseHandler {
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final email = map['email'] as String;
-final password = map['password'] as String;
+    final password = map['password'] as String;
 
     try {
-      final result = await authserver.signInWithEmailAndPassword(email,password,);
+      final result = await authserver.signInWithEmailAndPassword(
+        email,
+        password,
+      );
 
       return Response.ok(result);
     } catch (e) {
@@ -114,8 +120,6 @@ final password = map['password'] as String;
     }
   }
 }
-
-
 
 class AuthServerSignOutHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
@@ -126,10 +130,13 @@ class AuthServerSignOutHandler extends FutureOrBaseHandler {
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final jwt = map['jwt'] as String;
-final refreshToken = map['refreshToken'] as String;
+    final refreshToken = map['refreshToken'] as String;
 
     try {
-      await authserver.signOut(jwt,refreshToken,);
+      await authserver.signOut(
+        jwt,
+        refreshToken,
+      );
 
       return Response.ok('ok');
     } catch (e) {
@@ -137,8 +144,6 @@ final refreshToken = map['refreshToken'] as String;
     }
   }
 }
-
-
 
 class AuthServerSignOutAllHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
@@ -151,7 +156,9 @@ class AuthServerSignOutAllHandler extends FutureOrBaseHandler {
     final jwt = map['jwt'] as String;
 
     try {
-      await authserver.signOutAll(jwt,);
+      await authserver.signOutAll(
+        jwt,
+      );
 
       return Response.ok('ok');
     } catch (e) {
@@ -159,8 +166,6 @@ class AuthServerSignOutAllHandler extends FutureOrBaseHandler {
     }
   }
 }
-
-
 
 class AuthServerRefreshSessionHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
@@ -171,10 +176,13 @@ class AuthServerRefreshSessionHandler extends FutureOrBaseHandler {
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final jwt = map['jwt'] as String;
-final refreshToken = map['refreshToken'] as String;
+    final refreshToken = map['refreshToken'] as String;
 
     try {
-      final result = await authserver.refreshSession(jwt,refreshToken,);
+      final result = await authserver.refreshSession(
+        jwt,
+        refreshToken,
+      );
 
       return Response.ok(result);
     } catch (e) {
@@ -182,8 +190,6 @@ final refreshToken = map['refreshToken'] as String;
     }
   }
 }
-
-
 
 class AuthServerSendConfirmationEmailHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
@@ -193,10 +199,12 @@ class AuthServerSendConfirmationEmailHandler extends FutureOrBaseHandler {
   String get route => 'auth_server/send_confirmation_email/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
-    final user =  User.fromMap(map['user']);
+    final user = User.fromMap(map['user']);
 
     try {
-      await authserver.sendConfirmationEmail(user,);
+      await authserver.sendConfirmationEmail(
+        user,
+      );
 
       return Response.ok('ok');
     } catch (e) {
@@ -204,8 +212,6 @@ class AuthServerSendConfirmationEmailHandler extends FutureOrBaseHandler {
     }
   }
 }
-
-
 
 class AuthServerConfirmEmailHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
@@ -218,7 +224,9 @@ class AuthServerConfirmEmailHandler extends FutureOrBaseHandler {
     final object = map['object'] as Object;
 
     try {
-      final result = await authserver.confirmEmail(object,);
+      final result = await authserver.confirmEmail(
+        object,
+      );
 
       return Response.ok(result);
     } catch (e) {
@@ -226,8 +234,6 @@ class AuthServerConfirmEmailHandler extends FutureOrBaseHandler {
     }
   }
 }
-
-
 
 class AuthServerRequestPasswordResetHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
@@ -240,7 +246,9 @@ class AuthServerRequestPasswordResetHandler extends FutureOrBaseHandler {
     final email = map['email'] as String;
 
     try {
-      final result = await authserver.requestPasswordReset(email,);
+      final result = await authserver.requestPasswordReset(
+        email,
+      );
 
       return Response.ok(result);
     } catch (e) {
@@ -248,8 +256,6 @@ class AuthServerRequestPasswordResetHandler extends FutureOrBaseHandler {
     }
   }
 }
-
-
 
 class AuthServerChangePasswordHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
@@ -260,11 +266,15 @@ class AuthServerChangePasswordHandler extends FutureOrBaseHandler {
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final jwt = map['jwt'] as String;
-final oldPassword = map['oldPassword'] as String;
-final newPassword = map['newPassword'] as String;
+    final oldPassword = map['oldPassword'] as String;
+    final newPassword = map['newPassword'] as String;
 
     try {
-      final result = await authserver.changePassword(jwt,oldPassword,newPassword,);
+      final result = await authserver.changePassword(
+        jwt,
+        oldPassword,
+        newPassword,
+      );
 
       return Response.ok(result);
     } catch (e) {
@@ -273,8 +283,6 @@ final newPassword = map['newPassword'] as String;
   }
 }
 
-
-
 class AuthServerGetPublicJWKHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
   AuthServerGetPublicJWKHandler(this.authserver);
@@ -282,8 +290,7 @@ class AuthServerGetPublicJWKHandler extends FutureOrBaseHandler {
   @override
   String get route => 'auth_server/get_public_jwk/';
   @override
-  Response handler(Map<String, dynamic> map)  {
-    
+  Response handler(Map<String, dynamic> map) {
     try {
       final result = authserver.getPublicJWK();
 
@@ -294,8 +301,6 @@ class AuthServerGetPublicJWKHandler extends FutureOrBaseHandler {
   }
 }
 
-
-
 class AuthServerGetPublicKeyInPemFormatHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
   AuthServerGetPublicKeyInPemFormatHandler(this.authserver);
@@ -303,8 +308,7 @@ class AuthServerGetPublicKeyInPemFormatHandler extends FutureOrBaseHandler {
   @override
   String get route => 'auth_server/get_public_key_in_pem_format/';
   @override
-  Response handler(Map<String, dynamic> map)  {
-    
+  Response handler(Map<String, dynamic> map) {
     try {
       final result = authserver.getPublicKeyInPemFormat();
 
@@ -315,13 +319,21 @@ class AuthServerGetPublicKeyInPemFormatHandler extends FutureOrBaseHandler {
   }
 }
 
-
 Future<List<FutureOrBaseHandler>> getHandlers() async {
   final list = await entryPoint();
   final handlers = <FutureOrBaseHandler>[
-    AuthServerCreateUserWithEmailAndPasswordHandler(list[0] as AuthServer),AuthServerSignInWithEmailAndPasswordHandler(list[0] as AuthServer),AuthServerSignOutHandler(list[0] as AuthServer),AuthServerSignOutAllHandler(list[0] as AuthServer),AuthServerRefreshSessionHandler(list[0] as AuthServer),AuthServerSendConfirmationEmailHandler(list[0] as AuthServer),AuthServerConfirmEmailHandler(list[0] as AuthServer),AuthServerRequestPasswordResetHandler(list[0] as AuthServer),AuthServerChangePasswordHandler(list[0] as AuthServer),AuthServerGetPublicJWKHandler(list[0] as AuthServer),AuthServerGetPublicKeyInPemFormatHandler(list[0] as AuthServer)
+    AuthServerCreateUserWithEmailAndPasswordHandler(list[0] as AuthServer),
+    AuthServerSignInWithEmailAndPasswordHandler(list[0] as AuthServer),
+    AuthServerSignOutHandler(list[0] as AuthServer),
+    AuthServerSignOutAllHandler(list[0] as AuthServer),
+    AuthServerRefreshSessionHandler(list[0] as AuthServer),
+    AuthServerSendConfirmationEmailHandler(list[0] as AuthServer),
+    AuthServerConfirmEmailHandler(list[0] as AuthServer),
+    AuthServerRequestPasswordResetHandler(list[0] as AuthServer),
+    AuthServerChangePasswordHandler(list[0] as AuthServer),
+    AuthServerGetPublicJWKHandler(list[0] as AuthServer),
+    AuthServerGetPublicKeyInPemFormatHandler(list[0] as AuthServer)
   ];
 
   return handlers;
 }
-
