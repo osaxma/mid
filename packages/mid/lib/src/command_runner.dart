@@ -2,6 +2,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:mid/src/commands/generate.dart';
 
+import 'commands/init.dart';
 import 'version.dart';
 
 class MIDCommandRunner extends CommandRunner<void> {
@@ -26,6 +27,7 @@ class MIDCommandRunner extends CommandRunner<void> {
     );
 
     addCommand(GenerateCommand());
+    addCommand(InitCommand());
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:mid/src/common/extensions.dart';
 import 'package:mid/src/generators/endpoints_generator/_models.dart';
 import 'package:mid/src/generators/endpoints_generator/templates.dart';
+import 'package:mid/src/templates/init.dart';
 
 class EndPointsSourceGenerator {
   EndPointsSourceGenerator(this.routes);
@@ -13,6 +14,8 @@ class EndPointsSourceGenerator {
   String generate() {
     _imports.clear();
     _source.clear();
+    _imports.writeln(generatedCodeMessage);
+     _imports.writeln();
     _addDefaultImports();
     _addDefaultTemplates();
 
@@ -22,7 +25,7 @@ class EndPointsSourceGenerator {
       i++;
     }
 
-    _imports.write('\n\n\n\n');
+    _imports.writeln();
 
     _source.writeln(_generateHandlersList());
 
@@ -86,6 +89,8 @@ class EndPointsSourceGenerator {
       responseBody = '$resultName.toJson()';
     } else if (methodInfo.returnTypeInfo.isVoid) {
       responseBody = "'ok'";
+    } else if (methodInfo.returnTypeInfo.isDateTime) {
+      responseBody = '$resultName.toIso8601String()';
     } else {
       responseBody = resultName;
     }
@@ -135,21 +140,23 @@ class $handlerClassName extends FutureOrBaseHandler {
       // depending on how the data class is generated fromMap always accepts Map<String, dynamic>
       // while fromJson could expect a json string if it has fromMap already, and would expect Map<String, dynamic>
       // if it doesn't have fromMap -- we try to cover both cases
+      late final String? from;
       if (arg.typeContainsFromMapConstructor) {
+        from = 'fromMap';
+      } else if (arg.typeContainsFromJsonConstructor) {
+        from = 'fromJson';
+      } else {
+        from = null;
+      }
+
+      // TODO: this does not handle iterables ... 
+      if (from != null) {
         if (arg.isNullable) {
           buffer.writeln(
-            "final $name = $mapVariableName['$name'] == null ? null : $type.fromMap($mapVariableName['$name']);",
+            "final $name = $mapVariableName['$name'] == null ? null : $type.$from($mapVariableName['$name']);",
           );
         } else {
-          buffer.writeln(
-            "final $name =  $type.fromMap($mapVariableName['$name']);",
-          );
-        }
-      } else if (arg.typeContainsFromJsonConstructor) {
-        if (arg.isNullable) {
-          buffer.writeln(
-            "final $name = $mapVariableName['$name'] == null ? null : $type.fromJson($mapVariableName['$name']);",
-          );
+          buffer.writeln("final $name =  $type.$from($mapVariableName['$name']);");
         }
       } else {
         isCoreType = true;

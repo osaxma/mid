@@ -24,7 +24,7 @@ class EndPointsGenerator {
 
     final source = EndPointsSourceGenerator(routes).generate();
 
-    final file = File(p.join(projectPath, 'mid', 'generated', 'handlers.dart'));
+    final file = File(p.join(projectPath, 'mid', 'handlers.dart'));
     file.writeAsStringSync(source);
   }
 

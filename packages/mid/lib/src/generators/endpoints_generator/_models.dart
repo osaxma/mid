@@ -4,8 +4,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:mid/src/common/extensions.dart';
 
 // TODO: move all the types logic into TypeInfo (typeArguments, isFuture, isStream, hasToJson, packageURI, etc)
-//       it's a bit messy now 
-
+//       it's a bit messy now
 
 class ClassInfo {
   final String className;
@@ -136,7 +135,7 @@ class ArgumentInfo {
     final type = _parameterElement.type;
     if (type is InterfaceType) {
       return type.element.librarySource.uri.toString();
-    } 
+    }
     return null;
   }
   // int get position => _parameterElement.
@@ -162,6 +161,10 @@ class ReturnTypeInfo {
   bool get isList => _dartType.isDartCoreList || typeArguments.any((e) => e.isDartCoreList);
   bool get isSet => _dartType.isDartCoreSet || typeArguments.any((e) => e.isDartCoreSet);
   bool get isMap => _dartType.isDartCoreMap || typeArguments.any((e) => e.isDartCoreMap);
+  bool get isDateTime {
+    return _dartType.getDisplayString(withNullability: false) == 'DateTime' ||
+        typeArguments.any((e) => e.getDisplayString(withNullability: false) == 'DateTime');
+  }
 
   bool get isVoid => _dartType.isVoid || typeArguments.any((element) => element.isVoid);
 

@@ -1,4 +1,4 @@
-const entryPointImport = "import '../entrypoint.dart';";
+const entryPointImport = "import 'entrypoint.dart';";
 const shelfImport = "import 'package:shelf/shelf.dart';";
 const shelfRouterImport = "import 'package:shelf_router/shelf_router.dart';";
 const asyncImport = "import 'dart:async';";
