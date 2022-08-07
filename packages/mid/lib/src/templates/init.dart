@@ -103,3 +103,17 @@ const generatedCodeMessage = '''
   ╚════════════════════════════════════════════════════════════════════════════╝
 */
 ''';
+
+
+
+const configTemplate = '''
+{
+    "client": {
+        // the target directory where the client project will be created
+        "target_directory": null,
+        // the project name (defaults to "client")
+        "project_name": "client"
+    },
+    "server": {}
+}
+''';
