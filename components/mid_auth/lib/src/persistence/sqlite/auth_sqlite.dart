@@ -5,6 +5,15 @@ import 'package:mid_auth/src/persistence/auth_db.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
 
+// TODO(osaxma): handle error messages properly so they do not contain the entire query when returned to the user.
+//               during debug, the entire query of createUser including the hashedPassword was returned to the client. 
+//               This may be unsecure. To reproduce, create an existing which will produce an error similar to the following:               
+/* 
+  failed to decode request body Invalid argument(s): Response body "SqliteException(2067): UNIQUE constraint failed: auth_users.email, constraint failed (code 2067)
+  * Connection #0 to host localhost left intact
+  Causing statement: insert into auth_users (email, password) values ('example@example.com', '$2b$10$Da30XkhHwppsvpuJG3KRzeNhwo9VZt49OW7eRoq7RpU1FdgzHSTBq') RETURNING *" must be a String or a Stream.⏎
+   */
+
 // TODO(osaxma): figure out an appropriate default path
 final defaultPath = p.join(p.current, 'auth.db');
 
