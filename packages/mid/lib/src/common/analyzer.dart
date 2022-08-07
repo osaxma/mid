@@ -55,3 +55,27 @@ Future<ResolvedUnitResult> getResolvedUnit2(String filePath) async {
 
   return resolvedUnit as ResolvedUnitResult;
 }
+
+const basicTypes = {
+  'bool',
+  'num',
+  'int',
+  'BigInt',
+  'String',
+  'double',
+  'dynamic',
+  'Object',
+  'DateTime',
+  'Duration',
+};
+
+const collectionTypes = {
+  'Set',
+  'Map',
+  'List',
+};
+
+const coreTypes = {
+  ...basicTypes,
+  ...collectionTypes,
+};

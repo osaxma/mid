@@ -25,17 +25,15 @@ Future<Router> generateRouter() async {
   final handlers = await getHandlers();
   final router = Router();
   for (final handler in handlers) {
-    router.add(handler.verb, handler.route,
-        (Request request) => _defaultHandler(request, handler));
+    router.add(handler.verb, handler.route, (Request request) => _defaultHandler(request, handler));
   }
   return router;
 }
 
-Future<Response> _defaultHandler(
-    Request request, FutureOrBaseHandler baseHandler) async {
-  final contentType = request.headers['Content-Type'];
-
-  if (contentType == null || contentType != 'application/json') {
+Future<Response> _defaultHandler(Request request, FutureOrBaseHandler baseHandler) async {
+  final contentType = request.headers['content-type'];
+  
+  if (contentType == null || !contentType.contains('application/json')) {
     return Response.badRequest(body: 'content type must be application/json');
   }
 
@@ -59,9 +57,7 @@ abstract class FutureOrBaseHandler {
   String get route;
 
   /// The request handler
-  FutureOr<Response> handler(
-      Map<String, dynamic>
-          map); // need importing async =>  import 'dart:async';
+  FutureOr<Response> handler(Map<String, dynamic> map); // need importing async =>  import 'dart:async';
 
   /// The HTTP verb
   // for now only post is used for all types of requests
@@ -72,8 +68,7 @@ abstract class StreamBaseHandler {
   /* WIP */
 }
 
-class AuthServerCreateUserWithEmailAndPasswordHandler
-    extends FutureOrBaseHandler {
+class AuthServerCreateUserWithEmailAndPasswordHandler extends FutureOrBaseHandler {
   final AuthServer authserver;
   AuthServerCreateUserWithEmailAndPasswordHandler(this.authserver);
 
@@ -90,9 +85,9 @@ class AuthServerCreateUserWithEmailAndPasswordHandler
         password,
       );
 
-      return Response.ok(result is! String ? json.encode(result) : result);
+      return Response.ok(json.encode(result.toMap()));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
@@ -114,9 +109,9 @@ class AuthServerSignInWithEmailAndPasswordHandler extends FutureOrBaseHandler {
         password,
       );
 
-      return Response.ok(result is! String ? json.encode(result) : result);
+      return Response.ok(json.encode(result.toMap()));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
@@ -138,9 +133,9 @@ class AuthServerSignOutHandler extends FutureOrBaseHandler {
         refreshToken,
       );
 
-      return Response.ok('ok' is! String ? json.encode('ok') : 'ok');
+      return Response.ok(json.encode('ok'));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
@@ -160,9 +155,9 @@ class AuthServerSignOutAllHandler extends FutureOrBaseHandler {
         jwt,
       );
 
-      return Response.ok('ok' is! String ? json.encode('ok') : 'ok');
+      return Response.ok(json.encode('ok'));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
@@ -184,9 +179,9 @@ class AuthServerRefreshSessionHandler extends FutureOrBaseHandler {
         refreshToken,
       );
 
-      return Response.ok(result is! String ? json.encode(result) : result);
+      return Response.ok(json.encode(result.toMap()));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
@@ -206,9 +201,9 @@ class AuthServerSendConfirmationEmailHandler extends FutureOrBaseHandler {
         user,
       );
 
-      return Response.ok('ok' is! String ? json.encode('ok') : 'ok');
+      return Response.ok(json.encode('ok'));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
@@ -228,9 +223,9 @@ class AuthServerConfirmEmailHandler extends FutureOrBaseHandler {
         object,
       );
 
-      return Response.ok(result is! String ? json.encode(result) : result);
+      return Response.ok(json.encode(result));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
@@ -250,9 +245,9 @@ class AuthServerRequestPasswordResetHandler extends FutureOrBaseHandler {
         email,
       );
 
-      return Response.ok(result is! String ? json.encode(result) : result);
+      return Response.ok(json.encode(result));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
@@ -276,9 +271,9 @@ class AuthServerChangePasswordHandler extends FutureOrBaseHandler {
         newPassword,
       );
 
-      return Response.ok(result is! String ? json.encode(result) : result);
+      return Response.ok(json.encode(result));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
@@ -294,9 +289,9 @@ class AuthServerGetPublicJWKHandler extends FutureOrBaseHandler {
     try {
       final result = authserver.getPublicJWK();
 
-      return Response.ok(result is! String ? json.encode(result) : result);
+      return Response.ok(json.encode(result));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
@@ -312,9 +307,9 @@ class AuthServerGetPublicKeyInPemFormatHandler extends FutureOrBaseHandler {
     try {
       final result = authserver.getPublicKeyInPemFormat();
 
-      return Response.ok(result is! String ? json.encode(result) : result);
+      return Response.ok(json.encode(result));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }

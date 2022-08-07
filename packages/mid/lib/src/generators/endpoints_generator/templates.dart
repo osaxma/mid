@@ -9,7 +9,7 @@ const handlersListName = "handlers";
 const generateRouterMethod = r''' 
 
 final Map<String, String> _defaultHeaders = {
-  'Content-Type': 'application/json',
+  'content-type': 'application/json',
   // figure out how to make this defined by the EndPoint
   // 'Access-Control-Allow-Origin': '*',
 };
@@ -24,9 +24,9 @@ Future<Router> generateRouter() async {
 }
 
 Future<Response> _defaultHandler(Request request, FutureOrBaseHandler baseHandler) async {
-  final contentType = request.headers['Content-Type'];
+  final contentType = request.headers['content-type'];
 
-  if (contentType == null || contentType != 'application/json') {
+  if (contentType == null || !contentType.contains('application/json')) {
     return Response.badRequest(body: 'content type must be application/json');
   }
 

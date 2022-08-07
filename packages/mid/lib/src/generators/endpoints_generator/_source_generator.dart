@@ -121,12 +121,9 @@ class $handlerClassName extends FutureOrBaseHandler {
     try {
       $methodInvocation
 
-      final responseBodyData = $responseBody;
-      final responseBody = responseBodyData is! String ? json.encode(responseBodyData) : responseBodyData;
-
-      return Response.ok(responseBody);
+      return Response.ok(json.encode($responseBody));
     } catch (e) {
-      return Response.badRequest(body: e);
+      return Response.badRequest(body: e.toString());
     }
   }
 }
