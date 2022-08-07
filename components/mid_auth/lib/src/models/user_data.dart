@@ -50,10 +50,18 @@ class User {
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
+    // DateTime is stored as toUtc().toIso8601String() tho when retrieved from SQLite, the timezone isn't there
+    // so we add `Z` at the end to indicate it's a Zero UTC offset
     var emailConfirmedAt = map['email_confirmed_at'] as String?;
-    if (emailConfirmedAt != null) {
+    if (emailConfirmedAt != null && !emailConfirmedAt.endsWith('Z')) {
       emailConfirmedAt = '${emailConfirmedAt}Z';
     }
+
+    String createdAt = map['created_at'];
+    if (!createdAt.endsWith('Z')) {
+      createdAt = '${createdAt}Z';
+    }
+
     // metadata can be a raw json string
     var metadata = map['metadata'];
     if (metadata is String) {
@@ -67,7 +75,7 @@ class User {
     return User(
       id: map['id'] as int,
       email: map['email'] as String,
-      createdAt: DateTime.parse((map['created_at'] as String) + 'Z'),
+      createdAt: DateTime.parse(createdAt),
       emailConfirmedAt: DateTime.tryParse(emailConfirmedAt ?? ''),
       metadata: metadata as Map<String, dynamic>,
     );

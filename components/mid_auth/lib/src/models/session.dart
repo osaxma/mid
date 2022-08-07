@@ -34,16 +34,23 @@ class Session {
     return {
       'access_token': accessToken,
       'refresh_token': refreshToken,
-      'expiry_time': expiryTime.millisecondsSinceEpoch,
+      'expiry_time': expiryTime.toUtc().toIso8601String(),
       'user': user.toMap(),
     };
   }
 
   factory Session.fromMap(Map<String, dynamic> map) {
+    // DateTime is stored as toUtc().toIso8601String() tho when retrieved from SQLite, the timezone isn't there
+    // so we add `Z` at the end to indicate it's a Zero UTC offset
+    String expiryTime = map['expiry_time'];
+    if (!expiryTime.endsWith('Z')) {
+      expiryTime = '${expiryTime}Z';
+    }
+
     return Session(
       accessToken: map['access_token'] as String,
       refreshToken: map['refresh_token'] as String,
-      expiryTime: DateTime.parse((map['expiry_time'] as String) + 'Z'),
+      expiryTime: DateTime.parse(expiryTime),
       user: User.fromMap(map['user'] as Map<String, dynamic>),
     );
   }
