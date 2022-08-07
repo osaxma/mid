@@ -1,5 +1,10 @@
 
+/// project/bin/server.dart
+const binServerDotDart = '''
+import '../mid/server.dart';
 
+void main(List<String> args) => server(args);
+''';
 
 /// `project/mid/server.dart` file
 const serverDotDart = r'''

@@ -6,7 +6,7 @@ const dartConvertImport = "import 'dart:convert';";
 
 const handlersListName = "handlers";
 
-const generateRouterMethod = ''' 
+const generateRouterMethod = r''' 
 
 final Map<String, String> _defaultHeaders = {
   'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ Future<Response> _defaultHandler(Request request, FutureOrBaseHandler baseHandle
     response.change(headers: _defaultHeaders);
     return response;
   } catch (e) {
-    return Response.badRequest(body: 'failed to decode request body');
+    return Response.badRequest(body: 'failed to decode request body $e');
   }
 }
 ''';

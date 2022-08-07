@@ -50,7 +50,7 @@ Future<Response> _defaultHandler(
     response.change(headers: _defaultHeaders);
     return response;
   } catch (e) {
-    return Response.badRequest(body: 'failed to decode request body');
+    return Response.badRequest(body: 'failed to decode request body $e');
   }
 }
 
@@ -78,7 +78,7 @@ class AuthServerCreateUserWithEmailAndPasswordHandler
   AuthServerCreateUserWithEmailAndPasswordHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/create_user_with_email_and_password/';
+  String get route => '/auth_server/create_user_with_email_and_password/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final email = map['email'] as String;
@@ -90,7 +90,7 @@ class AuthServerCreateUserWithEmailAndPasswordHandler
         password,
       );
 
-      return Response.ok(result);
+      return Response.ok(result is! String ? json.encode(result) : result);
     } catch (e) {
       return Response.badRequest(body: e);
     }
@@ -102,7 +102,7 @@ class AuthServerSignInWithEmailAndPasswordHandler extends FutureOrBaseHandler {
   AuthServerSignInWithEmailAndPasswordHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/sign_in_with_email_and_password/';
+  String get route => '/auth_server/sign_in_with_email_and_password/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final email = map['email'] as String;
@@ -114,7 +114,7 @@ class AuthServerSignInWithEmailAndPasswordHandler extends FutureOrBaseHandler {
         password,
       );
 
-      return Response.ok(result);
+      return Response.ok(result is! String ? json.encode(result) : result);
     } catch (e) {
       return Response.badRequest(body: e);
     }
@@ -126,7 +126,7 @@ class AuthServerSignOutHandler extends FutureOrBaseHandler {
   AuthServerSignOutHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/sign_out/';
+  String get route => '/auth_server/sign_out/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final jwt = map['jwt'] as String;
@@ -138,7 +138,7 @@ class AuthServerSignOutHandler extends FutureOrBaseHandler {
         refreshToken,
       );
 
-      return Response.ok('ok');
+      return Response.ok('ok' is! String ? json.encode('ok') : 'ok');
     } catch (e) {
       return Response.badRequest(body: e);
     }
@@ -150,7 +150,7 @@ class AuthServerSignOutAllHandler extends FutureOrBaseHandler {
   AuthServerSignOutAllHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/sign_out_all/';
+  String get route => '/auth_server/sign_out_all/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final jwt = map['jwt'] as String;
@@ -160,7 +160,7 @@ class AuthServerSignOutAllHandler extends FutureOrBaseHandler {
         jwt,
       );
 
-      return Response.ok('ok');
+      return Response.ok('ok' is! String ? json.encode('ok') : 'ok');
     } catch (e) {
       return Response.badRequest(body: e);
     }
@@ -172,7 +172,7 @@ class AuthServerRefreshSessionHandler extends FutureOrBaseHandler {
   AuthServerRefreshSessionHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/refresh_session/';
+  String get route => '/auth_server/refresh_session/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final jwt = map['jwt'] as String;
@@ -184,7 +184,7 @@ class AuthServerRefreshSessionHandler extends FutureOrBaseHandler {
         refreshToken,
       );
 
-      return Response.ok(result);
+      return Response.ok(result is! String ? json.encode(result) : result);
     } catch (e) {
       return Response.badRequest(body: e);
     }
@@ -196,7 +196,7 @@ class AuthServerSendConfirmationEmailHandler extends FutureOrBaseHandler {
   AuthServerSendConfirmationEmailHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/send_confirmation_email/';
+  String get route => '/auth_server/send_confirmation_email/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final user = User.fromMap(map['user']);
@@ -206,7 +206,7 @@ class AuthServerSendConfirmationEmailHandler extends FutureOrBaseHandler {
         user,
       );
 
-      return Response.ok('ok');
+      return Response.ok('ok' is! String ? json.encode('ok') : 'ok');
     } catch (e) {
       return Response.badRequest(body: e);
     }
@@ -218,7 +218,7 @@ class AuthServerConfirmEmailHandler extends FutureOrBaseHandler {
   AuthServerConfirmEmailHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/confirm_email/';
+  String get route => '/auth_server/confirm_email/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final object = map['object'] as Object;
@@ -228,7 +228,7 @@ class AuthServerConfirmEmailHandler extends FutureOrBaseHandler {
         object,
       );
 
-      return Response.ok(result);
+      return Response.ok(result is! String ? json.encode(result) : result);
     } catch (e) {
       return Response.badRequest(body: e);
     }
@@ -240,7 +240,7 @@ class AuthServerRequestPasswordResetHandler extends FutureOrBaseHandler {
   AuthServerRequestPasswordResetHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/request_password_reset/';
+  String get route => '/auth_server/request_password_reset/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final email = map['email'] as String;
@@ -250,7 +250,7 @@ class AuthServerRequestPasswordResetHandler extends FutureOrBaseHandler {
         email,
       );
 
-      return Response.ok(result);
+      return Response.ok(result is! String ? json.encode(result) : result);
     } catch (e) {
       return Response.badRequest(body: e);
     }
@@ -262,7 +262,7 @@ class AuthServerChangePasswordHandler extends FutureOrBaseHandler {
   AuthServerChangePasswordHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/change_password/';
+  String get route => '/auth_server/change_password/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
     final jwt = map['jwt'] as String;
@@ -276,7 +276,7 @@ class AuthServerChangePasswordHandler extends FutureOrBaseHandler {
         newPassword,
       );
 
-      return Response.ok(result);
+      return Response.ok(result is! String ? json.encode(result) : result);
     } catch (e) {
       return Response.badRequest(body: e);
     }
@@ -288,13 +288,13 @@ class AuthServerGetPublicJWKHandler extends FutureOrBaseHandler {
   AuthServerGetPublicJWKHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/get_public_jwk/';
+  String get route => '/auth_server/get_public_jwk/';
   @override
   Response handler(Map<String, dynamic> map) {
     try {
       final result = authserver.getPublicJWK();
 
-      return Response.ok(result);
+      return Response.ok(result is! String ? json.encode(result) : result);
     } catch (e) {
       return Response.badRequest(body: e);
     }
@@ -306,13 +306,13 @@ class AuthServerGetPublicKeyInPemFormatHandler extends FutureOrBaseHandler {
   AuthServerGetPublicKeyInPemFormatHandler(this.authserver);
 
   @override
-  String get route => 'auth_server/get_public_key_in_pem_format/';
+  String get route => '/auth_server/get_public_key_in_pem_format/';
   @override
   Response handler(Map<String, dynamic> map) {
     try {
       final result = authserver.getPublicKeyInPemFormat();
 
-      return Response.ok(result);
+      return Response.ok(result is! String ? json.encode(result) : result);
     } catch (e) {
       return Response.badRequest(body: e);
     }

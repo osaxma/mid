@@ -29,10 +29,16 @@ class InitCommand extends MIDCommand {
       throw Exception('The project seem to be already initialized since there a `mid` folder already exists');
     }
 
+    logger.stdout('creating files:');
     _createFileSync(p.join(path, 'mid', 'entrypoint.dart'), entryPointDotDart);
     _createFileSync(p.join(path, 'mid', 'server.dart'), serverDotDart);
     _createFileSync(p.join(path, 'mid', 'middlewares.dart'), middleWaresDotDart);
     _createFileSync(p.join(path, 'mid', 'handlers.dart'), handlersDotDart);
+
+    logger.stdout('\n');
+    logger.stdout('Make sure to create bin/server.dart or to replace its content with:\n');
+    logger.stdout(binServerDotDart);
+
   }
 
   void _createFileSync(String path, [String? contents]) {
@@ -41,5 +47,7 @@ class InitCommand extends MIDCommand {
     if (contents != null) {
       file.writeAsStringSync(contents);
     }
+
+    logger.stdout(' - ${p.basename(path)}');
   }
 }

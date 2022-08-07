@@ -80,7 +80,8 @@ class EndPointsSourceGenerator {
     // In Dart, the convention is that classes are PascalCase and methods are camelCase
     // we convert both to snake_case (this can be made optional)
     // TODO(@osaxma): figure out if we need to have a `/` at the end of the route
-    final route = '${className.toSnakeCaseFromPascalCase()}/${methodName.toSnakeCaseFromCamelCase()}/';
+    // note: the route must start with `/`
+    final route = '/${className.toSnakeCaseFromPascalCase()}/${methodName.toSnakeCaseFromCamelCase()}/';
     final assignments = _generateArgumentAssignment(methodInfo);
     final resultName = 'result';
     final methodInvocation = _generateMethodInvocation(methodInfo, classInstanceName, resultName: resultName);
@@ -119,7 +120,11 @@ class $handlerClassName extends FutureOrBaseHandler {
     $assignments
     try {
       $methodInvocation
-      return Response.ok($responseBody);
+
+      final responseBodyData = $responseBody;
+      final responseBody = responseBodyData is! String ? json.encode(responseBodyData) : responseBodyData;
+
+      return Response.ok(responseBody);
     } catch (e) {
       return Response.badRequest(body: e);
     }
