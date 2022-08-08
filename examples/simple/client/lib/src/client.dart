@@ -1,12 +1,12 @@
 // this is how the client would look like
 
-typedef HeadersProvider = Map<String, String> Function();
+import 'package:client/src/mid_common.dart';
 
 class MidClient {
   /// A function that provides an up-to-date headers for each request
-  /// 
+  ///
   // The choice of a callback here because
-  late final HeadersProvider _headersProvider;
+  late final Map<String, String> Function() _headersProvider;
 
   /// The server URL
   final String url;

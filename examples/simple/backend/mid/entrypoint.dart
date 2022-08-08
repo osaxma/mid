@@ -15,8 +15,6 @@ Future<List<Object>> entryPoint() async {
   ];
 }
 
-
-
 final publicKey = '''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvtPgdJmf6+wTVAPAenSS
 ex364uZjI3CnhDKeTqx8dac0/Y5U16f76SohiC+ub/mX25+Tn9brazJ7C8wZZGsb
@@ -26,7 +24,6 @@ SRZCP0GcrfxRCDFlkHNgfpL1DWbThgV0PBV3AfqwhQDQOSFwmNB4RsSB2V1AZZAj
 Huc5g3rMbl7QDaTeLv02QnXqcJ5UcNN4oRYCS5WHxuyIGW6J9IyTkfgXoRCC8A1j
 hQIDAQAB
 -----END PUBLIC KEY-----''';
-
 
 final privateKey = '''-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEAvtPgdJmf6+wTVAPAenSSex364uZjI3CnhDKeTqx8dac0/Y5U

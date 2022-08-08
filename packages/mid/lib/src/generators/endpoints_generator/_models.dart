@@ -15,6 +15,8 @@ class ClassInfo {
   final String packageURI;
   final List<MethodInfo> methodInfos;
 
+  String get classNameForClient => '${className}Client';
+
   // for now we treat all as post requests
   final String verb = 'POST';
 
@@ -29,17 +31,18 @@ class ClassInfo {
   }) : _interfaceType = interfaceType;
 
   factory ClassInfo.fromInterfaceType(InterfaceType interfaceType) {
+    final className = interfaceType.getDisplayString(withNullability: false);
     final List<MethodInfo> endPointsInfo = [];
     for (var method in interfaceType.methods) {
       if (method.isPrivate || _hasServerOnlyAnnotation(method)) {
         continue;
       }
 
-      endPointsInfo.add(MethodInfo.fromMethodElement(method));
+      endPointsInfo.add(MethodInfo.fromMethodElement(method, className));
     }
 
     return ClassInfo(
-      className: interfaceType.getDisplayString(withNullability: false),
+      className: className,
       packageURI: interfaceType.element.librarySource.uri.toString(),
       methodInfos: endPointsInfo,
       interfaceType: interfaceType,
@@ -58,6 +61,8 @@ class ClassInfo {
 }
 
 class MethodInfo {
+  /// The name of the class where this method is
+  final String className;
   final String methodName;
   final TypeInfo returnTypeInfo;
   final List<ArgumentInfo> argumentsInfo;
@@ -66,28 +71,35 @@ class MethodInfo {
   // ignore: unused_field
   final MethodElement _methodElement;
 
-  // bool get isFuture => returnTypeInfo.typeInfo.dartType.isDartAsyncFuture;
-  // bool get isStream => returnTypeInfo.typeInfo.dartType.isDartAsyncStream;
+  String get source => _methodElement.source.toString();
 
   MethodInfo({
+    required this.className,
     required this.methodName,
     required this.returnTypeInfo,
     required this.argumentsInfo,
     required MethodElement methodElement,
   }) : _methodElement = methodElement;
 
-  factory MethodInfo.fromMethodElement(MethodElement element) {
+  factory MethodInfo.fromMethodElement(MethodElement element, String className) {
     final argumentsInfo = <ArgumentInfo>[];
     for (final p in element.parameters) {
       argumentsInfo.add(ArgumentInfo(parameterElement: p));
     }
     return MethodInfo(
+      className: className,
       methodName: element.name,
       returnTypeInfo: TypeInfo.fromDartType(element.returnType), // ReturnTypeInfo.fromMethodElement(element),
       argumentsInfo: argumentsInfo,
       methodElement: element,
     );
   }
+
+  // In Dart, the convention is that classes are PascalCase and methods are camelCase
+  // we convert both to snake_case (this can be made optional)
+  // TODO(@osaxma): figure out if we need to have a `/` at the end of the route
+  // note: the route must start with `/`
+  String get routeName => '/${className.toSnakeCaseFromPascalCase()}/${methodName.toSnakeCaseFromCamelCase()}/';
 }
 
 class ArgumentInfo {
@@ -101,6 +113,7 @@ class ArgumentInfo {
 
   String get argName => _parameterElement.name;
   bool get isNamed => _parameterElement.isNamed;
+  bool get isRequired => _parameterElement.isRequired;
   bool get isRequiredNamed => _parameterElement.isRequiredNamed;
   bool get isOptional => _parameterElement.isOptional;
   bool get isOptionalNamed => _parameterElement.isOptionalNamed;
@@ -302,7 +315,10 @@ class TypeInfo {
 
   bool get isNullable => _type.nullabilitySuffix != NullabilitySuffix.none;
 
-  String getTypeName({bool withNullability = true}) {
+  String getTypeName({
+    bool withNullability = true,
+    bool removeFutureAndStream = false,
+  }) {
     return _type.getDisplayString(withNullability: withNullability);
   }
 
@@ -312,6 +328,69 @@ class TypeInfo {
       return type.element.librarySource.uri.toString();
     }
     return null;
+  }
+
+  /// If the value is a core type (bool, String, num, double, int), then it'll return [dataSourceName] as is.
+  ///
+  /// If it's a DateTime, it'll return: DateTime.parse(dataSourceName)
+  ///
+  /// if it's a serializable class, it'll return: Data.fromMap(dataSourceName) or Data.fromJson(dataSourceName)
+  ///
+  /// if it's an iterable, it'll return something like: List<Data>.from(dataSourceName.map((x) => Data.fromMap(x)))
+  ///
+  String generateVariableAssignmentForType(String dataSourceName) {
+    if (!isIterable) {
+      if (isBasicType) {
+        return _generateVariableAssignmentForBasicType(dataSourceName);
+      } else {
+        return _generateVariableAssignmentForSerializableType(dataSourceName);
+      }
+    }
+
+    // Issue here if the type is a Future<List<Type>>> -- we need to account for type arguments 
+    // mainly for returnTypes 
+    if (isList) {
+      final type = getTypeName();
+      String statement;
+      if (isBasicType) {
+        final value = _generateVariableAssignmentForBasicType('x');
+        statement = 'List<$type>.from($dataSourceName.map((x) => $value))';
+      } else {}
+    }
+
+    throw UnimplementedError();
+  }
+
+  String _generateVariableAssignmentForBasicType(String dataSourceName) {
+    String statement;
+    if (isDateTime) {
+      statement = 'DateTime.parse($dataSourceName)';
+    } else if (isDuration) {
+      statement = 'Duration(microseconds: $dataSourceName)';
+    } else {
+      statement = dataSourceName;
+    }
+    if (isNullable) {
+      return '$dataSourceName != null ? $statement : null';
+    } else {
+      return statement;
+    }
+  }
+
+  String _generateVariableAssignmentForSerializableType(String dataSourceName) {
+    String statement;
+    final name = getTypeName(withNullability: false);
+    if (hasFromMap) {
+      statement = '$name.fromMap($dataSourceName)';
+    } else {
+      statement = '$name.fromJson($dataSourceName)';
+    }
+
+    if (isNullable) {
+      return '$dataSourceName != null ? $statement : null';
+    } else {
+      return statement;
+    }
   }
 
   @override
@@ -331,9 +410,6 @@ class TypeInfo {
     return false;
   }
 }
- 
-
-
 
 // the return type can be multiple things:
 //

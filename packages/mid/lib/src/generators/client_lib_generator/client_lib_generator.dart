@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
 import 'package:mid/src/common/io_utils.dart';
+import 'package:mid/src/generators/client_lib_generator/_source_generator.dart';
 import 'package:mid/src/generators/common.dart';
 import 'package:path/path.dart' as p;
 
@@ -15,10 +16,10 @@ import 'package:path/path.dart' as p;
 class ClientLibGenerator {
   /// The server project path
   final String serverProjectPath;
-  final Logger logger;
 
   /// The project where the client lib will be generated.
   final String clientLibProjectPath;
+  final Logger logger;
 
   ClientLibGenerator({
     required this.serverProjectPath,
@@ -27,12 +28,14 @@ class ClientLibGenerator {
   });
 
   Future<void> generate() async {
-
     final entryPointPath = getEntryPointPath(serverProjectPath);
 
     final routes = await parseRoutes(entryPointPath, logger);
 
+    final generator = ClientEndPointGenerator(routes.first);
+
+    await generator.generate();
+
     // each route will be its own file
   }
-
 }
