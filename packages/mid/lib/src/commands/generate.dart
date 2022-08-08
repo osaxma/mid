@@ -12,7 +12,7 @@ import 'base.dart';
 
 class GenerateCommand extends MIDCommand {
   GenerateCommand() {
-    // TODO: combine into one tht generates both endpoints and client. 
+    // TODO: combine into one tht generates both endpoints and client.
     addSubcommand(GenerateEndPointsCommand());
     addSubcommand(GenerateClientLibCommand());
   }
@@ -44,10 +44,9 @@ class GenerateEndPointsCommand extends MIDCommand {
 
   @override
   FutureOr<void>? run() async {
-    final path = Directory.current.path;
-    _ensureItsMidProject(path);
+    final path = getServerProjectPathFromCurrentPath();
     final generator = EndPointsGenerator(
-      projectPath: path,
+      serverProjectPath: path,
       logger: logger,
     );
 
@@ -69,36 +68,15 @@ class GenerateClientLibCommand extends MIDCommand {
 
   @override
   FutureOr<void>? run() async {
-    final path = Directory.current.path;
-    _ensureItsMidProject(path);
-
-    final config = getConfig(path);
-    final clientLibTargetDirectory = config.clientConfig.targetDirectory;
-    final clientLibProjectName = config.clientConfig.projectName;
-
-    if (clientLibTargetDirectory.isEmpty) {
-      throw Exception('''
-The target directory for generating client project is not defined at
-  ${p.join(path, 'mid', 'config.jsonc')}
-Make sure to provide a valid path''');
-    }
+    final serverProjectPath = getServerProjectPathFromCurrentPath();
+    final clientLibraryPath = getClientProjectPathFromCurrentPath();
 
     final generator = ClientLibGenerator(
-      projectPath: path,
+      serverProjectPath: serverProjectPath,
+      clientLibProjectPath: clientLibraryPath,
       logger: logger,
-      clientLibProjectPath: p.join(clientLibTargetDirectory, clientLibProjectName),
     );
 
-   await generator.generate();
-  }
-}
-
-void _ensureItsMidProject(String path) {
-  if (!isMidProject(path)) {
-    throw Exception('''
-  Could not find `mid` directory. 
-    - Make sure you ran `mid init`.
-    - If yes, then make sure you are in the root directory of the project.
-''');
+    await generator.generate();
   }
 }

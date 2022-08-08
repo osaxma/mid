@@ -7,19 +7,19 @@ import 'package:path/path.dart' as p;
 import '_source_generator.dart';
 
 class EndPointsGenerator {
-  final String projectPath;
+  final String serverProjectPath;
   final Logger logger;
 
-  EndPointsGenerator({required this.projectPath, required this.logger});
+  EndPointsGenerator({required this.serverProjectPath, required this.logger});
 
   Future<void> generate() async {
-    final entryPointPath = getEntryPointPath(projectPath);
+    final entryPointPath = getEntryPointPath(serverProjectPath);
 
     final routes = await parseRoutes(entryPointPath, logger);
 
     final source = EndPointsSourceGenerator(routes).generate();
 
-    final file = File(p.join(projectPath, 'mid', 'handlers.dart'));
+    final file = File(p.join(serverProjectPath, 'mid', 'handlers.dart'));
     file.writeAsStringSync(source);
   }
 }

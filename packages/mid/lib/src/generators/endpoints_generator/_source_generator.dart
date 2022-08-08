@@ -90,9 +90,9 @@ class EndPointsSourceGenerator {
     // depending on how the data class is generated, toMap always return Map<String, dynamic>
     // while toJson could return a json string if it has toMap already, and would return Map<String, dynamic>
     // if it doesn't have toMap -- we try to cover both cases.
-    if (methodInfo.returnTypeInfo.typeContainsToMapMethod) {
+    if (methodInfo.returnTypeInfo.hasToMap) {
       responseBody = '$resultName.toMap()';
-    } else if (methodInfo.returnTypeInfo.typeContainsToJsonMethod) {
+    } else if (methodInfo.returnTypeInfo.hasToJson) {
       responseBody = '$resultName.toJson()';
     } else if (methodInfo.returnTypeInfo.isVoid) {
       responseBody = "'ok'";
@@ -143,15 +143,15 @@ class $handlerClassName extends FutureOrBaseHandler {
     // create variable assignments
     for (final arg in methodInfo.argumentsInfo) {
       final name = arg.argName;
-      final type = arg.getType(withNullability: true);
+      final type = arg.type.getTypeName(withNullability: true);
       bool isCoreType = false;
       // depending on how the data class is generated fromMap always accepts Map<String, dynamic>
       // while fromJson could expect a json string if it has fromMap already, and would expect Map<String, dynamic>
       // if it doesn't have fromMap -- we try to cover both cases
       late final String? from;
-      if (arg.typeContainsFromMapConstructor) {
+      if (arg.type.hasFromMap) {
         from = 'fromMap';
-      } else if (arg.typeContainsFromJsonConstructor) {
+      } else if (arg.type.hasFromJson) {
         from = 'fromJson';
       } else {
         from = null;
@@ -159,7 +159,7 @@ class $handlerClassName extends FutureOrBaseHandler {
 
       // TODO: this does not handle iterables ...
       if (from != null) {
-        if (arg.isNullable) {
+        if (arg.type.isNullable) {
           buffer.writeln(
             "final $name = $mapVariableName['$name'] == null ? null : $type.$from($mapVariableName['$name']);",
           );
@@ -172,7 +172,7 @@ class $handlerClassName extends FutureOrBaseHandler {
       }
 
       if (!isCoreType) {
-        final typePackageURI = arg.getTypePackageURI();
+        final typePackageURI = arg.type.getTypePackageURI();
         if (typePackageURI != null) {
           _addImport(typePackageURI);
         }

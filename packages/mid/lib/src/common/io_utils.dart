@@ -64,3 +64,63 @@ Future<void> addPubDeps(String projectPath, List<String> deps, {bool dev = false
         'could not run `${args.reduce((p, e) => '$p $e')}` project at $projectPath due to the following error:\n${res.stderr.toString()}');
   }
 }
+
+String getServerProjectPathFromCurrentPath() {
+  final currentDirPath = Directory.current.path;
+  final currentDirName = p.basename(currentDirPath);
+
+  // if within <project_name>_server/
+  if (isMidProject(currentDirPath)) {
+    return currentDirPath;
+  }
+
+  // if within <project_name>_client/
+  if (currentDirName.endsWith('_client')) {
+    final serverDirName = currentDirName.replaceFirst('_client', '_server');
+    final serverDir = p.join(p.dirname(currentDirPath), serverDirName);
+    if (isMidProject(serverDir)) {
+      return serverDir;
+    }
+  }
+
+  // if within <project_name>
+  final dirElements = Directory.current.listSync().whereType<Directory>();
+  for (var element in dirElements) {
+    final path = element.path;
+    if (path.endsWith('_server')) {
+      if (isMidProject(path)) {
+        return path;
+      }
+    }
+  }
+
+  throw Exception('could not find `mid` server project');
+}
+
+String getClientProjectPathFromCurrentPath() {
+  final currentDirPath = Directory.current.path;
+  final currentDirName = p.basename(currentDirPath);
+  // if within <project_name>_client/
+  if (currentDirName.endsWith('_client')) {
+    return currentDirPath;
+  }
+  // if within <project_name>_server/
+  if (currentDirName.endsWith('_server')) {
+    final clientDirName = currentDirName.replaceFirst('_server', '_client');
+    final clientDir = p.join(p.dirname(currentDirPath), clientDirName);
+    if (Directory(clientDir).existsSync()) {
+      return clientDir;
+    }
+  }
+
+  // if within <project_name>
+  final dirElements = Directory.current.listSync().whereType<Directory>();
+  for (var element in dirElements) {
+    final path = element.path;
+    if (path.endsWith('_client')) {
+      return path;
+    }
+  }
+
+  throw Exception('could not find client project path');
+}

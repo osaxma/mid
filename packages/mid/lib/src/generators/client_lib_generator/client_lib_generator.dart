@@ -14,49 +14,25 @@ import 'package:path/path.dart' as p;
 
 class ClientLibGenerator {
   /// The server project path
-  final String projectPath;
+  final String serverProjectPath;
   final Logger logger;
 
   /// The project where the client lib will be generated.
   final String clientLibProjectPath;
 
   ClientLibGenerator({
-    required this.projectPath,
+    required this.serverProjectPath,
     required this.logger,
     required this.clientLibProjectPath,
   });
 
   Future<void> generate() async {
-    await _createClientLibProjectIfItDoesNotExist();
 
-    final entryPointPath = getEntryPointPath(projectPath);
+    final entryPointPath = getEntryPointPath(serverProjectPath);
 
     final routes = await parseRoutes(entryPointPath, logger);
 
     // each route will be its own file
   }
 
-  Future<void> _createClientLibProjectIfItDoesNotExist() async {
-    if (isDartProject(clientLibProjectPath)) {
-      return;
-    }
-
-    final dir = Directory(clientLibProjectPath);
-    if (dir.existsSync()) {
-      throw Exception('a directory already exists at $clientLibProjectPath but it is not a dart project');
-    }
-
-    final prog = logger.progress('creating dart project at $clientLibProjectPath ');
-    await createDartProject(clientLibProjectPath);
-
-    // delete bin folder, content of lib and content of test
-    clearDirContent(p.join(clientLibProjectPath, 'bin'));
-    clearDirContent(p.join(clientLibProjectPath, 'lib'));
-    clearDirContent(p.join(clientLibProjectPath, 'test'));
-
-    prog.finish(message: '\n');
-    
-
-    // TODO: put meaningful content in README.md and also upddate project in formation in `pubspec.yaml`
-  }
 }
