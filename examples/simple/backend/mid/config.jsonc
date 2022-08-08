@@ -2,7 +2,7 @@
 {
     "client": {
         // the target directory where the client project will be created
-        "target_directory": null,
+        "target_directory": "/Users/osaxma/Projects/mid/examples/simple",
         // the project name (defaults to "client")
         "project_name": "client"
     },

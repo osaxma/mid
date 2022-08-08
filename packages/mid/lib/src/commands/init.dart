@@ -34,7 +34,6 @@ class InitCommand extends MIDCommand {
     _createFileSync(p.join(path, 'mid', 'server.dart'), serverDotDart);
     _createFileSync(p.join(path, 'mid', 'middlewares.dart'), middleWaresDotDart);
     _createFileSync(p.join(path, 'mid', 'handlers.dart'), handlersDotDart);
-    _createFileSync(p.join(path, 'mid', 'config.jsonc'), configTemplate);
 
     logger.stdout('\n');
     logger.stdout('Make sure to create bin/server.dart or to replace its content with:\n');

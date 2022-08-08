@@ -1,31 +1,22 @@
 // this is how the client would look like
 
-import 'package:http/http.dart' as http;
+typedef HeadersProvider = Map<String, String> Function();
 
 class MidClient {
-  // TODO: use an implementation that works for all platforms 
-  late final http.Client _client;
-
-
-  // TODO: should this be a callback function that provides up to date 
-  //       headers? This is important since the client may outlive some
-  //       values in the headers such as Tokens and whatnot.
-  //       Another option is to have middlewares 
-  late final Map<String, dynamic> defaultHeaders;
-
-
+  /// A function that provides an up-to-date headers for each request
   /// 
+  // The choice of a callback here because
+  late final HeadersProvider _headersProvider;
+
+  /// The server URL
   final String url;
 
   MidClient({
     required this.url,
-    http.Client? client,
-    Map<String, dynamic>? defaultHeaders,
+    HeadersProvider? headersProvider,
   }) {
-    _client = client ?? http.Client();
-    this.defaultHeaders = defaultHeaders ?? {};
+    _headersProvider = headersProvider ?? () => <String, String>{};
   }
-
 
   Object get api1 => Object();
   Object get api2 => Object();

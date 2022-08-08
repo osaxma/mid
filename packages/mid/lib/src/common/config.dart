@@ -18,7 +18,7 @@ class Config {
   factory Config.fromConfigFile(Map<String, dynamic> map) {
     return Config(
       ClientConfig(
-        map['client']['target_directory'],
+        map['client']['target_directory'] ?? '',
         map['client']['project_name'],
       ),
       ServerConfig(),

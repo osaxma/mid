@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:client/src/models/session.dart';
 import 'package:http/http.dart' as http;
 
+typedef RequestHandler<T> = T Function(String url, Map<String, String> headers, String body);
+
 class Auth {
   final String url;
 
@@ -13,7 +15,8 @@ class Auth {
     required this.headers,
   });
 
-  Future<Session> createUserWithEmailAndPassword(String email, String password) async {
+  Future<Session> createUserWithEmailAndPassword(String email, String password,
+      [RequestHandler<Session>? handler]) async {
     final args = {
       'email': email,
       'password': password,
@@ -31,7 +34,7 @@ class Auth {
     );
     print(res.statusCode);
 
-    if(res.statusCode >= 400) {
+    if (res.statusCode >= 400) {
       throw Exception(res.body);
     }
 
@@ -40,9 +43,7 @@ class Auth {
     return Session.fromMap(data);
   }
 
-
-
-  Future<Session> signInWithEmailAndPassword(String email, String password) async {
+  Future<Session> signInWithEmailAndPassword(String email, String password, {RequestHandler<Session>? handler}) async {
     final args = {
       'email': email,
       'password': password,
@@ -60,7 +61,7 @@ class Auth {
     );
     print(res.statusCode);
 
-    if(res.statusCode >= 400) {
+    if (res.statusCode >= 400) {
       throw Exception(res.body);
     }
 
