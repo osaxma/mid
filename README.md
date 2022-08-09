@@ -107,3 +107,30 @@ Examples will be added soon to the [examples](/examples/) folder.
 
 Disscusion: the idea here is to track methods return types and parameters so they do not break the api for apps, especially the one running an older version.
 For instance, adding a new required parameter to a method or changing the name of a parameter can break the api for existing apps. `mid` should keep track of API changes somehow and warn the user when such a change occurs. This could be done by storing the generated APIs in some sort of a database and whenever `mid generate endpoints` is called, `mid` would compare the newly generated API with the previous one and present the user with appropriate warning. 
+
+
+<!-- 
+
+if @serverOnly is supported for serializable class members, add the following caveat:
+
+When a `Type` is used in a return statement as well as an argument, any member annotated with `@serverOnly` must be optional (i.e. either nullable or with a default value).
+```dart 
+Future<User> getUserData() {/* */}
+Future<void> updateUserData(User user) {/* */}
+
+class User {
+    final int id;
+    final String name;
+
+    @serverOnly
+    final bool isBanned; // <~~ must be optional or nullable 
+}
+```
+
+The main reason is that when a client invoke `updateUserData`, it'll be impossible to instantiate `User` without a value for `isBanned` since the data coming from the client wouldn't have a value for it. That's because when `User` is generated for the client, it wouldn't have `isBanned` field due to the `@serverOnly` annotation. 
+
+note: 
+    - idea 1: I think it's possible to have a lint rule for that (warning: isBanned must have a default value or be nullable)
+    - idea 2: change `@serverOnly` so that it accepts an argument of `default value`
+
+ -->

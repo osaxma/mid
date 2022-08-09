@@ -42,12 +42,18 @@ class ClientEndPointGenerator {
         (b) {
           b.name = 'url';
           b.modifier = FieldModifier.final$;
+          b.docs = ListBuilder(['/// The server URL']);
           b.type = refer('String');
         },
       ),
       Field(
         (b) {
           b.name = 'headersProvider';
+          b.docs = ListBuilder([
+            '/// A function that should provide an up-to-date headers for each request',
+            '///',
+            '/// e.g. Bearer Authentication (token) ',
+          ]);
           b.modifier = FieldModifier.final$;
           b.type = refer('Map<String, String> Function()');
         },
@@ -143,6 +149,7 @@ class ClientEndPointGenerator {
 
   Code _generateMethodBody(MethodInfo method) {
     final argsToKeyValue = _convertMethodArgsToKeyValueString(method);
+    final returnStatement = method.returnTypeInfo.generateVariableAssignmentForType('data');
     return Code('''
   final args = {
     $argsToKeyValue
@@ -165,8 +172,7 @@ class ClientEndPointGenerator {
   }
 
   final data = json.decode(res.body);
-  // return Object.fromMap(data); // <~~~ TODO
-  throw UnimplementedError();
+  return $returnStatement;
   ''');
   }
 

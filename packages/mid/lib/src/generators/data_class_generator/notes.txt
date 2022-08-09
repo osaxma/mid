@@ -1,0 +1,22 @@
+
+
+- To make it easy for the user, we can generate the serialization for both client and server. 
+
+the user only have to create a class definition such as:
+
+class User {
+    final int id;
+    final String firstName;
+    final String lastName;
+
+    @serverOnly 
+    final String hashedPassword; 
+
+    User({required this.id, required this.firstName, required this.lastName});
+}
+
+
+Only issue if the user wants to have specific key/value for serialization (e.g. saving to dabase where convention is snake_case)
+Though this option can be added as a configuration. 
+
+Also the serialization logic can be generated apart from the class (a function for instance) or extending the class and creating a separate one in another file. 

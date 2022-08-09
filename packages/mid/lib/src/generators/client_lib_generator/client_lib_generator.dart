@@ -36,6 +36,8 @@ class ClientLibGenerator {
 
     await generator.generate();
 
+    final types = routes.first.getAllNonCoreTypes().map((e) => e.getDisplayString(withNullability: false));
+    print(types);
     // each route will be its own file
   }
 }

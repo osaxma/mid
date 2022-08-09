@@ -91,9 +91,9 @@ class EndPointsSourceGenerator {
       responseBody = '$resultName.toMap()';
     } else if (methodInfo.returnTypeInfo.hasToJson) {
       responseBody = '$resultName.toJson()';
-    } else if (methodInfo.returnTypeInfo.isVoid) {
+    } else if (methodInfo.returnTypeInfo.hasVoid) {
       responseBody = "'ok'";
-    } else if (methodInfo.returnTypeInfo.isDateTime) {
+    } else if (methodInfo.returnTypeInfo.hasDateTime) {
       responseBody = '$resultName.toIso8601String()';
     } else {
       responseBody = resultName;
@@ -127,7 +127,8 @@ class $handlerClassName extends FutureOrBaseHandler {
 
 ''';
   }
-
+  
+  // TODO: utilize the methods from MethodInfo similar to the one used by client lib generator
   /// Given a `Map<String, dynamic> map`, extract each argument based on its name
   /// e.g. if the method at hand is:
   ///    Future<String> myMethod(String x, {String? y}) { .... }
@@ -179,6 +180,7 @@ class $handlerClassName extends FutureOrBaseHandler {
     return buffer.toString();
   }
 
+  // TODO: move this to MethodInfo.generateMethodInvocation 
   /// generates:
   /// final [resultName] = [classInstanceName].[methodInfo.methodName](args)
   ///
@@ -186,7 +188,7 @@ class $handlerClassName extends FutureOrBaseHandler {
   /// final result = SomeClassInstance.Method(value1, {namedArg: value2, namedOptionalArg: value3 ?? defaultValue});
   String _generateMethodInvocation(MethodInfo methodInfo, String classInstanceName, {required String resultName}) {
     final buffer = StringBuffer();
-    if (!methodInfo.returnTypeInfo.isVoid) {
+    if (!methodInfo.returnTypeInfo.hasVoid) {
       buffer.write('final $resultName = ');
     }
     if (methodInfo.returnTypeInfo.isFuture) {

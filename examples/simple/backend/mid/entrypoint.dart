@@ -1,4 +1,7 @@
 import 'package:mid_auth/mid_auth.dart';
+import 'package:test/expect.dart';
+
+void func() {}
 
 Future<List<Object>> entryPoint() async {
   final authDB = AuthSqlite();
@@ -11,8 +14,39 @@ Future<List<Object>> entryPoint() async {
 
   final auth = AuthServer(authDB: authDB, jwtHandler: jwtHandler);
   return [
-    auth,
+    // auth,
+    Simple(),
   ];
+}
+
+class Data {
+  factory Data.fromJson(Map<String, dynamic> map) => throw UnimplementedError();
+  Map<String, dynamic> toJson() => throw UnimplementedError();
+}
+
+class Data2 {
+  factory Data2.fromJson(Map<String, dynamic> map) => throw UnimplementedError();
+  Map<String, dynamic> toJson() => throw UnimplementedError();
+}
+
+class Simple {
+  Future<List<Data>> getData() {
+    throw UnimplementedError();
+  }
+
+  List<Data> getData2() {
+    throw UnimplementedError();
+  }
+
+  Future<List<Data2>> getData3(Data a, Data g) {
+    throw UnimplementedError();
+  }
+
+  Data2 getData4(Data2 d) {
+    throw UnimplementedError();
+  }
+
+  void daymn() async {}
 }
 
 final publicKey = '''-----BEGIN PUBLIC KEY-----

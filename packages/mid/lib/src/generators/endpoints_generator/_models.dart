@@ -51,13 +51,30 @@ class ClassInfo {
 
   List<String> getRoutes() {
     final routes = <String>[];
-    for (var e in methodInfos) {
-      routes.add('${className.toSnakeCaseFromPascalCase()}/${e.methodName.toSnakeCaseFromCamelCase()}');
+    for (var m in methodInfos) {
+      routes.add(m.routeName);
     }
     return routes;
   }
 
-  // String get
+  /// Returns a list containing all the non-core dart types
+  ///
+  /// These types are collected from each method return statement and arguments.
+  ///
+  /// This list can be used by generators to get package URIs or generate serialization for those types.
+  List<DartType> getAllNonCoreTypes() {
+    final types = <DartType>{};
+
+    // loop through return types first
+    for (var m in methodInfos) {
+      types.addAll(m.returnTypeInfo.typeArguments.where((t) => !_isDartType(t)));
+      for(var arg in m.argumentsInfo) {
+        types.addAll(arg.type.typeArguments.where((t) => !_isDartType(t)));
+      }
+    }
+
+    return types.toList();
+  }
 }
 
 class MethodInfo {
@@ -114,52 +131,12 @@ class ArgumentInfo {
   String get argName => _parameterElement.name;
   bool get isNamed => _parameterElement.isNamed;
   bool get isRequired => _parameterElement.isRequired;
-  bool get isRequiredNamed => _parameterElement.isRequiredNamed;
   bool get isOptional => _parameterElement.isOptional;
+  bool get isPositional => _parameterElement.isPositional;
+  bool get isRequiredNamed => _parameterElement.isRequiredNamed;
   bool get isOptionalNamed => _parameterElement.isOptionalNamed;
   bool get hasDefaultValue => _parameterElement.hasDefaultValue;
-  bool get isPositional => _parameterElement.isPositional;
   String? get defaultValue => _parameterElement.defaultValueCode;
-
-  // bool get typeContainsFromJsonConstructor {
-  //   final type = _parameterElement.type;
-  //   if (type is InterfaceType) {
-  //     return type.constructors.any((element) => element.name == 'fromJson');
-  //   }
-  //   return false;
-  // }
-
-  // bool get typeContainsFromMapConstructor {
-  //   final type = _parameterElement.type;
-  //   if (type is InterfaceType) {
-  //     return type.constructors.any((element) => element.name == 'fromMap');
-  //   }
-  //   return false;
-  // }
-
-  // // bool get containsToJson {
-  // //   final type = _parameterElement.type;
-  // //   if (type is InterfaceType) {
-  // //     return type.element.methods.any((element) => element.name == 'toJson');
-  // //   }
-
-  // //   return false;
-  // // }
-
-  // bool get isNullable => _parameterElement.type.nullabilitySuffix != NullabilitySuffix.none;
-
-  // String getType({bool withNullability = true}) {
-  //   return _parameterElement.type.getDisplayString(withNullability: withNullability);
-  // }
-
-  // String? getTypePackageURI() {
-  //   final type = _parameterElement.type;
-  //   if (type is InterfaceType) {
-  //     return type.element.librarySource.uri.toString();
-  //   }
-  //   return null;
-  // }
-  // int get position => _parameterElement.
 }
 
 // works only with resolved elements
@@ -169,107 +146,131 @@ bool _hasServerOnlyAnnotation(Element element) {
   });
 }
 
+// TODO: must of the getters here returns incorrect values for nested typeArguments
+//    e.g. Future<List<Data>> -- hasToJson/hasToMap will return false even if Data has them
+//     here we have three types:
+//     Future -> typeArguments is 1 (i.e. List)
+//     List -> typeArguments is 1 (i.e. Data)
+//     Data -> typeArguments is 0
+//
+//     Initially i thought all the type arguments are held within Future. Tho the typeArguments
+//     refers to the argument of the type itself (e.g. Map<String, dynamic> has two arguments)
+//
+//     we need to handle this nested use cases to make sure the generated code is accurate.
+//
+//     also how would we handle Maps of non-Basic Types (e.g. Map<User, Data>) or similar?
+//     we should broadcast that it's not supported initially until it's figured out
+
 class TypeInfo {
   /// The main type which holds all the type arugments
+  // note: While in most cases we deal with [InterfaceType] (i.e. any class), void is not one for instance.
   final DartType _type;
 
-  /// Whether this type is a void or one of its type arguments is a void type e.g. void or Future<void>
-  final bool isVoid;
+  /// Returns `true` if this type or one of its type arguments is a `void`
+  final bool hasVoid;
 
-  /// Whether this type or one of its type arguments is a core type e.g. int or Future<String> or Stream<List<double>>
+  /// Returns `true` if this type or one of its type arguments is a basic type
   ///
   /// Basic types are: bool, num, double, int, BigInt, String, DateTime, Duration, dynamic, Object
-  final bool isBasicType;
+  /// see [basicTypes]
+  final bool hasBasicType;
 
-  /// refers to toJson method
+  /// Returns `true` if this type or one of its argument has `toJson` method
   final bool hasToJson;
 
-  /// refers to toMap method
+  /// Returns `true` if this type or one of its argument has `toMap` method
   final bool hasToMap;
 
-  /// refers to Type.fromJson factory constructor
+  /// Returns `true` if this type or one of its argument has `fromJson` constructor
   final bool hasFromJson;
 
-  /// refers to Type.fromMap factory constructor
+  /// Returns `true` if this type or one of its argument has `fromMap` constructor
   final bool hasFromMap;
 
-  /// if this type is a Future
+  /// Returns `true` if this type is a Future
   final bool isFuture;
 
-  /// if this type is a Stream
+  /// Returns `true` if this type is a Stream
   final bool isStream;
 
-  /// Whether this type or one of its type arguments is an iterable
-  final bool isIterable;
+  /// Returns `true` this type or one of its type arguments is an iterable
+  final bool hasIterable;
 
-  /// Whether this type or one of its type arguments is a List
-  final bool isList;
+  /// Returns `true` this type or one of its type arguments is a List
+  final bool hasList;
 
-  /// Whether this type or one of its type arguments is a Set
-  final bool isSet;
+  /// Returns `true` this type or one of its type arguments is a Set
+  final bool hasSet;
 
-  /// Whether this type or one of its type arguments is a Map
-  final bool isMap;
+  /// Returns `true` this type or one of its type arguments is a Map
+  final bool hasMap;
 
-  /// Whether this type or one of its type arguments is a DateTime
-  final bool isDateTime;
+  /// Returns `true` this type or one of its type arguments is a DateTime
+  final bool hasDateTime;
 
-  /// Whether this type or one of its type arguments is a Duration
-  final bool isDuration;
+  /// Returns `true` this type or one of its type arguments is a Duration
+  final bool hasDuration;
 
-  final bool hasTypeArguments;
-
-  final int typeArgumentsCount;
+  /// A flattened list of all the type arguments
+  ///
+  /// e.g. Future<List<Type> => [Future<List<Type>, List<Type>, Type]
+  /// e.g. Future<Map<String, dynamic>> => [Future<Map<String, dynamic>>, Map<String, dynamic>, String, dynamic];
+  final List<DartType> typeArguments;
 
   TypeInfo({
     required DartType type,
-    required this.isVoid,
-    required this.isBasicType,
+    required this.hasVoid,
+    required this.hasBasicType,
     required this.hasToJson,
     required this.hasToMap,
     required this.hasFromJson,
     required this.hasFromMap,
     required this.isFuture,
     required this.isStream,
-    required this.isIterable,
-    required this.isList,
-    required this.isSet,
-    required this.isMap,
-    required this.isDateTime,
-    required this.isDuration,
-    required this.hasTypeArguments,
-    required this.typeArgumentsCount,
+    required this.hasIterable,
+    required this.hasList,
+    required this.hasSet,
+    required this.hasMap,
+    required this.hasDateTime,
+    required this.hasDuration,
+    required this.typeArguments,
   }) : _type = type;
 
   factory TypeInfo.fromDartType(DartType type) {
-    if (type is! InterfaceType) {
-      throw Exception('expected an interfaceType');
-    }
+    final typeArgs = extractAllTypeArguments(type);
 
     return TypeInfo(
       type: type,
-      isVoid: type.isVoid || type.typeArguments.any((element) => element.isVoid),
-      isBasicType: type.isVoid || type.typeArguments.any((element) => element.isVoid),
-      hasToJson: typeContainsToJsonMethod(type) || type.typeArguments.any((t) => typeContainsToJsonMethod(t)),
-      hasToMap: typeContainsToMapMethod(type) || type.typeArguments.any((t) => typeContainsToMapMethod(t)),
-      hasFromJson:
-          typeContainsFromJsonConstructor(type) || type.typeArguments.any((t) => typeContainsFromJsonConstructor(t)),
-      hasFromMap:
-          typeContainsFromMapConstructor(type) || type.typeArguments.any((t) => typeContainsFromMapConstructor(t)),
+      hasVoid: type.isVoid || typeArgs.any((element) => element.isVoid),
+      hasBasicType: isBasicType(type) || typeArgs.any(isBasicType),
+      hasToJson: containsToJsonMethod(type) || typeArgs.any(containsToJsonMethod),
+      hasToMap: containsToMapMethod(type) || typeArgs.any(containsToMapMethod),
+      hasFromJson: containsFromJsonConstructor(type) || typeArgs.any(containsFromJsonConstructor),
+      hasFromMap: containsFromMapConstructor(type) || typeArgs.any(containsFromMapConstructor),
       isFuture: type.isDartAsyncFuture,
       isStream: type.isDartAsyncStream,
-      isIterable: type.isDartCoreIterable || type.typeArguments.any((element) => element.isDartCoreIterable),
-      isList: type.isDartCoreList || type.typeArguments.any((element) => element.isDartCoreList),
-      isSet: type.isDartCoreSet || type.typeArguments.any((element) => element.isDartCoreSet),
-      isMap: type.isDartCoreMap || type.typeArguments.any((element) => element.isDartCoreMap),
-      isDateTime: isTypeADateTime(type) || type.typeArguments.any((t) => isTypeADateTime(t)),
-      isDuration: isTypeADuration(type) || type.typeArguments.any((t) => isTypeADuration(t)),
-      hasTypeArguments: type.typeArguments.isNotEmpty,
-      typeArgumentsCount: type.typeArguments.length,
+      hasIterable: type.isDartCoreIterable || typeArgs.any((element) => element.isDartCoreIterable),
+      hasList: type.isDartCoreList || typeArgs.any((element) => element.isDartCoreList),
+      hasSet: type.isDartCoreSet || typeArgs.any((element) => element.isDartCoreSet),
+      hasMap: type.isDartCoreMap || typeArgs.any((element) => element.isDartCoreMap),
+      hasDateTime: isDateTime(type) || typeArgs.any(isDateTime),
+      hasDuration: isDuration(type) || typeArgs.any(isDuration),
+      typeArguments: typeArgs,
     );
   }
 
-  static bool typeContainsToJsonMethod(DartType type) {
+  static List<DartType> extractAllTypeArguments(DartType type, [List<DartType>? initialList]) {
+    final args = initialList ?? <DartType>[];
+    args.add(type);
+    if (type is InterfaceType) {
+      for (var t in type.typeArguments) {
+        extractAllTypeArguments(t, args);
+      }
+    }
+    return args;
+  }
+
+  static bool containsToJsonMethod(DartType type) {
     if (type is InterfaceType) {
       if (type.element.methods.any((element) => element.name == 'toJson')) {
         return true;
@@ -278,7 +279,7 @@ class TypeInfo {
     return false;
   }
 
-  static bool typeContainsToMapMethod(DartType type) {
+  static bool containsToMapMethod(DartType type) {
     if (type is InterfaceType) {
       if (type.element.methods.any((element) => element.name == 'toMap')) {
         return true;
@@ -287,38 +288,47 @@ class TypeInfo {
     return false;
   }
 
-  static bool typeContainsFromJsonConstructor(DartType type) {
+  static bool containsFromJsonConstructor(DartType type) {
     if (type is InterfaceType) {
       return type.constructors.any((element) => element.name == 'fromJson');
     }
     return false;
   }
 
-  static bool typeContainsFromMapConstructor(DartType type) {
+  static bool containsFromMapConstructor(DartType type) {
     if (type is InterfaceType) {
       return type.constructors.any((element) => element.name == 'fromMap');
     }
     return false;
   }
 
-  static bool isTypeABasicType(DartType type) {
+  static bool isBasicType(DartType type) {
     return basicTypes.any((element) => element == type.getDisplayString(withNullability: false));
   }
 
-  static bool isTypeADateTime(DartType type) {
+  static bool isDateTime(DartType type) {
     return type.getDisplayString(withNullability: false) == 'DateTime';
   }
 
-  static bool isTypeADuration(DartType type) {
+  static bool isDuration(DartType type) {
     return type.getDisplayString(withNullability: false) == 'Duration';
   }
 
+  // static bool isIterable(DartType type) => type.isDartCoreList || type.isDartCoreMap || type.isDartCoreSet || type.isDartCoreIterable;
+
+  static bool isNullableType(DartType type) => type.nullabilitySuffix != NullabilitySuffix.none;
+
   bool get isNullable => _type.nullabilitySuffix != NullabilitySuffix.none;
 
-  String getTypeName({
-    bool withNullability = true,
-    bool removeFutureAndStream = false,
-  }) {
+  /// Returns the full type name e.g. Future<List<Data>>
+  ///
+  /// If [skipFutureAndStream], then the inner types are returned.
+  String getTypeName({bool withNullability = true, bool skipFutureAndStream = false}) {
+    if (skipFutureAndStream) {
+      if (isFuture || isStream) {
+        return typeArguments.first.getDisplayString(withNullability: withNullability);
+      }
+    }
     return _type.getDisplayString(withNullability: withNullability);
   }
 
@@ -330,6 +340,8 @@ class TypeInfo {
     return null;
   }
 
+  /// Generate a variable assignment -- mainly from a decoded JSON object
+  ///
   /// If the value is a core type (bool, String, num, double, int), then it'll return [dataSourceName] as is.
   ///
   /// If it's a DateTime, it'll return: DateTime.parse(dataSourceName)
@@ -339,54 +351,81 @@ class TypeInfo {
   /// if it's an iterable, it'll return something like: List<Data>.from(dataSourceName.map((x) => Data.fromMap(x)))
   ///
   String generateVariableAssignmentForType(String dataSourceName) {
-    if (!isIterable) {
-      if (isBasicType) {
-        return _generateVariableAssignmentForBasicType(dataSourceName);
+    late final DartType type;
+    if (isFuture || isStream) {
+      type = typeArguments[1];
+    } else {
+      type = typeArguments[0];
+    }
+
+    if (type.isVoid) {
+      // TODO: make sure this is working as intended (i.e. an empty return statement).
+      return '';
+    }
+
+    if (!hasList && !hasMap && !hasSet) {
+      if (hasBasicType) {
+        return _generateVariableAssignmentForBasicType(dataSourceName, type);
       } else {
-        return _generateVariableAssignmentForSerializableType(dataSourceName);
+        return _generateVariableAssignmentForSerializableType(dataSourceName, type);
       }
     }
 
-    // Issue here if the type is a Future<List<Type>>> -- we need to account for type arguments 
-    // mainly for returnTypes 
-    if (isList) {
-      final type = getTypeName();
+    if (hasList) {
+      final index = typeArguments.indexWhere((element) => element.isDartCoreList) + 1;
+      final type = typeArguments[index];
+      final typeName = type.getDisplayString(withNullability: false);
       String statement;
-      if (isBasicType) {
-        final value = _generateVariableAssignmentForBasicType('x');
-        statement = 'List<$type>.from($dataSourceName.map((x) => $value))';
-      } else {}
+      if (isBasicType(type)) {
+        final value = _generateVariableAssignmentForBasicType('x', type);
+        statement = 'List<$typeName>.from($dataSourceName.map((x) => $value))';
+      } else {
+        final value = _generateVariableAssignmentForSerializableType('x', type);
+        statement = 'List<$typeName>.from($dataSourceName.map((x) => $value))';
+      }
+
+      return statement;
     }
+
+    // TODO: handle Sets and Maps -- also Map's arguments (e.g. if the return is something like: Map<User, Data> :/ )
+    // note: json.decode() does not accept a Set and it has to be converted into list (i.e. set.toList()).
 
     throw UnimplementedError();
   }
 
-  String _generateVariableAssignmentForBasicType(String dataSourceName) {
+  // static to avoid accessing instance members by mistake
+  static String _generateVariableAssignmentForBasicType(String dataSourceName, DartType type) {
     String statement;
-    if (isDateTime) {
+    if (isDateTime(type)) {
       statement = 'DateTime.parse($dataSourceName)';
-    } else if (isDuration) {
+    } else if (isDuration(type)) {
       statement = 'Duration(microseconds: $dataSourceName)';
     } else {
       statement = dataSourceName;
     }
-    if (isNullable) {
-      return '$dataSourceName != null ? $statement : null';
+    // to avoid an issue of a double being decoded as an int (e.g. 1.0 -> 1) which happens on web
+    // we need to cast here.
+    final typeName = type.getDisplayString(withNullability: false);
+    if (isNullableType(type)) {
+      return '$dataSourceName != null ? $statement as $typeName : null';
     } else {
-      return statement;
+      return '$statement as $typeName';
     }
   }
 
-  String _generateVariableAssignmentForSerializableType(String dataSourceName) {
+  // static to avoid accessing instance members by mistake
+  static String _generateVariableAssignmentForSerializableType(String dataSourceName, DartType type) {
     String statement;
-    final name = getTypeName(withNullability: false);
-    if (hasFromMap) {
+    final name = type.getDisplayString(withNullability: false);
+    if (containsFromMapConstructor(type)) {
       statement = '$name.fromMap($dataSourceName)';
-    } else {
+    } else if (containsFromJsonConstructor(type)) {
       statement = '$name.fromJson($dataSourceName)';
+    } else {
+      throw Exception('Unknown type $name that was expected to have fromMap or fromJson constructor');
     }
 
-    if (isNullable) {
+    if (isNullableType(type)) {
       return '$dataSourceName != null ? $statement : null';
     } else {
       return statement;
@@ -411,88 +450,24 @@ class TypeInfo {
   }
 }
 
-// the return type can be multiple things:
-//
-// void
-// Type
-// SerializableType
-// Future<void>
-// Future<Type> or Future<SerializableType>
-// Stream<Type> or Stream<SerializableType>
-// Iterable<Type>
-// Future<Iterable<Type>> or Stream<Iterable<Type>>
-// Future<Iterable<SerializableType>> or Stream<Iterable<SerializableType>>
-// class ReturnTypeInfo {
-//   final DartType _dartType;
-//   final List<DartType> typeArguments;
-
-//   bool get isStream => _dartType.isDartAsyncStream;
-//   bool get isFuture => _dartType.isDartAsyncFuture;
-//   bool get isList => _dartType.isDartCoreList || typeArguments.any((e) => e.isDartCoreList);
-//   bool get isSet => _dartType.isDartCoreSet || typeArguments.any((e) => e.isDartCoreSet);
-//   bool get isMap => _dartType.isDartCoreMap || typeArguments.any((e) => e.isDartCoreMap);
-//   bool get isDateTime {
-//     return _dartType.getDisplayString(withNullability: false) == 'DateTime' ||
-//         typeArguments.any((e) => e.getDisplayString(withNullability: false) == 'DateTime');
-//   }
-
-//   bool get isVoid => _dartType.isVoid || typeArguments.any((element) => element.isVoid);
-
-//   ReturnTypeInfo({
-//     required DartType dartType,
-//     required this.typeArguments,
-//   }) : _dartType = dartType;
-
-//   factory ReturnTypeInfo.fromMethodElement(MethodElement element) {
-//     late final List<DartType> typeArgs;
-//     final returnType = element.returnType;
-//     if (returnType is InterfaceType) {
-//       typeArgs = returnType.typeArguments;
-//     } else {
-//       typeArgs = const <DartType>[];
-//     }
-//     return ReturnTypeInfo(
-//       dartType: returnType,
-//       typeArguments: typeArgs,
-//     );
-//   }
-
-//   bool get typeContainsToJsonMethod {
-//     final type = _dartType;
-//     if (type is InterfaceType) {
-//       if (type.element.methods.any((element) => element.name == 'toJson')) {
-//         return true;
-//       }
-//     }
-
-//     for (final t in typeArguments) {
-//       if (t is InterfaceType) {
-//         if (t.element.methods.any((element) => element.name == 'toJson')) {
-//           return true;
-//         }
-//       }
-//     }
-
-//     return false;
-//   }
-
-//   bool get typeContainsToMapMethod {
-//     final type = _dartType;
-
-//     if (type is InterfaceType) {
-//       if (type.element.methods.any((element) => element.name == 'toMap')) {
-//         return true;
-//       }
-//     }
-
-//     for (final t in typeArguments) {
-//       if (t is InterfaceType) {
-//         if (t.element.methods.any((element) => element.name == 'toJson')) {
-//           return true;
-//         }
-//       }
-//     }
-
-//     return false;
-//   }
-// }
+bool _isDartType(DartType type) {
+  return type.isDartAsyncFuture ||
+      type.isDartAsyncFutureOr ||
+      type.isDartAsyncStream ||
+      type.isDartCoreBool ||
+      type.isDartCoreDouble ||
+      type.isDartCoreEnum ||
+      type.isDartCoreFunction ||
+      type.isDartCoreInt ||
+      type.isDartCoreIterable ||
+      type.isDartCoreList ||
+      type.isDartCoreMap ||
+      type.isDartCoreNull ||
+      type.isDartCoreNum ||
+      type.isDartCoreObject ||
+      type.isDartCoreSet ||
+      type.isDartCoreString ||
+      type.isDartCoreSymbol ||
+      type.isDynamic ||
+      type.isVoid;
+}
