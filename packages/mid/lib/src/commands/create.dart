@@ -77,7 +77,7 @@ class CreateCommand extends MIDCommand {
 
     // create server default files
     createFileSync(p.join(path, 'bin', 'server.dart'), contents: binServerDotDart);
-    createFileSync(p.join(path, 'mid', 'entrypoint.dart'), contents: entryPointDotDart, recursive: true);
+    createFileSync(p.join(path, 'mid', 'endpoints.dart'), contents: endpointsDotDart, recursive: true);
     createFileSync(p.join(path, 'mid', 'server.dart'), contents: serverDotDart);
     createFileSync(p.join(path, 'mid', 'middlewares.dart'), contents: middleWaresDotDart);
     createFileSync(p.join(path, 'mid', 'handlers.dart'), contents: handlersDotDart);

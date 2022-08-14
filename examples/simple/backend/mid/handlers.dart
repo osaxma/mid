@@ -11,7 +11,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import 'entrypoint.dart';
+import 'endpoints.dart';
 import 'package:mid_auth/src/server/server.dart';
 import 'package:mid_auth/src/models/user_data.dart';
 
@@ -315,7 +315,7 @@ class AuthServerGetPublicKeyInPemFormatHandler extends FutureOrBaseHandler {
 }
 
 Future<List<FutureOrBaseHandler>> getHandlers() async {
-  final list = await entryPoint();
+  final list = await endpoints();
   final handlers = <FutureOrBaseHandler>[
     AuthServerCreateUserWithEmailAndPasswordHandler(list[0] as AuthServer),
     AuthServerSignInWithEmailAndPasswordHandler(list[0] as AuthServer),

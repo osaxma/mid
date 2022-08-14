@@ -28,9 +28,9 @@ class ClientLibGenerator {
   });
 
   Future<void> generate() async {
-    final entryPointPath = getEntryPointPath(serverProjectPath);
+    final endpointsPath = getEndpointsPath(serverProjectPath);
 
-    final routes = await parseRoutes(entryPointPath, logger);
+    final routes = await parseRoutes(endpointsPath, logger);
 
     final generator = ClientEndPointGenerator(routes.first);
 

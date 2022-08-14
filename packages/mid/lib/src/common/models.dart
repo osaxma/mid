@@ -87,9 +87,9 @@ class MethodInfo {
 
   // temp: keeping it handy for now
   // ignore: unused_field
-  final MethodElement _methodElement;
+  final MethodElement methodElement;
 
-  String get source => _methodElement.source.toString();
+  String get source => methodElement.source.toString();
 
   MethodInfo({
     required this.className,
@@ -97,7 +97,7 @@ class MethodInfo {
     required this.returnTypeInfo,
     required this.argumentsInfo,
     required MethodElement methodElement,
-  }) : _methodElement = methodElement;
+  }) : this.methodElement = methodElement;
 
   factory MethodInfo.fromMethodElement(MethodElement element, String className) {
     final argumentsInfo = <ArgumentInfo>[];

@@ -4,24 +4,27 @@ import 'package:analyzer/dart/element/type.dart';
 
 import 'models.dart';
 
-class VisitEntryPointFunction extends SimpleAstVisitor {
+class RoutesCollectorFromEndpointsFunction extends SimpleAstVisitor {
+  /// Used to return meaningful error message
   final String filePath;
   final List<ClassInfo> routes = [];
-  VisitEntryPointFunction({required this.filePath});
+  RoutesCollectorFromEndpointsFunction({
+    required this.filePath,
+  });
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.name.name == 'entryPoint') {
-      node.visitChildren(VisitReturnStatement(filePath: filePath, routes: routes));
-    } 
+    if (node.name.name == 'endpoints') {
+      node.visitChildren(_VisitReturnStatement(filePath: filePath, routes: routes));
+    }
     return super.visitFunctionDeclaration(node);
   }
 }
 
-class VisitReturnStatement extends RecursiveAstVisitor {
+class _VisitReturnStatement extends RecursiveAstVisitor {
   final String filePath;
 
-  VisitReturnStatement({required this.filePath, required this.routes});
+  _VisitReturnStatement({required this.filePath, required this.routes});
 
   final List<ClassInfo> routes;
 
@@ -36,7 +39,7 @@ class VisitReturnStatement extends RecursiveAstVisitor {
     //  - the ';' at the end.
     final endpoints = node.childEntities.toList()[1];
 
-    // TODO(@osaxma): handle this limitation 
+    // TODO(@osaxma): handle this limitation
     if (endpoints is! ListLiteral) {
       throw Exception('The return statement for the `endpoints` function must be a list literal.\n'
           'Make sure to fix it $filePath');

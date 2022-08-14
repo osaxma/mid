@@ -39,10 +39,10 @@ void server(List<String> args) async {
 ''';
 
 
-/// `project/mid/entrypoint.dart` file
-const entryPointDotDart = '''
+/// `project/mid/endpoints.dart` file
+const endpointsDotDart = '''
 
-Future<List<Object>> entryPoint() async {
+Future<List<Object>> endpoints() async {
 
   /* do any initializations here */
 

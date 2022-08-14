@@ -30,7 +30,7 @@ class InitCommand extends MIDCommand {
     }
 
     logger.stdout('creating files:');
-    _createFileSync(p.join(path, 'mid', 'entrypoint.dart'), entryPointDotDart);
+    _createFileSync(p.join(path, 'mid', 'endpoints.dart'), endpointsDotDart);
     _createFileSync(p.join(path, 'mid', 'server.dart'), serverDotDart);
     _createFileSync(p.join(path, 'mid', 'middlewares.dart'), middleWaresDotDart);
     _createFileSync(p.join(path, 'mid', 'handlers.dart'), handlersDotDart);

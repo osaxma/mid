@@ -43,7 +43,7 @@ class EndPointsSourceGenerator {
     _imports.writeln(dartConvertImport);
     _imports.writeln(shelfImport);
     _imports.writeln(shelfRouterImport);
-    _imports.writeln(entryPointImport);
+    _imports.writeln(endpointsImport);
   }
 
   void _addDefaultTemplates() {
@@ -231,7 +231,7 @@ class $handlerClassName extends FutureOrBaseHandler {
 
     return '''
 Future<List<FutureOrBaseHandler>> getHandlers() async {
-  final list = await entryPoint();
+  final list = await endpoints();
   final handlers = <FutureOrBaseHandler>[
     $handlers
   ];

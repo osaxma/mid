@@ -12,7 +12,7 @@
 In short, all you have to write is the following _(plus the classes implementations, of course)_ in order to generate the API server and client code:
 
 ```dart
-Future<List<Object>> entryPoint(Logger logger) async {
+Future<List<Object>> endpoints(Logger logger) async {
     final database = Database(url: String.fromEnvironment('DATABASE_URL'));
     final storageURL = String.fromEnvironment('STORAGE_KEY');
     final apiKey = String.fromEnvironment('API_KEY');
@@ -78,9 +78,9 @@ While `mid` can convert any class to an API server, the types for return stateme
     void main(List<String> args) => server(args);
     ```
 
-  4. **open `mid/entrypoint.dart` and add your code there.**
+  4. **open `mid/endpoints.dart` and add your code there.**
   
-      You can create a `lib` folder, write your code there then import it to the entrypoint. 
+      You can create a `lib` folder, write your code there then import it to the `endpoints` file. 
 
   5. **Generate endpoints:**
 

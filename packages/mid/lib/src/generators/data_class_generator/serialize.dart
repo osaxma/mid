@@ -56,49 +56,13 @@ class ServerClassesSerializer {
     return type.getDisplayString(withNullability: false) + 'Serializer';
   }
 
-  final _handledTypes = <InterfaceType>{};
   String generateCode() {
     final code = StringBuffer();
 
-    for (final type in types) {
-      if (_handledTypes.contains(type)) {
-        continue;
-      }
-      _handledTypes.add(type);
+    for (final t in types) {
+     /* ... TODO ...  */
     }
 
-    throw code.toString();
-  }
-
-  void _findNonDartTypesInClass(InterfaceType type) {
-    type.constructors.forEach((element) {
-      if (element.isGenerative) {
-        element.parameters.forEach((element) {
-          element.type;
-        });
-      }
-    });
+    return code.toString();
   }
 }
-
-List<InterfaceType> getNonDartTypes(InterfaceType type, [List<InterfaceType>? initialList]) {
-  final list = initialList ?? <InterfaceType>[];
-  if (isDartType(type)) {
-    if (type.typeArguments.isEmpty) {
-      return list;
-    } else {
-      for (final t in type.typeArguments) {
-        if (t is InterfaceType) {
-          list.addAll(getNonDartTypes(t, list));
-        }
-      }
-    }
-  } else {
-    list.add(type);
-  }
-
-  return list;
-}
-
-
-// InterfaceType removeFutureOrStream
