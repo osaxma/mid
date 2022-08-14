@@ -5,10 +5,11 @@ import 'package:mid/src/common/analyzer.dart';
 
 import 'package:mid/src/common/extensions.dart';
 
-import '_visitors.dart';
+import 'visitors.dart';
 
-// TODO: move all the types logic into TypeInfo (typeArguments, isFuture, isStream, hasToJson, packageURI, etc)
-//       it's a bit messy now
+// TODO: re-evaluate if these wrappers since they were created in the early prototype
+//       some stuff are redundant and in many casses other part of the program needs access
+//       to the types and elements from the analyzer pkg (e.g. InterfaceType or MethodElement).
 
 class ClassInfo {
   final String className;
@@ -34,7 +35,7 @@ class ClassInfo {
     final className = interfaceType.getDisplayString(withNullability: false);
     final List<MethodInfo> endPointsInfo = [];
     for (var method in interfaceType.methods) {
-      if (method.isPrivate || _hasServerOnlyAnnotation(method)) {
+      if (method.isPrivate || elementHasAnnotation(method, 'serverOnly')) {
         continue;
       }
 
@@ -62,19 +63,19 @@ class ClassInfo {
   /// These types are collected from each method return statement and arguments.
   ///
   /// This list can be used by generators to get package URIs or generate serialization for those types.
-  List<DartType> getAllNonCoreTypes() {
-    final types = <DartType>{};
+  // List<DartType> getAllNonCoreTypes() {
+  //   final types = <DartType>{};
 
-    // loop through return types first
-    for (var m in methodInfos) {
-      types.addAll(m.returnTypeInfo.typeArguments.where((t) => !_isDartType(t)));
-      for(var arg in m.argumentsInfo) {
-        types.addAll(arg.type.typeArguments.where((t) => !_isDartType(t)));
-      }
-    }
+  //   // loop through return types first
+  //   for (var m in methodInfos) {
+  //     types.addAll(m.returnTypeInfo.typeArguments.where((t) => !isDartType(t)));
+  //     for(var arg in m.argumentsInfo) {
+  //       types.addAll(arg.type.typeArguments.where((t) => !isDartType(t)));
+  //     }
+  //   }
 
-    return types.toList();
-  }
+  //   return types.toList();
+  // }
 }
 
 class MethodInfo {
@@ -137,13 +138,6 @@ class ArgumentInfo {
   bool get isOptionalNamed => _parameterElement.isOptionalNamed;
   bool get hasDefaultValue => _parameterElement.hasDefaultValue;
   String? get defaultValue => _parameterElement.defaultValueCode;
-}
-
-// works only with resolved elements
-bool _hasServerOnlyAnnotation(Element element) {
-  return element.metadata.any((element) {
-    return element.element?.displayName == 'serverOnly';
-  });
 }
 
 // TODO: must of the getters here returns incorrect values for nested typeArguments
@@ -397,6 +391,10 @@ class TypeInfo {
   static String _generateVariableAssignmentForBasicType(String dataSourceName, DartType type) {
     String statement;
     if (isDateTime(type)) {
+      // TODO: handle timezone .. within mid, it should be all UTC..
+      //       we might need to check if the 'Z' is included or a specific timezone (+03:00)
+      //       sqlite3 for instance does not include the timezone in its value
+      //       if we parse as is, then it'll parse as local time instead of utc
       statement = 'DateTime.parse($dataSourceName)';
     } else if (isDuration(type)) {
       statement = 'Duration(microseconds: $dataSourceName)';
@@ -448,26 +446,4 @@ class TypeInfo {
 
     return false;
   }
-}
-
-bool _isDartType(DartType type) {
-  return type.isDartAsyncFuture ||
-      type.isDartAsyncFutureOr ||
-      type.isDartAsyncStream ||
-      type.isDartCoreBool ||
-      type.isDartCoreDouble ||
-      type.isDartCoreEnum ||
-      type.isDartCoreFunction ||
-      type.isDartCoreInt ||
-      type.isDartCoreIterable ||
-      type.isDartCoreList ||
-      type.isDartCoreMap ||
-      type.isDartCoreNull ||
-      type.isDartCoreNum ||
-      type.isDartCoreObject ||
-      type.isDartCoreSet ||
-      type.isDartCoreString ||
-      type.isDartCoreSymbol ||
-      type.isDynamic ||
-      type.isVoid;
 }

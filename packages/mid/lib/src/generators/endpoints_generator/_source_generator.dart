@@ -1,7 +1,7 @@
 import 'package:dart_style/dart_style.dart';
 
 import 'package:mid/src/common/extensions.dart';
-import 'package:mid/src/generators/endpoints_generator/_models.dart';
+import 'package:mid/src/common/models.dart';
 import 'package:mid/src/generators/endpoints_generator/templates.dart';
 import 'package:mid/src/templates/init.dart';
 

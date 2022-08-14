@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:cli_util/cli_logging.dart';
 import 'package:mid/src/common/analyzer.dart';
+import 'package:mid/src/common/models.dart';
+import 'package:mid/src/common/visitors.dart';
 import 'package:path/path.dart' as p;
 
-import 'endpoints_generator/_models.dart';
-import 'endpoints_generator/_visitors.dart';
 
 String getEntryPointPath(String projectPath) {
   final path = p.join(projectPath, 'mid', 'entrypoint.dart');

@@ -1,6 +1,10 @@
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 // ignore: unused_import
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -79,3 +83,52 @@ const coreTypes = {
   ...basicTypes,
   ...collectionTypes,
 };
+
+bool isDartType(DartType type) {
+  return type.isDartAsyncFuture ||
+      type.isDartAsyncFutureOr ||
+      type.isDartAsyncStream ||
+      type.isDartCoreBool ||
+      type.isDartCoreDouble ||
+      type.isDartCoreEnum ||
+      type.isDartCoreFunction ||
+      type.isDartCoreInt ||
+      type.isDartCoreIterable ||
+      type.isDartCoreList ||
+      type.isDartCoreMap ||
+      type.isDartCoreNull ||
+      type.isDartCoreNum ||
+      type.isDartCoreObject ||
+      type.isDartCoreSet ||
+      type.isDartCoreString ||
+      type.isDartCoreSymbol ||
+      type.isDynamic ||
+      // type.isBottom || // ??
+      type.isVoid;
+}
+
+AstNode? getAstNodeFromElement(Element element) {
+  final session = element.session;
+  if (session == null) {
+    return null;
+  }
+  final library = element.library;
+  if (library == null) {
+    return null;
+  }
+  final parsedLibResult = session.getParsedLibraryByElement(library);
+
+  if (parsedLibResult is! ParsedLibraryResult) {
+    return null;
+  }
+  final elDeclarationResult = parsedLibResult.getElementDeclaration(element);
+  return elDeclarationResult?.node;
+}
+
+
+/// [Element] must be resolved
+bool elementHasAnnotation(Element element, String annotation) {
+  return element.metadata.any((element) {
+    return element.element?.displayName == annotation;
+  });
+}

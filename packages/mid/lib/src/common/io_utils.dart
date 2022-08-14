@@ -10,6 +10,7 @@ int get terminalWidth {
 }
 
 bool isDartProject(String path) {
+  File('a').absolute;
   return FileSystemEntity.isFileSync(p.join(path, 'pubspec.yaml'));
 }
 
@@ -18,8 +19,8 @@ bool isMidProject(String path) {
 }
 
 void clearDirContent(String path) {
-  final testDir = Directory(path);
-  final dirContents = testDir.listSync();
+  final dir = Directory(path);
+  final dirContents = dir.listSync();
   for (var element in dirContents) {
     element.deleteSync(recursive: true);
   }

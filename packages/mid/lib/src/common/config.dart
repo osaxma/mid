@@ -1,43 +1,47 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:path/path.dart' as p;
+// import 'dart:convert';
+// import 'dart:io';
+// import 'package:path/path.dart' as p;
 
-Config getConfig(String projectPath) {
-  final path = p.join(projectPath, 'mid', 'config.jsonc');
-  final configJSON = File(path).readAsStringSync();
-  final data = json.decode(_removeComments(configJSON)) as Map<String, dynamic>;
-  return Config.fromConfigFile(data);
-}
+// TODO: add config for serialization
+//       DateTime -> microsecondsSinceEpoch or isoString?
+//      ... 
 
-class Config {
-  final ClientConfig clientConfig;
-  final ServerConfig serverConfig;
+// Config getConfig(String projectPath) {
+//   final path = p.join(projectPath, 'mid', 'config.jsonc');
+//   final configJSON = File(path).readAsStringSync();
+//   final data = json.decode(_removeComments(configJSON)) as Map<String, dynamic>;
+//   return Config.fromConfigFile(data);
+// }
 
-  Config(this.clientConfig, this.serverConfig);
+// class Config {
+//   final ClientConfig clientConfig;
+//   final ServerConfig serverConfig;
 
-  factory Config.fromConfigFile(Map<String, dynamic> map) {
-    return Config(
-      ClientConfig(
-        map['client']['target_directory'] ?? '',
-        map['client']['project_name'],
-      ),
-      ServerConfig(),
-    );
-  }
-}
+//   Config(this.clientConfig, this.serverConfig);
 
-class ClientConfig {
-  final String targetDirectory;
-  final String projectName;
+//   factory Config.fromConfigFile(Map<String, dynamic> map) {
+//     return Config(
+//       ClientConfig(
+//         map['client']['target_directory'] ?? '',
+//         map['client']['project_name'],
+//       ),
+//       ServerConfig(),
+//     );
+//   }
+// }
 
-  ClientConfig(this.targetDirectory, this.projectName);
-}
+// class ClientConfig {
+//   final String targetDirectory;
+//   final String projectName;
 
-class ServerConfig {}
+//   ClientConfig(this.targetDirectory, this.projectName);
+// }
 
-// credit: https://stackoverflow.com/a/69168715/10976714
-var commentRE = RegExp(r'"(?:[^\\"]|\\[^])*"|/\*[^]*?\*/|//.*');
-String _removeComments(String jsonWithComments) => jsonWithComments.replaceAllMapped(commentRE, (m) {
-      var s = m[0]!;
-      return s.startsWith('"') ? s : "";
-    });
+// class ServerConfig {}
+
+// // credit: https://stackoverflow.com/a/69168715/10976714
+// var commentRE = RegExp(r'"(?:[^\\"]|\\[^])*"|/\*[^]*?\*/|//.*');
+// String _removeComments(String jsonWithComments) => jsonWithComments.replaceAllMapped(commentRE, (m) {
+//       var s = m[0]!;
+//       return s.startsWith('"') ? s : "";
+//     });
