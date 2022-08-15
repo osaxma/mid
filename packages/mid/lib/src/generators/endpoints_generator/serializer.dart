@@ -130,74 +130,11 @@ static Map<String, dynamic> toMap($name instance) {
     for (final para in paras) {
       final key = para.name;
       final paraType = para.type as InterfaceType;
-      final value = _generateKeyAssignment(paraType, '$dataSource.$key');
+      final value = serializeValue(paraType, '$dataSource.$key');
       buff.writeln("'$key':$value,");
     }
 
     return buff.toString();
-  }
-
-  String _generateKeyAssignment(InterfaceType type, String dataSource) {
-    final isNullable = type.nullabilitySuffix != NullabilitySuffix.none;
-    if (isBasicType(type)) {
-      return dataSource;
-    }
-
-    if (isDateTime(type)) {
-      if (isNullable) {
-        return '$dataSource?.toUtc().toIso8601String()';
-      } else {
-        return '$dataSource.toUtc().toIso8601String()';
-      }
-    }
-
-    if (isDuration(type)) {
-      if (isNullable) {
-        return '$dataSource?.inMicroseconds';
-      } else {
-        return '$dataSource.inMicroseconds';
-      }
-    }
-
-    if (!isDartType(type)) {
-      if (isNullable) {
-        return ' $dataSource == null ? null : ${getSerializerName(type)}.toMap($dataSource)';
-      } else {
-        return '${getSerializerName(type)}.toMap($dataSource)';
-      }
-    }
-
-    if (type.isDartCoreList || type.isDartCoreSet) {
-      if (type.typeArguments.isEmpty) {
-        return dataSource;
-      }
-      final t = type.typeArguments.first as InterfaceType;
-
-      if (isNullable) {
-        return '$dataSource?.map((x) => ${_generateKeyAssignment(t, 'x')})';
-      } else {
-        return '$dataSource.map((x) => ${_generateKeyAssignment(t, 'x')})';
-      }
-    }
-
-    if (type.isDartCoreMap) {
-      if (type.typeArguments.isEmpty) {
-        return dataSource;
-      }
-      final keyType = type.typeArguments[0] as InterfaceType;
-      final valueType = type.typeArguments[0] as InterfaceType;
-      if (isBasicType(keyType) && isBasicType(valueType)) {
-        return dataSource;
-      } else {
-        if (isNullable) {
-          return '$dataSource?.map((k, v) => MapEntry(${_generateKeyAssignment(keyType, 'k')}, ${_generateKeyAssignment(valueType, 'v')}))';
-        } else {
-          return '$dataSource.map((k, v) => MapEntry(${_generateKeyAssignment(keyType, 'k')}, ${_generateKeyAssignment(valueType, 'v')}))';
-        }
-      }
-    }
-
-    throw UnimplementedError();
   }
 
   // String _generateMapValue(type)
@@ -231,76 +168,11 @@ static $name fromMap(Map<String, dynamic> map) {
       final argName = para.name;
       final argType = para.type as InterfaceType;
       // final typeName = argType.getDisplayString(withNullability: true);
-      final argAssignment = _generateArgumentAssignment(argType, "map['$argName']");
+      final argAssignment = deserializeValue(argType, "map['$argName']");
       buff.writeln('$argName : $argAssignment,');
     }
 
     return buff.toString();
-  }
-
-  String _generateArgumentAssignment(InterfaceType type, String argName) {
-    final isNullable = type.nullabilitySuffix != NullabilitySuffix.none;
-    final typeName = type.getDisplayString(withNullability: true);
-    if (isBasicType(type)) {
-      return '$argName as $typeName';
-    }
-
-    if (isDateTime(type)) {
-      if (isNullable) {
-        return '$argName == null ? null : DateTime.parse($argName)';
-      } else {
-        return 'DateTime.parse($argName)';
-      }
-    }
-
-    if (isDuration(type)) {
-      if (isNullable) {
-        return '$argName == null ? null : Duration(microseconds: $argName)';
-      } else {
-        return 'Duration(microseconds: $argName)';
-      }
-    }
-
-    if (!isDartType(type)) {
-      final serializerName = getSerializerName(type);
-      if (isNullable) {
-        return '$argName == null ? null : $serializerName.fromMap($argName)';
-      } else {
-        return '$serializerName.fromMap($argName)';
-      }
-    }
-
-    if (type.isDartCoreList || type.isDartCoreSet) {
-      if (type.typeArguments.isEmpty) {
-        return argName;
-      }
-      final t = type.typeArguments.first as InterfaceType;
-      final typeName = type.getDisplayString(withNullability: false);
-
-      if (isNullable) {
-        return "$argName == null ? null : List<$typeName>.from($argName.map((x) => ${_generateArgumentAssignment(t, 'x')})";
-      } else {
-        return "List<$typeName>.from($argName.map((x) => ${_generateArgumentAssignment(t, 'x')})";
-      }
-    }
-
-    if (type.isDartCoreMap) {
-      if (type.typeArguments.isEmpty) {
-        return argName;
-      }
-      final keyType = type.typeArguments[0] as InterfaceType;
-      final valueType = type.typeArguments[0] as InterfaceType;
-      if (isBasicType(keyType) && isBasicType(valueType)) {
-        return argName;
-      } else {
-        if (isNullable) {
-          return "$argName.map((k, v) => MapEntry(${_generateArgumentAssignment(keyType, 'k')} , ${_generateArgumentAssignment(valueType, 'v')})";
-        } else {
-          return "$argName?.map((k, v) => MapEntry(${_generateArgumentAssignment(keyType, 'k')} , ${_generateArgumentAssignment(valueType, 'v')})";
-        }
-      }
-    }
-    throw UnimplementedError();
   }
 
   List<ParameterElement> _getConstructorParameters(InterfaceType type) {
@@ -324,4 +196,134 @@ bool allArgumentsInUnnamedConstructorIsToThis(InterfaceType type) {
 
   // [ParameterElement.isInitializingFormal] refers when a field is initialized using `this` keyword.
   return constructor.parameters.any((p) => !p.isInitializingFormal);
+}
+
+/// This can only be used in Server side code
+String deserializeValue(InterfaceType type, String value) {
+  final isNullable = type.nullabilitySuffix != NullabilitySuffix.none;
+  final typeName = type.getDisplayString(withNullability: true);
+  if (isBasicType(type)) {
+    return '$value as $typeName';
+  }
+
+  if (isDateTime(type)) {
+    if (isNullable) {
+      return '$value == null ? null : DateTime.parse($value)';
+    } else {
+      return 'DateTime.parse($value)';
+    }
+  }
+
+  if (isDuration(type)) {
+    if (isNullable) {
+      return '$value == null ? null : Duration(microseconds: $value)';
+    } else {
+      return 'Duration(microseconds: $value)';
+    }
+  }
+
+  if (!isDartType(type)) {
+    final serializerName = ServerClassesSerializer.getSerializerName(type);
+    if (isNullable) {
+      return '$value == null ? null : $serializerName.fromMap($value)';
+    } else {
+      return '$serializerName.fromMap($value)';
+    }
+  }
+
+  if (type.isDartCoreList || type.isDartCoreSet) {
+    if (type.typeArguments.isEmpty) {
+      return value;
+    }
+    final t = type.typeArguments.first as InterfaceType;
+    final typeName = type.getDisplayString(withNullability: false);
+
+    if (isNullable) {
+      return "$value == null ? null : List<$typeName>.from($value.map((x) => ${deserializeValue(t, 'x')})";
+    } else {
+      return "List<$typeName>.from($value.map((x) => ${deserializeValue(t, 'x')})";
+    }
+  }
+
+  if (type.isDartCoreMap) {
+    if (type.typeArguments.isEmpty) {
+      return value;
+    }
+    final keyType = type.typeArguments[0] as InterfaceType;
+    final valueType = type.typeArguments[0] as InterfaceType;
+    if (isBasicType(keyType) && isBasicType(valueType)) {
+      return value;
+    } else {
+      if (isNullable) {
+        return "$value.map((k, v) => MapEntry(${deserializeValue(keyType, 'k')} , ${deserializeValue(valueType, 'v')})";
+      } else {
+        return "$value?.map((k, v) => MapEntry(${deserializeValue(keyType, 'k')} , ${deserializeValue(valueType, 'v')})";
+      }
+    }
+  }
+  throw UnimplementedError();
+}
+
+/// This can only be used in Server side code
+String serializeValue(InterfaceType type, String value) {
+  final isNullable = type.nullabilitySuffix != NullabilitySuffix.none;
+  if (isBasicType(type)) {
+    return value;
+  }
+
+  if (isDateTime(type)) {
+    if (isNullable) {
+      return '$value?.toUtc().toIso8601String()';
+    } else {
+      return '$value.toUtc().toIso8601String()';
+    }
+  }
+
+  if (isDuration(type)) {
+    if (isNullable) {
+      return '$value?.inMicroseconds';
+    } else {
+      return '$value.inMicroseconds';
+    }
+  }
+
+  if (!isDartType(type)) {
+    if (isNullable) {
+      return '$value == null ? null : ${ServerClassesSerializer.getSerializerName(type)}.toMap($value)';
+    } else {
+      return '${ServerClassesSerializer.getSerializerName(type)}.toMap($value)';
+    }
+  }
+
+  if (type.isDartCoreList || type.isDartCoreSet) {
+    if (type.typeArguments.isEmpty) {
+      return value;
+    }
+    final t = type.typeArguments.first as InterfaceType;
+
+    if (isNullable) {
+      return '$value?.map((x) => ${serializeValue(t, 'x')})';
+    } else {
+      return '$value.map((x) => ${serializeValue(t, 'x')})';
+    }
+  }
+
+  if (type.isDartCoreMap) {
+    if (type.typeArguments.isEmpty) {
+      return value;
+    }
+    final keyType = type.typeArguments[0] as InterfaceType;
+    final valueType = type.typeArguments[0] as InterfaceType;
+    if (isBasicType(keyType) && isBasicType(valueType)) {
+      return value;
+    } else {
+      if (isNullable) {
+        return '$value?.map((k, v) => MapEntry(${serializeValue(keyType, 'k')}, ${serializeValue(valueType, 'v')}))';
+      } else {
+        return '$value.map((k, v) => MapEntry(${serializeValue(keyType, 'k')}, ${serializeValue(valueType, 'v')}))';
+      }
+    }
+  }
+
+  throw UnimplementedError();
 }

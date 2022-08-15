@@ -1,6 +1,6 @@
 import 'package:mid/src/common/analyzer.dart';
 import 'package:mid/src/common/visitors.dart';
-import 'package:mid/src/generators/endpoints_generator/serialize.dart';
+import 'package:mid/src/generators/endpoints_generator/serializer.dart';
 import 'package:test/scaffolding.dart';
 
 import '../../../helpers/ast_helpers.dart';

@@ -15,8 +15,10 @@ import 'endpoints.dart';
 import 'package:mid_auth/src/server/server.dart';
 import 'package:mid_auth/src/models/user_data.dart';
 
+import 'serializers.dart';
+
 final Map<String, String> _defaultHeaders = {
-  'Content-Type': 'application/json',
+  'content-type': 'application/json',
   // figure out how to make this defined by the EndPoint
   // 'Access-Control-Allow-Origin': '*',
 };
@@ -25,14 +27,16 @@ Future<Router> generateRouter() async {
   final handlers = await getHandlers();
   final router = Router();
   for (final handler in handlers) {
-    router.add(handler.verb, handler.route, (Request request) => _defaultHandler(request, handler));
+    router.add(handler.verb, handler.route,
+        (Request request) => _defaultHandler(request, handler));
   }
   return router;
 }
 
-Future<Response> _defaultHandler(Request request, FutureOrBaseHandler baseHandler) async {
+Future<Response> _defaultHandler(
+    Request request, FutureOrBaseHandler baseHandler) async {
   final contentType = request.headers['content-type'];
-  
+
   if (contentType == null || !contentType.contains('application/json')) {
     return Response.badRequest(body: 'content type must be application/json');
   }
@@ -57,7 +61,9 @@ abstract class FutureOrBaseHandler {
   String get route;
 
   /// The request handler
-  FutureOr<Response> handler(Map<String, dynamic> map); // need importing async =>  import 'dart:async';
+  FutureOr<Response> handler(
+      Map<String, dynamic>
+          map); // need importing async =>  import 'dart:async';
 
   /// The HTTP verb
   // for now only post is used for all types of requests
@@ -68,7 +74,8 @@ abstract class StreamBaseHandler {
   /* WIP */
 }
 
-class AuthServerCreateUserWithEmailAndPasswordHandler extends FutureOrBaseHandler {
+class AuthServerCreateUserWithEmailAndPasswordHandler
+    extends FutureOrBaseHandler {
   final AuthServer authserver;
   AuthServerCreateUserWithEmailAndPasswordHandler(this.authserver);
 
@@ -85,7 +92,7 @@ class AuthServerCreateUserWithEmailAndPasswordHandler extends FutureOrBaseHandle
         password,
       );
 
-      return Response.ok(json.encode(result.toMap()));
+      return Response.ok(json.encode(SessionSerializer.toMap(result)));
     } catch (e) {
       return Response.badRequest(body: e.toString());
     }
@@ -109,7 +116,7 @@ class AuthServerSignInWithEmailAndPasswordHandler extends FutureOrBaseHandler {
         password,
       );
 
-      return Response.ok(json.encode(result.toMap()));
+      return Response.ok(json.encode(SessionSerializer.toMap(result)));
     } catch (e) {
       return Response.badRequest(body: e.toString());
     }
@@ -179,7 +186,7 @@ class AuthServerRefreshSessionHandler extends FutureOrBaseHandler {
         refreshToken,
       );
 
-      return Response.ok(json.encode(result.toMap()));
+      return Response.ok(json.encode(SessionSerializer.toMap(result)));
     } catch (e) {
       return Response.badRequest(body: e.toString());
     }
@@ -194,7 +201,7 @@ class AuthServerSendConfirmationEmailHandler extends FutureOrBaseHandler {
   String get route => '/auth_server/send_confirmation_email/';
   @override
   Future<Response> handler(Map<String, dynamic> map) async {
-    final user = User.fromMap(map['user']);
+    final user = UserSerializer.fromMap(map['user']);
 
     try {
       await authserver.sendConfirmationEmail(

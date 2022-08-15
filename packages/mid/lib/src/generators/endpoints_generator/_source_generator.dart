@@ -1,7 +1,10 @@
+import 'package:analyzer/dart/element/type.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:mid/src/common/analyzer.dart';
 
 import 'package:mid/src/common/extensions.dart';
 import 'package:mid/src/common/models.dart';
+import 'package:mid/src/generators/endpoints_generator/serializer.dart';
 import 'package:mid/src/generators/endpoints_generator/templates.dart';
 import 'package:mid/src/templates/init.dart';
 
@@ -84,19 +87,18 @@ class EndPointsSourceGenerator {
     final methodInvocation = _generateMethodInvocation(methodInfo, classInstanceName, resultName: resultName);
     late final String responseBody;
 
-    // depending on how the data class is generated, toMap always return Map<String, dynamic>
-    // while toJson could return a json string if it has toMap already, and would return Map<String, dynamic>
-    // if it doesn't have toMap -- we try to cover both cases.
-    if (methodInfo.returnTypeInfo.hasToMap) {
-      responseBody = '$resultName.toMap()';
-    } else if (methodInfo.returnTypeInfo.hasToJson) {
-      responseBody = '$resultName.toJson()';
-    } else if (methodInfo.returnTypeInfo.hasVoid) {
+    var type = methodInfo.returnTypeInfo.dartType;
+
+    if (type.isDartAsyncFuture || type.isDartAsyncFutureOr || type.isDartAsyncStream) {
+      if (type is InterfaceType && type.typeArguments.isNotEmpty) {
+        type = type.typeArguments.first;
+      }
+    }
+
+    if (type.isVoid) {
       responseBody = "'ok'";
-    } else if (methodInfo.returnTypeInfo.hasDateTime) {
-      responseBody = '$resultName.toIso8601String()';
     } else {
-      responseBody = resultName;
+      responseBody = serializeValue(type as InterfaceType, resultName);
     }
 
     final isFuture = methodInfo.returnTypeInfo.isFuture;
@@ -127,8 +129,7 @@ class $handlerClassName extends FutureOrBaseHandler {
 
 ''';
   }
-  
-  // TODO: utilize the methods from MethodInfo similar to the one used by client lib generator
+
   /// Given a `Map<String, dynamic> map`, extract each argument based on its name
   /// e.g. if the method at hand is:
   ///    Future<String> myMethod(String x, {String? y}) { .... }
@@ -137,50 +138,22 @@ class $handlerClassName extends FutureOrBaseHandler {
   ///    final y = map['y'] as String?;
   String _generateArgumentAssignment(MethodInfo methodInfo, {String mapVariableName = 'map'}) {
     final buffer = StringBuffer();
-
-    // create variable assignments
     for (final arg in methodInfo.argumentsInfo) {
       final name = arg.argName;
-      final type = arg.type.getTypeName(withNullability: true);
-      bool isCoreType = false;
-      // depending on how the data class is generated fromMap always accepts Map<String, dynamic>
-      // while fromJson could expect a json string if it has fromMap already, and would expect Map<String, dynamic>
-      // if it doesn't have fromMap -- we try to cover both cases
-      late final String? from;
-      if (arg.type.hasFromMap) {
-        from = 'fromMap';
-      } else if (arg.type.hasFromJson) {
-        from = 'fromJson';
-      } else {
-        from = null;
-      }
+      buffer.writeln(
+          "final $name = ${deserializeValue(arg.type.dartType as InterfaceType, "$mapVariableName['$name']")};");
 
-      // TODO: this does not handle iterables ...
-      if (from != null) {
-        if (arg.type.isNullable) {
-          buffer.writeln(
-            "final $name = $mapVariableName['$name'] == null ? null : $type.$from($mapVariableName['$name']);",
-          );
-        } else {
-          buffer.writeln("final $name =  $type.$from($mapVariableName['$name']);");
-        }
-      } else {
-        isCoreType = true;
-        buffer.writeln("final $name = $mapVariableName['$name'] as $type;");
-      }
-
-      if (!isCoreType) {
+      if (!isDartType(arg.type.dartType)) {
         final typePackageURI = arg.type.getTypePackageURI();
         if (typePackageURI != null) {
           _addImport(typePackageURI);
         }
       }
     }
-
     return buffer.toString();
   }
 
-  // TODO: move this to MethodInfo.generateMethodInvocation 
+  // TODO: move this to MethodInfo.generateMethodInvocation
   /// generates:
   /// final [resultName] = [classInstanceName].[methodInfo.methodName](args)
   ///
