@@ -198,8 +198,8 @@ bool allArgumentsInUnnamedConstructorIsToThis(InterfaceType type) {
   return constructor.parameters.any((p) => !p.isInitializingFormal);
 }
 
-/// This can only be used in Server side code
-String deserializeValue(InterfaceType type, String value) {
+/// [useToMapFromMap] means use the [type].toMap() and [Type].fromMap().
+String deserializeValue(InterfaceType type, String value, {bool useToMapFromMap = false}) {
   final isNullable = type.nullabilitySuffix != NullabilitySuffix.none;
   final typeName = type.getDisplayString(withNullability: true);
   if (isBasicType(type)) {
@@ -223,11 +223,20 @@ String deserializeValue(InterfaceType type, String value) {
   }
 
   if (!isDartType(type)) {
-    final serializerName = ServerClassesSerializer.getSerializerName(type);
-    if (isNullable) {
-      return '$value == null ? null : $serializerName.fromMap($value)';
+    if (useToMapFromMap) {
+      final className = type.getDisplayString(withNullability: false);
+      if (isNullable) {
+        return '$value == null ? null : $className.fromMap($value)';
+      } else {
+        return '$className.fromMap($value)';
+      }
     } else {
-      return '$serializerName.fromMap($value)';
+      final serializerName = ServerClassesSerializer.getSerializerName(type);
+      if (isNullable) {
+        return '$value == null ? null : $serializerName.fromMap($value)';
+      } else {
+        return '$serializerName.fromMap($value)';
+      }
     }
   }
 
@@ -265,7 +274,7 @@ String deserializeValue(InterfaceType type, String value) {
 }
 
 /// This can only be used in Server side code
-String serializeValue(InterfaceType type, String value) {
+String serializeValue(InterfaceType type, String value, {bool useToMapFromMap = false}) {
   final isNullable = type.nullabilitySuffix != NullabilitySuffix.none;
   if (isBasicType(type)) {
     return value;
@@ -288,10 +297,18 @@ String serializeValue(InterfaceType type, String value) {
   }
 
   if (!isDartType(type)) {
-    if (isNullable) {
-      return '$value == null ? null : ${ServerClassesSerializer.getSerializerName(type)}.toMap($value)';
+    if (useToMapFromMap) {
+      if (isNullable) {
+        return '$value?.toMap()';
+      } else {
+        return '$value.toMap()';
+      }
     } else {
-      return '${ServerClassesSerializer.getSerializerName(type)}.toMap($value)';
+      if (isNullable) {
+        return '$value == null ? null : ${ServerClassesSerializer.getSerializerName(type)}.toMap($value)';
+      } else {
+        return '${ServerClassesSerializer.getSerializerName(type)}.toMap($value)';
+      }
     }
   }
 

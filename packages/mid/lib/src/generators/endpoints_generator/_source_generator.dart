@@ -101,8 +101,8 @@ class EndPointsSourceGenerator {
       responseBody = serializeValue(type as InterfaceType, resultName);
     }
 
-    final isFuture = methodInfo.returnTypeInfo.isFuture;
-    final isStream = methodInfo.returnTypeInfo.isStream;
+    final isFuture = methodInfo.returnTypeInfo.dartType.isDartAsyncFuture;
+    final isStream = methodInfo.returnTypeInfo.dartType.isDartAsyncFuture;
     final returnType = isFuture ? 'Future<Response>' : 'Response';
     final asyncKeyWord = isFuture ? 'async' : '';
 
@@ -144,7 +144,7 @@ class $handlerClassName extends FutureOrBaseHandler {
           "final $name = ${deserializeValue(arg.type.dartType as InterfaceType, "$mapVariableName['$name']")};");
 
       if (!isDartType(arg.type.dartType)) {
-        final typePackageURI = arg.type.getTypePackageURI();
+        final typePackageURI = getTypePackageURI(arg.type.dartType as InterfaceType);
         if (typePackageURI != null) {
           _addImport(typePackageURI);
         }
@@ -161,10 +161,10 @@ class $handlerClassName extends FutureOrBaseHandler {
   /// final result = SomeClassInstance.Method(value1, {namedArg: value2, namedOptionalArg: value3 ?? defaultValue});
   String _generateMethodInvocation(MethodInfo methodInfo, String classInstanceName, {required String resultName}) {
     final buffer = StringBuffer();
-    if (!methodInfo.returnTypeInfo.hasVoid) {
+    if (!methodInfo.returnTypeInfo.dartType.isVoid) {
       buffer.write('final $resultName = ');
     }
-    if (methodInfo.returnTypeInfo.isFuture) {
+    if (methodInfo.returnTypeInfo.dartType.isDartAsyncFuture) {
       buffer.write('await ');
     }
     buffer.write('$classInstanceName.${methodInfo.methodName}(');

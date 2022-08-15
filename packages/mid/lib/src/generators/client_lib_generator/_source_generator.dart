@@ -1,7 +1,10 @@
+import 'package:analyzer/dart/element/type.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:code_builder/code_builder.dart';
+import 'package:mid/src/common/analyzer.dart';
 import 'package:mid/src/common/models.dart';
+import 'package:mid/src/generators/endpoints_generator/serializer.dart';
 
 class ClientEndPointGenerator {
   final ClassInfo classInfo;
@@ -32,7 +35,6 @@ class ClientEndPointGenerator {
 
     final source = DartFormatter().format(clazz.build().accept(emitter).toString());
 
-    print(source);
     return source;
   }
 
@@ -46,7 +48,7 @@ class ClientEndPointGenerator {
           b.type = refer('String');
         },
       ),
-      // TODO@(osaxma): change to interceptors instead 
+      // TODO@(osaxma): change to interceptors instead
       Field(
         (b) {
           b.name = 'headersProvider';
@@ -109,11 +111,11 @@ class ClientEndPointGenerator {
 
   /// if the return type on the server is not a future, it has to be a future on the client side
   String _ensureReturnTypeHasFuture(TypeInfo type) {
-    if (type.isFuture || type.isStream) {
-      return type.getTypeName();
+    if (type.dartType.isDartAsyncFuture || type.dartType.isDartAsyncStream) {
+      return type.dartType.getDisplayString(withNullability: true);
     }
 
-    return 'Future<${type.getTypeName()}>';
+    return 'Future<${type.dartType.getDisplayString(withNullability: true)}>';
   }
 
   ListBuilder<Parameter> _generateNamedParameters(MethodInfo method) {
@@ -123,7 +125,7 @@ class ClientEndPointGenerator {
         b.required = p.isRequired;
         b.name = p.argName;
         b.named = p.isNamed;
-        b.type = refer(p.type.getTypeName());
+        b.type = refer(p.type.dartType.getDisplayString(withNullability: true));
         if (p.hasDefaultValue) {
           b.defaultTo = Code(p.defaultValue!);
         }
@@ -138,7 +140,7 @@ class ClientEndPointGenerator {
     for (var p in method.argumentsInfo.where((element) => element.isPositional)) {
       paras.add(Parameter((b) {
         b.name = p.argName;
-        b.type = refer(p.type.getTypeName());
+        b.type = refer(p.type.dartType.getDisplayString(withNullability: true));
         if (p.hasDefaultValue) {
           b.defaultTo = Code(p.defaultValue!);
         }
@@ -150,7 +152,22 @@ class ClientEndPointGenerator {
 
   Code _generateMethodBody(MethodInfo method) {
     final argsToKeyValue = _convertMethodArgsToKeyValueString(method);
-    final returnStatement = method.returnTypeInfo.generateVariableAssignmentForType('data');
+    var returnType = method.returnTypeInfo.dartType;
+
+    if (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr || returnType.isDartAsyncStream) {
+      if (returnType is InterfaceType && returnType.typeArguments.isNotEmpty) {
+        returnType = returnType.typeArguments.first;
+      }
+    }
+
+    late final String returnStatement;
+    if (returnType.isVoid) {
+      returnStatement = '';
+    } else {
+      returnStatement = deserializeValue(returnType as InterfaceType, 'data', useToMapFromMap: true);
+    }
+
+    // final returnStatement = method.returnTypeInfo.generateVariableAssignmentForType('data');
     return Code('''
   final args = {
     $argsToKeyValue

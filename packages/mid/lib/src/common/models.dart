@@ -293,27 +293,27 @@ class TypeInfo {
 
   static bool isNullableType(DartType type) => type.nullabilitySuffix != NullabilitySuffix.none;
 
-  bool get isNullable => dartType.nullabilitySuffix != NullabilitySuffix.none;
+  // bool get isNullable => dartType.nullabilitySuffix != NullabilitySuffix.none;
 
   /// Returns the full type name e.g. Future<List<Data>>
   ///
   /// If [skipFutureAndStream], then the inner types are returned.
-  String getTypeName({bool withNullability = true, bool skipFutureAndStream = false}) {
-    if (skipFutureAndStream) {
-      if (isFuture || isStream) {
-        return typeArguments.first.getDisplayString(withNullability: withNullability);
-      }
-    }
-    return dartType.getDisplayString(withNullability: withNullability);
-  }
+  // String getTypeName({bool withNullability = true, bool skipFutureAndStream = false}) {
+  //   if (skipFutureAndStream) {
+  //     if (isFuture || isStream) {
+  //       return typeArguments.first.getDisplayString(withNullability: withNullability);
+  //     }
+  //   }
+  //   return dartType.getDisplayString(withNullability: withNullability);
+  // }
 
-  String? getTypePackageURI() {
-    final type = dartType;
-    if (type is InterfaceType) {
-      return type.element.librarySource.uri.toString();
-    }
-    return null;
-  }
+  // String? getTypePackageURI() {
+  //   final type = dartType;
+  //   if (type is InterfaceType) {
+  //     return type.element.librarySource.uri.toString();
+  //   }
+  //   return null;
+  // }
 
   /// Generate a variable assignment -- mainly from a decoded JSON object
   ///
