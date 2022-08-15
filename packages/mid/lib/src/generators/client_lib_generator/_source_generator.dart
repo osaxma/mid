@@ -2,17 +2,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:code_builder/code_builder.dart';
-import 'package:mid/src/common/analyzer.dart';
 import 'package:mid/src/common/models.dart';
 import 'package:mid/src/generators/endpoints_generator/serializer.dart';
 
 class ClientEndPointGenerator {
   final ClassInfo classInfo;
 
-  /// holds a Set of non-dart types in order to serialize them for the client
-  ///
-  /// This set is populated during generation
-  final nonDartTypes = <TypeInfo>{};
 
   final emitter = DartEmitter(useNullSafetySyntax: true);
 
@@ -94,7 +89,7 @@ class ClientEndPointGenerator {
   }
 
   Method _generateMethod(MethodInfo methodInfo) {
-    final returnType = _ensureReturnTypeHasFuture(methodInfo.returnTypeInfo);
+    final returnType = _ensureReturnTypeHasFuture(methodInfo.type);
     final m = MethodBuilder();
     m
       ..name = methodInfo.methodName
@@ -110,12 +105,12 @@ class ClientEndPointGenerator {
   }
 
   /// if the return type on the server is not a future, it has to be a future on the client side
-  String _ensureReturnTypeHasFuture(TypeInfo type) {
-    if (type.dartType.isDartAsyncFuture || type.dartType.isDartAsyncStream) {
-      return type.dartType.getDisplayString(withNullability: true);
+  String _ensureReturnTypeHasFuture(DartType type) {
+    if (type.isDartAsyncFuture || type.isDartAsyncStream) {
+      return type.getDisplayString(withNullability: true);
     }
 
-    return 'Future<${type.dartType.getDisplayString(withNullability: true)}>';
+    return 'Future<${type.getDisplayString(withNullability: true)}>';
   }
 
   ListBuilder<Parameter> _generateNamedParameters(MethodInfo method) {
@@ -125,7 +120,7 @@ class ClientEndPointGenerator {
         b.required = p.isRequired;
         b.name = p.argName;
         b.named = p.isNamed;
-        b.type = refer(p.type.dartType.getDisplayString(withNullability: true));
+        b.type = refer(p.type.getDisplayString(withNullability: true));
         if (p.hasDefaultValue) {
           b.defaultTo = Code(p.defaultValue!);
         }
@@ -140,7 +135,7 @@ class ClientEndPointGenerator {
     for (var p in method.argumentsInfo.where((element) => element.isPositional)) {
       paras.add(Parameter((b) {
         b.name = p.argName;
-        b.type = refer(p.type.dartType.getDisplayString(withNullability: true));
+        b.type = refer(p.type.getDisplayString(withNullability: true));
         if (p.hasDefaultValue) {
           b.defaultTo = Code(p.defaultValue!);
         }
@@ -152,7 +147,7 @@ class ClientEndPointGenerator {
 
   Code _generateMethodBody(MethodInfo method) {
     final argsToKeyValue = _convertMethodArgsToKeyValueString(method);
-    var returnType = method.returnTypeInfo.dartType;
+    var returnType = method.type;
 
     if (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr || returnType.isDartAsyncStream) {
       if (returnType is InterfaceType && returnType.typeArguments.isNotEmpty) {
