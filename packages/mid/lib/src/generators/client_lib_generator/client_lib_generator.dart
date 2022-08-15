@@ -21,6 +21,8 @@ class ClientLibGenerator {
   final String clientLibProjectPath;
   final Logger logger;
 
+  late final String _source;
+
   ClientLibGenerator({
     required this.serverProjectPath,
     required this.logger,
@@ -34,8 +36,10 @@ class ClientLibGenerator {
 
     final generator = ClientEndPointGenerator(routes.first);
 
-    await generator.generate();
+   _source =  await generator.generate();
+  }
 
-    // each route will be its own file
+  Future<void> commit() async {
+    // TODO: commit 
   }
 }

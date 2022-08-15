@@ -57,6 +57,7 @@ class GenerateEndPointsCommand extends MIDCommand {
     );
 
     await generator.generate();
+    await generator.commit();
   }
 }
 
@@ -84,5 +85,6 @@ class GenerateClientLibCommand extends MIDCommand {
     );
 
     await generator.generate();
+    await generator.commit();
   }
 }
