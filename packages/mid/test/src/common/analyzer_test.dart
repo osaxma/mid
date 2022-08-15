@@ -1,55 +1,23 @@
-import 'dart:io';
 
-import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:test/scaffolding.dart';
-import 'package:path/path.dart' as p;
+import 'package:mid/src/common/analyzer.dart';
+import 'package:mid/src/common/visitors.dart';
+import 'package:test/test.dart';
 
-final _sample = ''' 
-class Data {
-  final int id;
-  final String name;
-  final InnerData innerData;
-  Data({
-    required this.id,
-    required this.name,
-    required this.innerData,
-  });
-}
+import '../../helpers/ast_helpers.dart';
 
-class InnerData {
-  final num number;
-  final MetaData metaData;
-  InnerData({
-    required this.number,
-    required this.metaData,
-  });
-}
+void main() async {
+  final sample = await getResolvedSample('endpoints.dart');
+  final collector = RoutesCollectorFromEndpointsFunction(filePath: '');
+  sample.visitChildren(collector);
 
-class MetaData {}
-''';
+  group('functions tests', () {
+    test('find all non-Dart types', () {
+      // there is only one method
+      final method = collector.routes.first.methodInfos.first.methodElement;
+      final types = findAllNonDartTypesFromMethodElement(method);
+      final typesNames = types.map((e) => e.getDisplayString(withNullability: false));
 
-class _Visitor extends SimpleAstVisitor {
-  @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    print('visiting');
-    node.declaredElement;
-  }
-}
-
-void main() {
-  final samplePath = p.join(Directory.current.path, 'test', 'samples', 'data_class');
-
-  group('description', () {
-    test('description', () {
-      final res = resolveFile2(path: samplePath);
-      
-      print(Directory.current); // always returns the root directory of the project
-      final ast = parseString(content: _sample);
-      // final e = getRe
-      final visitor = _Visitor();
-      ast.unit.visitChildren(visitor);
+      expect({'ReturnData', 'Data', 'InnerData', 'DeepData'}, equals(typesNames));
     });
   });
 }

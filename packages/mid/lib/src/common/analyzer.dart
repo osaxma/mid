@@ -84,33 +84,37 @@ const coreTypes = {
   ...collectionTypes,
 };
 
+// TODO: move these to an extention on [DartType]
+
+bool isDartCollection(DartType type) =>
+    type.isDartCoreList || type.isDartCoreSet || type.isDartCoreMap || type.isDartCoreIterable;
+
 bool isDartType(DartType type) {
+  return isDartCollection(type) || isBasicType(type) || isDuration(type) || isDateTime(type);
+}
+
+bool isBasicType(DartType type) {
   return type.isDartAsyncFuture ||
       type.isDartAsyncFutureOr ||
       type.isDartAsyncStream ||
       type.isDartCoreBool ||
       type.isDartCoreDouble ||
       type.isDartCoreEnum ||
-      type.isDartCoreFunction ||
       type.isDartCoreInt ||
-      type.isDartCoreIterable ||
-      type.isDartCoreList ||
-      type.isDartCoreMap ||
-      type.isDartCoreNull ||
       type.isDartCoreNum ||
       type.isDartCoreObject ||
-      type.isDartCoreSet ||
       type.isDartCoreString ||
-      type.isDartCoreSymbol ||
       type.isDynamic ||
-      // type.isBottom || // ??
+      // for the purpose of this project, these shouldn't be there (i.e. return type, method argument or class member)
+      // type.isDartCoreFunction ||
+      // type.isDartCoreSymbol ||
+      // type.isDartCoreNull ||
+      // type.isBottom ||
       type.isVoid;
 }
 
-bool isDateTimeOrDuration(DartType type) {
-  final name = type.getDisplayString(withNullability: false);
-  return name == 'DateTime' || name == 'Duration';
-}
+bool isDuration(DartType type) => type.getDisplayString(withNullability: false) == 'Duration';
+bool isDateTime(DartType type) => type.getDisplayString(withNullability: false) == 'DateTime';
 
 AstNode? getAstNodeFromElement(Element element) {
   final session = element.session;
@@ -238,7 +242,7 @@ Set<InterfaceType> findAllNonDartTypes(InterfaceType type) {
 Set<InterfaceType> extractNonDartTypes(DartType type) {
   final set = <InterfaceType>{};
   if (type is InterfaceType) {
-    if (isDartType(type) || isDateTimeOrDuration(type)) {
+    if (isDartType(type)) {
       if (type.typeArguments.isNotEmpty) {
         for (final t in type.typeArguments) {
           set.addAll(extractNonDartTypes(t));
@@ -249,4 +253,8 @@ Set<InterfaceType> extractNonDartTypes(DartType type) {
     }
   }
   return set;
+}
+
+String? getTypePackageURI(InterfaceType type) {
+  return type.element.librarySource.uri.toString();
 }

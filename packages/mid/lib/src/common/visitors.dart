@@ -30,9 +30,6 @@ class _VisitReturnStatement extends RecursiveAstVisitor {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    // print('visiting return stateement');
-    // print(node.toSource());
-
     // childEntities for a return statement should have three elements as follows:
     //  - the 'return' keyword
     //  - the InstanceCreation or variable

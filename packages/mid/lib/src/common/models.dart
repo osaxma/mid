@@ -57,25 +57,6 @@ class ClassInfo {
     }
     return routes;
   }
-
-  /// Returns a list containing all the non-core dart types
-  ///
-  /// These types are collected from each method return statement and arguments.
-  ///
-  /// This list can be used by generators to get package URIs or generate serialization for those types.
-  // List<DartType> getAllNonCoreTypes() {
-  //   final types = <DartType>{};
-
-  //   // loop through return types first
-  //   for (var m in methodInfos) {
-  //     types.addAll(m.returnTypeInfo.typeArguments.where((t) => !isDartType(t)));
-  //     for(var arg in m.argumentsInfo) {
-  //       types.addAll(arg.type.typeArguments.where((t) => !isDartType(t)));
-  //     }
-  //   }
-
-  //   return types.toList();
-  // }
 }
 
 class MethodInfo {
@@ -158,7 +139,7 @@ class ArgumentInfo {
 class TypeInfo {
   /// The main type which holds all the type arugments
   // note: While in most cases we deal with [InterfaceType] (i.e. any class), void is not one for instance.
-  final DartType _type;
+  final DartType dartType;
 
   /// Returns `true` if this type or one of its type arguments is a `void`
   final bool hasVoid;
@@ -212,7 +193,7 @@ class TypeInfo {
   final List<DartType> typeArguments;
 
   TypeInfo({
-    required DartType type,
+    required this.dartType,
     required this.hasVoid,
     required this.hasBasicType,
     required this.hasToJson,
@@ -228,13 +209,13 @@ class TypeInfo {
     required this.hasDateTime,
     required this.hasDuration,
     required this.typeArguments,
-  }) : _type = type;
+  });
 
   factory TypeInfo.fromDartType(DartType type) {
     final typeArgs = extractAllTypeArguments(type);
 
     return TypeInfo(
-      type: type,
+      dartType: type,
       hasVoid: type.isVoid || typeArgs.any((element) => element.isVoid),
       hasBasicType: isBasicType(type) || typeArgs.any(isBasicType),
       hasToJson: containsToJsonMethod(type) || typeArgs.any(containsToJsonMethod),
@@ -312,7 +293,7 @@ class TypeInfo {
 
   static bool isNullableType(DartType type) => type.nullabilitySuffix != NullabilitySuffix.none;
 
-  bool get isNullable => _type.nullabilitySuffix != NullabilitySuffix.none;
+  bool get isNullable => dartType.nullabilitySuffix != NullabilitySuffix.none;
 
   /// Returns the full type name e.g. Future<List<Data>>
   ///
@@ -323,11 +304,11 @@ class TypeInfo {
         return typeArguments.first.getDisplayString(withNullability: withNullability);
       }
     }
-    return _type.getDisplayString(withNullability: withNullability);
+    return dartType.getDisplayString(withNullability: withNullability);
   }
 
   String? getTypePackageURI() {
-    final type = _type;
+    final type = dartType;
     if (type is InterfaceType) {
       return type.element.librarySource.uri.toString();
     }
@@ -432,7 +413,7 @@ class TypeInfo {
 
   @override
   // TODO: implement hashCode
-  int get hashCode => _type.hashCode;
+  int get hashCode => dartType.hashCode;
 
   @override
   bool operator ==(Object other) {
@@ -441,7 +422,7 @@ class TypeInfo {
     }
 
     if (other is TypeInfo) {
-      return _type == other._type;
+      return dartType == other.dartType;
     }
 
     return false;

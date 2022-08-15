@@ -10,6 +10,12 @@ import 'package:path/path.dart' as p;
 
 import 'base.dart';
 
+// TODO(@osaxma): add `commit()` for all generators that is called after generation is successful
+//                currently if an exception is thrown or an error occured between generation,
+//                some files would be half written and such. 
+//              
+//                this will also allow using `--dry-run` for commands.
+
 class GenerateCommand extends MIDCommand {
   GenerateCommand() {
     // TODO: combine into one tht generates both endpoints and client.
