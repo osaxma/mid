@@ -1,10 +1,7 @@
 import 'package:mid_auth/mid_auth.dart';
 import 'package:mid_auth/src/email/email.dart';
 import 'package:mid_auth/src/tools/hashing.dart';
-
-abstract class EndPoints {
-  Future<void> functionFromSuperClass() => throw UnimplementedError();
-}
+import 'package:mid/mid.dart';
 
 class AuthServer extends EndPoints {
   AuthServer({
