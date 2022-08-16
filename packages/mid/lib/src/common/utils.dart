@@ -239,7 +239,7 @@ Set<InterfaceType> findAllNonDartTypesInTypeMembers(InterfaceType type, [Set<Int
     visitedTypes.add(type);
   }
 
-  final members = type.element.fields.whereType<VariableElement>().where((element) => element.isFinal);
+  final members = type.element2.fields.whereType<VariableElement>().where((element) => element.isFinal);
 
   for (final member in members) {
     collectNonDartTypesFromType(member.type, set);
@@ -278,7 +278,7 @@ void collectNonDartTypesFromType(DartType type, Set<InterfaceType> set) {
 }
 
 String? getTypePackageURI(InterfaceType type) {
-  return type.element.librarySource.uri.toString();
+  return type.element2.librarySource.uri.toString();
 }
 
 String getEndpointsPath(String projectPath) {

@@ -2,7 +2,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:mid/src/common/utils.dart';
 
 void main() async {
-  final endpointsPath = getEndpointsPath('/Users/osaxma/Projects/mid/examples/simple/backend');
+  final endpointsPath = getEndpointsPath('/Users/osaxma/Projects/mid/examples/simple/simple_server');
 
   final routes = await parseRoutes(endpointsPath);
 

@@ -42,7 +42,7 @@ class ClassInfo {
 
     return ClassInfo(
       className: className,
-      packageURI: interfaceType.element.librarySource.uri.toString(),
+      packageURI: interfaceType.element2.librarySource.uri.toString(),
       methodInfos: endPointsInfo,
       interfaceType: interfaceType,
     );

@@ -4,11 +4,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:mid/src/common/utils.dart';
 
 bool allArgumentsInUnnamedConstructorIsToThis(InterfaceType type) {
-  final constructors = type.element.constructors.where((c) => c.isGenerative);
+  final constructors = type.element2.constructors.where((c) => c.isGenerative);
 
   if (constructors.isEmpty) {
     final name = type.getDisplayString(withNullability: false);
-    final packageURI = type.element.librarySource.uri.toString();
+    final packageURI = type.element2.librarySource.uri.toString();
     throw Exception('$name at does not have a generative constructor (package: $packageURI');
   }
   final constructor = constructors.first;
@@ -194,7 +194,7 @@ String getSerializerName(InterfaceType type) {
 List<ParameterElement> getGenerativeUnnamedConstructorParameters(InterfaceType type) {
   // TODO: handle better -- we are looking for the unnamed generative constructor here
   try {
-    return type.element.constructors.firstWhere((c) => c.isGenerative).parameters;
+    return type.element2.constructors.firstWhere((c) => c.isGenerative).parameters;
   } catch (e) {
     final typeName = type.getDisplayString(withNullability: true);
     final uri = getTypePackageURI(type);
