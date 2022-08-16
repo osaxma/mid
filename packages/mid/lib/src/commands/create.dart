@@ -73,7 +73,7 @@ class CreateCommand extends MIDCommand {
     clearDirContent(p.join(path, 'bin'));
     clearDirContent(p.join(path, 'lib'));
     clearDirContent(p.join(path, 'test'));
-    await addPubDeps(path, ['shelf', 'shelf_router']);
+    await addPubDeps(path, ['shelf', 'shelf_router', 'http']);
 
     // create server default files
     createFileSync(p.join(path, 'bin', 'server.dart'), contents: binServerDotDart);
@@ -81,6 +81,7 @@ class CreateCommand extends MIDCommand {
     createFileSync(p.join(path, 'mid', 'server.dart'), contents: serverDotDart);
     createFileSync(p.join(path, 'mid', 'middlewares.dart'), contents: middleWaresDotDart);
     createFileSync(p.join(path, 'mid', 'handlers.dart'), contents: handlersDotDart);
+    createFileSync(p.join(path, 'mid', 'serializers.dart'), contents: '');
   }
 
   Future<void> createClientProject(String path) async {

@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:mid/src/common/config.dart';
 import 'package:mid/src/common/io_utils.dart';
 import 'package:mid/src/generators/client_lib_generator/client_lib_generator.dart';
 import 'package:mid/src/generators/endpoints_generator/endpoints_generator.dart';
 
-import 'package:path/path.dart' as p;
 
 import 'base.dart';
 

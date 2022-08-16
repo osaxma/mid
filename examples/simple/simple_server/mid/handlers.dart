@@ -12,10 +12,9 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'endpoints.dart';
+import 'serializers.dart';
 import 'package:mid_auth/src/server/server.dart';
 import 'package:mid_auth/src/models/user_data.dart';
-
-import 'serializers.dart';
 
 final Map<String, String> _defaultHeaders = {
   'content-type': 'application/json',
@@ -135,7 +134,7 @@ class AuthServerSignOutHandler extends FutureOrBaseHandler {
     final refreshToken = map['refreshToken'] as String;
 
     try {
-      await authserver.signOut(
+      final result = await authserver.signOut(
         jwt,
         refreshToken,
       );
@@ -158,7 +157,7 @@ class AuthServerSignOutAllHandler extends FutureOrBaseHandler {
     final jwt = map['jwt'] as String;
 
     try {
-      await authserver.signOutAll(
+      final result = await authserver.signOutAll(
         jwt,
       );
 
@@ -204,7 +203,7 @@ class AuthServerSendConfirmationEmailHandler extends FutureOrBaseHandler {
     final user = UserSerializer.fromMap(map['user']);
 
     try {
-      await authserver.sendConfirmationEmail(
+      final result = await authserver.sendConfirmationEmail(
         user,
       );
 
