@@ -1,10 +1,14 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
+import 'package:mid/src/common/analyzer.dart';
 import 'package:mid/src/common/io_utils.dart';
+import 'package:mid/src/common/models.dart';
 import 'package:mid/src/generators/client_lib_generator/_source_generator.dart';
+import 'package:mid/src/generators/client_lib_generator/serializer_client.dart';
 import 'package:mid/src/generators/common.dart';
 import 'package:path/path.dart' as p;
+import 'package:mid/src/common/extensions.dart';
 
 /// Process taken by the generator:
 ///
@@ -21,7 +25,8 @@ class ClientLibGenerator {
   final String clientLibProjectPath;
   final Logger logger;
 
-  late final String _source;
+  late final String _dataClasses;
+  final _clientSources = <_ClientSource>[];
 
   ClientLibGenerator({
     required this.serverProjectPath,
@@ -34,12 +39,40 @@ class ClientLibGenerator {
 
     final routes = await parseRoutes(endpointsPath, logger);
 
-    final generator = ClientEndPointGenerator(routes.first);
+    for (final route in routes) {
+      final generator = ClientEndPointGenerator(route);
+      final source = generator.generate();
+      _clientSources.add(_ClientSource(route, source));
+    }
 
-   _source =  await generator.generate();
+    final types = getAllNonDartTypes(routes);
+
+    _dataClasses = ClientClassesSerializer(types: types).generate();
   }
 
   Future<void> commit() async {
-    // TODO: commit 
+    final clientProjectPath = getClientProjectPathFromCurrentPath();
+    for (final source in _clientSources) {
+      final file = File(p.join(clientProjectPath, 'lib', 'src', source.fileName));
+      if (!file.existsSync()) {
+        file.createSync(recursive: true);
+      }
+      file.writeAsStringSync(source.source);
+    }
+
+    final file = File(p.join(clientProjectPath, 'lib', 'src', 'models.dart'));
+    if (!file.existsSync()) {
+      file.createSync(recursive: true);
+    }
+    file.writeAsStringSync(_dataClasses);
   }
+}
+
+class _ClientSource {
+  final ClassInfo classInfo;
+  final String source;
+
+  String get fileName => '${classInfo.className.toSnakeCaseFromPascalCase()}.dart';
+
+  _ClientSource(this.classInfo, this.source);
 }

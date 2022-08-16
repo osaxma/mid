@@ -47,6 +47,7 @@ class EndPointsSourceGenerator {
     _imports.writeln(shelfImport);
     _imports.writeln(shelfRouterImport);
     _imports.writeln(endpointsImport);
+    _imports.writeln(serializersImport);
   }
 
   void _addDefaultTemplates() {
@@ -98,7 +99,7 @@ class EndPointsSourceGenerator {
     if (type.isVoid) {
       responseBody = "'ok'";
     } else {
-      responseBody = serializeValue(type as InterfaceType, resultName);
+      responseBody = serializeValue(type as InterfaceType, resultName, useToMapFromMap: false);
     }
 
     final isFuture = methodInfo.type.isDartAsyncFuture;
@@ -140,8 +141,9 @@ class $handlerClassName extends FutureOrBaseHandler {
     final buffer = StringBuffer();
     for (final arg in methodInfo.argumentsInfo) {
       final name = arg.argName;
+      final value = deserializeValue(arg.type as InterfaceType, "$mapVariableName['$name']", useToMapFromMap: false);
       buffer.writeln(
-          "final $name = ${deserializeValue(arg.type as InterfaceType, "$mapVariableName['$name']")};");
+          "final $name = $value;");
 
       if (!isDartType(arg.type)) {
         final typePackageURI = getTypePackageURI(arg.type as InterfaceType);

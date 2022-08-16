@@ -8,15 +8,21 @@ import 'package:mid/src/generators/endpoints_generator/serializer.dart';
 class ClientEndPointGenerator {
   final ClassInfo classInfo;
 
-
   final emitter = DartEmitter(useNullSafetySyntax: true);
 
   ClientEndPointGenerator(
     this.classInfo,
   );
 
+  final imports = '''
+import 'dart:convert';
+
+import 'models.dart';
+import 'package:http/http.dart' as http;
+''';
+
   /// returns the source code for the generated client class
-  Future<String> generate() async {
+  String generate() {
     final methods = <Method>[];
     for (var m in classInfo.methodInfos) {
       methods.add(_generateMethod(m));
@@ -28,9 +34,9 @@ class ClientEndPointGenerator {
       ..constructors = _generateConstructors()
       ..methods = ListBuilder(methods);
 
-    final source = DartFormatter().format(clazz.build().accept(emitter).toString());
+    final source = clazz.build().accept(emitter).toString();
 
-    return source;
+    return DartFormatter().format(imports + source);
   }
 
   ListBuilder<Field> _generateClassFields() {
@@ -159,32 +165,32 @@ class ClientEndPointGenerator {
     if (returnType.isVoid) {
       returnStatement = '';
     } else {
-      returnStatement = deserializeValue(returnType as InterfaceType, 'data', useToMapFromMap: true);
+      returnStatement = deserializeValue(returnType as InterfaceType, '\$data', useToMapFromMap: true);
     }
 
-    // final returnStatement = method.returnTypeInfo.generateVariableAssignmentForType('data');
+    // note the `$` prefix was added at the end of each variable to avoid naming conflicts with method arguments
     return Code('''
-  final args = {
+  final \$args = {
     $argsToKeyValue
   };
 
-  final route = '${method.routeName}';
+  final \$route = '${method.routeName}';
 
-  final body = json.encode(args);
-  final headers = headersProvider();
-  headers['content-type'] = 'application/json';
+  final \$body = json.encode(\$args);
+  final \$headers = headersProvider();
+  \$headers['content-type'] = 'application/json';
 
-  final res = await http.post(
-      Uri.http(url, route),
-      headers: headers,
-      body: body,
+  final \$res = await http.post(
+      Uri.http(url, \$route),
+      headers: \$headers,
+      body: \$body,
     );
 
-  if (res.statusCode >= 400) {
-    throw Exception(res.body);
+  if (\$res.statusCode >= 400) {
+    throw Exception(\$res.body);
   }
 
-  final data = json.decode(res.body);
+  final \$data = json.decode(\$res.body);
   return $returnStatement;
   ''');
   }
@@ -194,7 +200,8 @@ class ClientEndPointGenerator {
     final List<String> args = [];
     for (var arg in method.argumentsInfo) {
       final name = arg.argName;
-      args.add("'$name':$name");
+      final value = serializeValue(arg.type as InterfaceType, name, useToMapFromMap: true);
+      args.add("'$name':$value");
     }
     if (args.isEmpty) {
       return '';

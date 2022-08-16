@@ -3,9 +3,8 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:code_builder/code_builder.dart';
+import 'package:dart_style/dart_style.dart';
 import 'package:mid/src/common/analyzer.dart';
-import 'package:mid/src/common/models.dart';
 
 // todo: once this is working, clean up the client/server generator:
 //       - ensure the generated functin is called per format
@@ -91,7 +90,9 @@ class ServerClassesSerializer {
       importBuffer.writeln("import '${getTypePackageURI(t)}';");
     }
 
-    return importBuffer.toString() + '\n' + code.toString();
+    final source = importBuffer.toString() + code.toString();
+
+    return DartFormatter().format(source);
   }
 
   String _classWrapper(InterfaceType type, String code) {
@@ -130,7 +131,7 @@ static Map<String, dynamic> toMap($name instance) {
     for (final para in paras) {
       final key = para.name;
       final paraType = para.type as InterfaceType;
-      final value = serializeValue(paraType, '$dataSource.$key');
+      final value = serializeValue(paraType, '$dataSource.$key', useToMapFromMap: false);
       buff.writeln("'$key':$value,");
     }
 
@@ -168,8 +169,12 @@ static $name fromMap(Map<String, dynamic> map) {
       final argName = para.name;
       final argType = para.type as InterfaceType;
       // final typeName = argType.getDisplayString(withNullability: true);
-      final argAssignment = deserializeValue(argType, "map['$argName']");
-      buff.writeln('$argName : $argAssignment,');
+      final argAssignment = deserializeValue(argType, "map['$argName']", useToMapFromMap: false);
+      if (para.isPositional) {
+        buff.writeln('$argAssignment,');
+      } else {
+        buff.writeln('$argName : $argAssignment,');
+      }
     }
 
     return buff.toString();
@@ -198,11 +203,15 @@ bool allArgumentsInUnnamedConstructorIsToThis(InterfaceType type) {
   return constructor.parameters.any((p) => !p.isInitializingFormal);
 }
 
-/// [useToMapFromMap] means use the [type].toMap() and [Type].fromMap().
-String deserializeValue(InterfaceType type, String value, {bool useToMapFromMap = false}) {
+/// When [useToMapFromMap] is `true`, type.toMap() and Type.fromMap() (i.e. userData.toMap() & UserData.fromMap()).
+/// When `false`, the Serializer is used (i.e. UserDataSerializer.toMap() & UserDataSerializer.fromMap()).
+///
+/// The first case is mainly used for the client side since it uses data classes whereas the second case is used
+/// for the server since it uses the Serializer pattern.
+String deserializeValue(DartType type, String value, {required bool useToMapFromMap}) {
   final isNullable = type.nullabilitySuffix != NullabilitySuffix.none;
   final typeName = type.getDisplayString(withNullability: true);
-  if (isBasicType(type)) {
+  if (isBasicType(type) || type is! InterfaceType) {
     return '$value as $typeName';
   }
 
@@ -245,12 +254,14 @@ String deserializeValue(InterfaceType type, String value, {bool useToMapFromMap 
       return value;
     }
     final t = type.typeArguments.first as InterfaceType;
-    final typeName = type.getDisplayString(withNullability: false);
-
+    final listOrSet = type.isDartCoreList ? 'List' : 'Set';
+    final typeArg =
+        type.typeArguments.isEmpty ? '' : '<${type.typeArguments.first.getDisplayString(withNullability: true)} >';
+    final v = deserializeValue(t, 'x', useToMapFromMap: useToMapFromMap);
     if (isNullable) {
-      return "$value == null ? null : List<$typeName>.from($value.map((x) => ${deserializeValue(t, 'x')})";
+      return "$value == null ? null : $listOrSet$typeArg.from($value.map((x) => $v))";
     } else {
-      return "List<$typeName>.from($value.map((x) => ${deserializeValue(t, 'x')})";
+      return "$listOrSet$typeArg.from($value.map((x) => $v))";
     }
   }
 
@@ -258,25 +269,31 @@ String deserializeValue(InterfaceType type, String value, {bool useToMapFromMap 
     if (type.typeArguments.isEmpty) {
       return value;
     }
-    final keyType = type.typeArguments[0] as InterfaceType;
-    final valueType = type.typeArguments[0] as InterfaceType;
+    final keyType = type.typeArguments[0];
+    final valueType = type.typeArguments[1];
     if (isBasicType(keyType) && isBasicType(valueType)) {
       return value;
     } else {
+      final k = deserializeValue(keyType, 'k', useToMapFromMap: useToMapFromMap);
+      final v = deserializeValue(valueType, 'v', useToMapFromMap: useToMapFromMap);
       if (isNullable) {
-        return "$value.map((k, v) => MapEntry(${deserializeValue(keyType, 'k')} , ${deserializeValue(valueType, 'v')})";
+        return "$value?.map((k, v) => MapEntry($k, $v))";
       } else {
-        return "$value?.map((k, v) => MapEntry(${deserializeValue(keyType, 'k')} , ${deserializeValue(valueType, 'v')})";
+        return "$value.map((k, v) => MapEntry($k, $v))";
       }
     }
   }
   throw UnimplementedError();
 }
 
-/// This can only be used in Server side code
-String serializeValue(InterfaceType type, String value, {bool useToMapFromMap = false}) {
+/// When [useToMapFromMap] is `true`, type.toMap() and Type.fromMap() (i.e. userData.toMap() & UserData.fromMap()).
+/// When `false`, the Serializer is used (i.e. UserDataSerializer.toMap() & UserDataSerializer.fromMap()).
+///
+/// The first case is mainly used for the client side since it uses data classes whereas the second case is used
+/// for the server since it uses the Serializer pattern.
+String serializeValue(DartType type, String value, {required bool useToMapFromMap}) {
   final isNullable = type.nullabilitySuffix != NullabilitySuffix.none;
-  if (isBasicType(type)) {
+  if (isBasicType(type) || type is! InterfaceType) {
     return value;
   }
 
@@ -317,11 +334,11 @@ String serializeValue(InterfaceType type, String value, {bool useToMapFromMap = 
       return value;
     }
     final t = type.typeArguments.first as InterfaceType;
-
+    final v = serializeValue(t, 'x', useToMapFromMap: useToMapFromMap);
     if (isNullable) {
-      return '$value?.map((x) => ${serializeValue(t, 'x')})';
+      return '$value?.map((x) => $v)';
     } else {
-      return '$value.map((x) => ${serializeValue(t, 'x')})';
+      return '$value.map((x) => $v)';
     }
   }
 
@@ -329,15 +346,17 @@ String serializeValue(InterfaceType type, String value, {bool useToMapFromMap = 
     if (type.typeArguments.isEmpty) {
       return value;
     }
-    final keyType = type.typeArguments[0] as InterfaceType;
-    final valueType = type.typeArguments[0] as InterfaceType;
+    final keyType = type.typeArguments[0];
+    final valueType = type.typeArguments[1];
     if (isBasicType(keyType) && isBasicType(valueType)) {
       return value;
     } else {
+      final k = serializeValue(keyType, 'k', useToMapFromMap: useToMapFromMap);
+      final v = serializeValue(valueType, 'v', useToMapFromMap: useToMapFromMap);
       if (isNullable) {
-        return '$value?.map((k, v) => MapEntry(${serializeValue(keyType, 'k')}, ${serializeValue(valueType, 'v')}))';
+        return '$value?.map((k, v) => MapEntry($k, $v))';
       } else {
-        return '$value.map((k, v) => MapEntry(${serializeValue(keyType, 'k')}, ${serializeValue(valueType, 'v')}))';
+        return '$value.map((k, v) => MapEntry($k, $v))';
       }
     }
   }
