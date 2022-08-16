@@ -1,13 +1,10 @@
-
-
-
 import 'package:mid_auth/mid_auth.dart';
 
+/// WIP
 abstract class EmailHandler {
-  Future<void> sendEmailConfirmation(User user);
+  /// Sends an instruction email to the given [user] to confirm their email address
+  Future<void> sendEmailConfirmationInstruction(User user);
 
-  Future<void> sendPasswordResetLink(User user);
-
-  // static const x = String.fromEnvironment('name');
-
+  /// Sends an instruction email to the given [user] to reset their password 
+  Future<void> sendPasswordResetInstruction(User user);
 }

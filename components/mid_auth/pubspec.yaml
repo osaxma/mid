@@ -7,8 +7,10 @@ environment:
   sdk: '>=2.17.6 <3.0.0'
 
 dependencies:
+  collection: ^1.16.0
   corsac_jwt: ^1.0.0-nullsafety.1
   dbcrypt: ^2.0.0
+  meta: ^1.8.0
   mid: ^0.0.1
   path: ^1.8.2
   sqlite3: ^1.7.2

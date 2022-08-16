@@ -10,12 +10,12 @@ void main() async {
     aud: 'aud',
     issuer: 'issuer',
   );
-  final auth = AuthServer(authDB: authDB, jwtHandler: jwtHandler);
+  final auth = Auth(authDB: authDB, jwtHandler: jwtHandler);
 
   await signInSignOutThenTryRefreshToken(auth);
 }
 
-Future<void> signInThenRefreshToken(AuthServer auth) async {
+Future<void> signInThenRefreshToken(Auth auth) async {
   final session = await auth.signInWithEmailAndPassword('example@example.com', '123456');
 
   await Future.delayed(const Duration(seconds: 1));
@@ -24,7 +24,7 @@ Future<void> signInThenRefreshToken(AuthServer auth) async {
   print('new session $newSession');
 }
 
-Future<void> signInSignOutThenTryRefreshToken(AuthServer auth) async {
+Future<void> signInSignOutThenTryRefreshToken(Auth auth) async {
   // await auth.createUserWithEmailAndPassword('example@example.com', '123456');
   final session = await auth.signInWithEmailAndPassword('example@example.com', '123456');
 
@@ -38,7 +38,7 @@ Future<void> signInSignOutThenTryRefreshToken(AuthServer auth) async {
   print('new session $newSession');
 }
 
-Future<void> signInSignOut(AuthServer auth) async {
+Future<void> signInSignOut(Auth auth) async {
   // await auth.createUserWithEmailAndPassword('example@example.com', '123456');
   final session = await auth.signInWithEmailAndPassword('example@example.com', '123456');
 

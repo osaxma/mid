@@ -3,8 +3,10 @@ import 'package:mid_auth/src/email/email.dart';
 import 'package:mid_auth/src/tools/hashing.dart';
 import 'package:mid/mid.dart';
 
-class AuthServer extends EndPoints {
-  AuthServer({
+
+/// a simple authentication API
+class Auth extends EndPoints {
+  Auth({
     required AuthDB authDB,
     required JWTHandler jwtHandler,
     EmailHandler? emailHandler,
@@ -93,7 +95,7 @@ class AuthServer extends EndPoints {
 
   Future<void> sendConfirmationEmail(User user) async {
     // note: should this throw if no EmailHandler was provided?
-    await _emailHandler?.sendEmailConfirmation(user);
+    await _emailHandler?.sendEmailConfirmationInstruction(user);
   }
 
   Future<Object> confirmEmail(Object object) {
