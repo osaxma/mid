@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
+import 'package:meta/meta.dart';
 import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/common/io_utils.dart';
 import 'package:mid/src/common/models.dart';
@@ -15,7 +16,6 @@ import 'package:mid/src/common/extensions.dart';
 /// - add common files at lib/src/common (overwrite to ensure uptodate)
 /// - create a file for each base route at lib/src/routes
 /// - add export statement at the lib/client.dart or lib/routes.dart or lib/api.dart
-
 class ClientLibGenerator {
   /// The server project path
   final String serverProjectPath;
@@ -33,6 +33,9 @@ class ClientLibGenerator {
     required this.clientLibProjectPath,
   });
 
+  /// Generates the client library
+  /// 
+  /// Changes won't be commited until [commit] is invoked. 
   Future<void> generate() async {
     final endpointsPath = getEndpointsPath(serverProjectPath);
 
@@ -49,6 +52,9 @@ class ClientLibGenerator {
     _dataClasses = ClientClassesSerializer(types: types).generate();
   }
 
+  /// commit the generated code 
+  /// 
+  /// This will write the generated code into files. 
   Future<void> commit() async {
     final clientProjectPath = getClientProjectPathFromCurrentPath();
     for (final source in _clientSources) {
