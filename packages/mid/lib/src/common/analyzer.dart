@@ -1,6 +1,4 @@
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -14,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 // import 'package:analyzer/src/dart/analysis/byte_store.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
+import 'package:mid/src/common/models.dart';
 import 'package:path/path.dart' as p;
 
 /// Get Resolved Unit using [resolveFile2] function (slow)
@@ -39,6 +38,7 @@ Future<ResolvedUnitResult> getResolvedUnit2(String filePath) async {
   final cachePath = p.join(p.dirname(filePath), '.analysis_cache');
 
   // option 1:
+  // ignore: unused_local_variable
   final evictingFBS = EvictingFileByteStore(
     cachePath,
     1024 * 1024, // 1MB
@@ -141,6 +141,17 @@ bool elementHasAnnotation(Element element, String annotation) {
   });
 }
 
+/// see docs at [findAllNonDartTypesFromMethodElement]
+Set<InterfaceType> getAllNonDartTypes(List<ClassInfo> classInfos) {
+  final types = <InterfaceType>{};
+  for (final classInfo in classInfos) {
+    for (final m in classInfo.methodInfos) {
+      types.addAll(findAllNonDartTypesFromMethodElement(m.methodElement));
+    }
+  }
+  return types;
+}
+
 /// Collects the non-dart types from the method's return type and arguments recursively
 ///
 /// For instance, given the following method:
@@ -176,14 +187,14 @@ bool elementHasAnnotation(Element element, String annotation) {
 Set<InterfaceType> findAllNonDartTypesFromMethodElement(MethodElement method) {
   final types = <InterfaceType>{};
 
-  types.addAll(extractNonDartTypes(method.returnType));
+  collectNonDartTypesFromType(method.returnType, types);
   for (final para in method.parameters) {
-    types.addAll(extractNonDartTypes(para.type));
+    collectNonDartTypesFromType(para.type, types);
   }
 
   final nonDartTypes = <InterfaceType>{};
   for (final t in types) {
-    nonDartTypes.addAll(findAllNonDartTypes(t));
+    nonDartTypes.addAll(findAllNonDartTypesInTypeMembers(t));
   }
   // we can't add directly to the `types` while iteratting (e.g. Concurrent modification during iteration exception)
   types.addAll(nonDartTypes);
@@ -213,24 +224,32 @@ Set<InterfaceType> findAllNonDartTypesFromMethodElement(MethodElement method) {
 ///
 /// If the given type does not contain any non-Dart types, then it'll return that type only.
 ///
-Set<InterfaceType> findAllNonDartTypes(InterfaceType type) {
-  final types = <InterfaceType>{};
+/// Don't supply [visitedTypes] as it's used internally by the function itself.
+Set<InterfaceType> findAllNonDartTypesInTypeMembers(InterfaceType type, [Set<InterfaceType>? visitedTypes]) {
+  final set = <InterfaceType>{};
+  // check if the type's members have been visited already to avoid infinite loop
+  visitedTypes ??= <InterfaceType>{};
+  if (visitedTypes.contains(type)) {
+    return set;
+  } else {
+    visitedTypes.add(type);
+  }
+
   final members = type.element.fields.whereType<VariableElement>().where((element) => element.isFinal);
 
   for (final member in members) {
-    final nonDartTypes = extractNonDartTypes(member.type);
-    types.addAll(nonDartTypes);
+    collectNonDartTypesFromType(member.type, set);
   }
 
-  if (types.isNotEmpty) {
+  if (set.isNotEmpty) {
     final innerTypes = <InterfaceType>{};
-    for (final t in types) {
-      innerTypes.addAll(findAllNonDartTypes(t));
+    for (final t in set) {
+      innerTypes.addAll(findAllNonDartTypesInTypeMembers(t, visitedTypes));
     }
-    types.addAll(innerTypes);
+    set.addAll(innerTypes);
   }
 
-  return types;
+  return set;
 }
 
 /// Inspect if [type] is a non-Dart Type or Extract the non-Dart type(s) from type arguments if any.
@@ -239,20 +258,19 @@ Set<InterfaceType> findAllNonDartTypes(InterfaceType type) {
 ///      `Future<Map<User, UserData>> -> {User, UserData}
 ///      `UserData` -> {UserData}
 ///
-Set<InterfaceType> extractNonDartTypes(DartType type) {
-  final set = <InterfaceType>{};
+void collectNonDartTypesFromType(DartType type, Set<InterfaceType> set) {
   if (type is InterfaceType) {
     if (isDartType(type)) {
       if (type.typeArguments.isNotEmpty) {
         for (final t in type.typeArguments) {
-          set.addAll(extractNonDartTypes(t));
+          collectNonDartTypesFromType(t, set);
         }
       }
     } else {
       set.add(type);
     }
   }
-  return set;
+  return;
 }
 
 String? getTypePackageURI(InterfaceType type) {
