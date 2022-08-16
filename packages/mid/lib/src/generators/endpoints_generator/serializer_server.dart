@@ -1,9 +1,8 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:mid/src/common/analyzer.dart';
+import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/serializer_common.dart';
 
 // note:

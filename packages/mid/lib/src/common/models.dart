@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:mid/src/common/analyzer.dart';
+import 'package:mid/src/common/utils.dart';
 
 import 'package:mid/src/common/extensions.dart';
 

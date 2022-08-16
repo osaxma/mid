@@ -5,8 +5,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:mid/src/common/analyzer.dart';
-import 'package:mid/src/generators/endpoints_generator/serializer_server.dart';
+import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/serializer_common.dart';
 
 const _dartConvertImportUri = "dart:convert";

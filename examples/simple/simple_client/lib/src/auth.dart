@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:client/src/mid_common.dart';
 import 'package:client/src/models/session.dart';
 import 'package:client/src/models/user.dart';
 import 'package:http/http.dart' as http;

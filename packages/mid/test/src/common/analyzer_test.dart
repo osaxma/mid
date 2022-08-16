@@ -1,5 +1,5 @@
 
-import 'package:mid/src/common/analyzer.dart';
+import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/common/visitors.dart';
 import 'package:test/test.dart';
 

@@ -1,4 +1,3 @@
-import 'package:client/client.dart' as client;
 import 'package:client/src/auth.dart';
 
 void main(List<String> arguments) async {

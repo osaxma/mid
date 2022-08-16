@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:mid/src/templates/init.dart';
+import 'package:mid/src/templates/create.dart';
 import 'package:path/path.dart' as p;
 import 'package:mid/src/common/io_utils.dart';
 

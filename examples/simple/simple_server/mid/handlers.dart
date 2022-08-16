@@ -14,7 +14,6 @@ import 'package:shelf_router/shelf_router.dart';
 import 'endpoints.dart';
 import 'serializers.dart';
 import 'package:mid_auth/src/server/server.dart';
-import 'package:mid_auth/src/models/user_data.dart';
 
 final Map<String, String> _defaultHeaders = {
   'content-type': 'application/json',

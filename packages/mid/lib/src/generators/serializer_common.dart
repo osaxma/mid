@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:mid/src/common/analyzer.dart';
+import 'package:mid/src/common/utils.dart';
 
 bool allArgumentsInUnnamedConstructorIsToThis(InterfaceType type) {
   final constructors = type.element.constructors.where((c) => c.isGenerative);

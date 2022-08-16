@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/element/type.dart';
-import 'package:mid/src/common/analyzer.dart';
-import 'package:mid/src/generators/common.dart';
+import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/endpoints_generator/serializer_server.dart';
 
 void main() async {

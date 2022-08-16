@@ -1,12 +1,11 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
-import 'package:mid/src/common/analyzer.dart';
+import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/common/io_utils.dart';
 import 'package:mid/src/common/models.dart';
 import 'package:mid/src/generators/client_lib_generator/_source_generator.dart';
 import 'package:mid/src/generators/client_lib_generator/serializer_client.dart';
-import 'package:mid/src/generators/common.dart';
 import 'package:path/path.dart' as p;
 import 'package:mid/src/common/extensions.dart';
 

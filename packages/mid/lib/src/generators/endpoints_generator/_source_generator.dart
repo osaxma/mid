@@ -1,13 +1,12 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:mid/src/common/analyzer.dart';
+import 'package:mid/src/common/utils.dart';
 
 import 'package:mid/src/common/extensions.dart';
 import 'package:mid/src/common/models.dart';
-import 'package:mid/src/generators/endpoints_generator/serializer_server.dart';
-import 'package:mid/src/generators/endpoints_generator/templates.dart';
+import 'package:mid/src/templates/server_templates.dart';
 import 'package:mid/src/generators/serializer_common.dart';
-import 'package:mid/src/templates/init.dart';
+import 'package:mid/src/templates/create.dart';
 
 class EndPointsSourceGenerator {
   EndPointsSourceGenerator(this.routes);
