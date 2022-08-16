@@ -13,6 +13,7 @@ dependencies:
   shelf_router: ^1.0.0
   mid_auth:
     path: /Users/osaxma/Projects/mid/components/mid_auth
+  mid: ^0.0.1
 
 dev_dependencies:
   http: ^0.13.0

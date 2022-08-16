@@ -1,8 +1,8 @@
-# `mid` 
+# mid 
 
 > ⚠️ warning: The project is experimental! ⚠️
 
-`mid` is a tool to build an end-to-end type-safe API. The tool generates an API server and a client library as well as handling requests and managing the communication between the server and the client. 
+`mid` is a tool to build an end-to-end typesafe API. The tool generates an API server and a client library as well as handling requests and managing the communication between the server and the client. 
 
 `mid` simply works by converting the public methods for a given list of classes into endpoints (i.e. `/class_name/method_name`). The return type and the parameters of each method are parsed to generate the requests handlers, the serialization/deserialization code and the client library to be directly used by the frontend -- as simple as calling functions.
 
@@ -129,7 +129,7 @@ Any class. `mid` will only expose the public methods of the given class and it'l
 
 - All core Types (`int`, `double`, `num`, `bool`, `String`, `DateTime`, `Duration`, etc.)
 - User defined Classes\*
-- Collections (i.e., `Map`, `Set`, `List`) of the Basic Types or Data Classes.
+- Collections (i.e., `Map`, `Set`, `List`) of any of the above.
 - `Future` or `Stream` _(not supported yet)_ for any of the above. 
 
 \* `mid` is able to serialize user defined classes and their members recursively as long as they have an unnamed generative constructor with formal parameters only (i.e. all parameters using `this`). An example class would be:
