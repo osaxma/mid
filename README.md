@@ -1,4 +1,4 @@
-# `mid` - build end-to-end type-safe APIs (Experimental) 
+# `mid` 
 
 > ⚠️ warning: The project is experimental! ⚠️
 

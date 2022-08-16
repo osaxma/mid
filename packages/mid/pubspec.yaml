@@ -1,6 +1,6 @@
 name: mid
-description: an API generation tool
-version: 0.0.1
+description: a tool for building an end-to-end typesafe APIs
+version: 0.0.1+1
 homepage: https://www.github.com/osaxma/mid
 
 executables:
