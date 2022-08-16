@@ -74,7 +74,7 @@ abstract class StreamBaseHandler {
 
 class AuthServerCreateUserWithEmailAndPasswordHandler
     extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerCreateUserWithEmailAndPasswordHandler(this.authserver);
 
   @override
@@ -98,7 +98,7 @@ class AuthServerCreateUserWithEmailAndPasswordHandler
 }
 
 class AuthServerSignInWithEmailAndPasswordHandler extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerSignInWithEmailAndPasswordHandler(this.authserver);
 
   @override
@@ -122,7 +122,7 @@ class AuthServerSignInWithEmailAndPasswordHandler extends FutureOrBaseHandler {
 }
 
 class AuthServerSignOutHandler extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerSignOutHandler(this.authserver);
 
   @override
@@ -146,7 +146,7 @@ class AuthServerSignOutHandler extends FutureOrBaseHandler {
 }
 
 class AuthServerSignOutAllHandler extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerSignOutAllHandler(this.authserver);
 
   @override
@@ -168,7 +168,7 @@ class AuthServerSignOutAllHandler extends FutureOrBaseHandler {
 }
 
 class AuthServerRefreshSessionHandler extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerRefreshSessionHandler(this.authserver);
 
   @override
@@ -192,7 +192,7 @@ class AuthServerRefreshSessionHandler extends FutureOrBaseHandler {
 }
 
 class AuthServerSendConfirmationEmailHandler extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerSendConfirmationEmailHandler(this.authserver);
 
   @override
@@ -214,7 +214,7 @@ class AuthServerSendConfirmationEmailHandler extends FutureOrBaseHandler {
 }
 
 class AuthServerConfirmEmailHandler extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerConfirmEmailHandler(this.authserver);
 
   @override
@@ -236,7 +236,7 @@ class AuthServerConfirmEmailHandler extends FutureOrBaseHandler {
 }
 
 class AuthServerRequestPasswordResetHandler extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerRequestPasswordResetHandler(this.authserver);
 
   @override
@@ -258,7 +258,7 @@ class AuthServerRequestPasswordResetHandler extends FutureOrBaseHandler {
 }
 
 class AuthServerChangePasswordHandler extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerChangePasswordHandler(this.authserver);
 
   @override
@@ -284,7 +284,7 @@ class AuthServerChangePasswordHandler extends FutureOrBaseHandler {
 }
 
 class AuthServerGetPublicJWKHandler extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerGetPublicJWKHandler(this.authserver);
 
   @override
@@ -302,7 +302,7 @@ class AuthServerGetPublicJWKHandler extends FutureOrBaseHandler {
 }
 
 class AuthServerGetPublicKeyInPemFormatHandler extends FutureOrBaseHandler {
-  final AuthServer authserver;
+  final Auth authserver;
   AuthServerGetPublicKeyInPemFormatHandler(this.authserver);
 
   @override
@@ -322,17 +322,17 @@ class AuthServerGetPublicKeyInPemFormatHandler extends FutureOrBaseHandler {
 Future<List<FutureOrBaseHandler>> getHandlers() async {
   final list = await endpoints();
   final handlers = <FutureOrBaseHandler>[
-    AuthServerCreateUserWithEmailAndPasswordHandler(list[0] as AuthServer),
-    AuthServerSignInWithEmailAndPasswordHandler(list[0] as AuthServer),
-    AuthServerSignOutHandler(list[0] as AuthServer),
-    AuthServerSignOutAllHandler(list[0] as AuthServer),
-    AuthServerRefreshSessionHandler(list[0] as AuthServer),
-    AuthServerSendConfirmationEmailHandler(list[0] as AuthServer),
-    AuthServerConfirmEmailHandler(list[0] as AuthServer),
-    AuthServerRequestPasswordResetHandler(list[0] as AuthServer),
-    AuthServerChangePasswordHandler(list[0] as AuthServer),
-    AuthServerGetPublicJWKHandler(list[0] as AuthServer),
-    AuthServerGetPublicKeyInPemFormatHandler(list[0] as AuthServer)
+    AuthServerCreateUserWithEmailAndPasswordHandler(list[0] as Auth),
+    AuthServerSignInWithEmailAndPasswordHandler(list[0] as Auth),
+    AuthServerSignOutHandler(list[0] as Auth),
+    AuthServerSignOutAllHandler(list[0] as Auth),
+    AuthServerRefreshSessionHandler(list[0] as Auth),
+    AuthServerSendConfirmationEmailHandler(list[0] as Auth),
+    AuthServerConfirmEmailHandler(list[0] as Auth),
+    AuthServerRequestPasswordResetHandler(list[0] as Auth),
+    AuthServerChangePasswordHandler(list[0] as Auth),
+    AuthServerGetPublicJWKHandler(list[0] as Auth),
+    AuthServerGetPublicKeyInPemFormatHandler(list[0] as Auth)
   ];
 
   return handlers;

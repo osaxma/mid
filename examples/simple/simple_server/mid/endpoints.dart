@@ -9,7 +9,7 @@ Future<List<Object>> endpoints() async {
     issuer: 'issuer',
   );
 
-  final auth = AuthServer(authDB: authDB, jwtHandler: jwtHandler);
+  final auth = Auth(authDB: authDB, jwtHandler: jwtHandler);
   return [
     auth,
   ];
