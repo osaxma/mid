@@ -119,8 +119,6 @@ To have the ability to call the backend code from the frontend in a type safe ma
 
 Examples will be added soon to the [examples](/examples/) folder. 
 
-<br><br>
-
 
 ## Caveats 
 
