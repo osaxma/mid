@@ -1,15 +1,51 @@
-<!-- TODO: keep this a brief introduction to the package since packages/mid/README.md should have the details -->
-# `mid` - an API generation tool (Experimental) 
- <!-- maybe better: Generator for API server & its client library in Dart-->
- <!-- End-to-End typesafe APIs  -->
- <!-- safely call your backend from your frontend -->
-> warning: The project is still a work in progress. Use cautiously and definitely it is not ready for production. 
+# `mid` - build end-to-end type-safe APIs (Experimental) 
 
-`mid` will generate an API server and a client library as well as handling requests and managing the communication between the server and the client. 
+> ⚠️ warning: The project is experimental! ⚠️
 
-`mid` simply works by converting the public methods of a class into endpoints where the class name plus the method compose a route (e.g. `/class_name/method_name`). The return type and the parameters of each method are parsed to generate the requests handlers internally as well as generate the client library to be directly used by the frontend -- as simple as calling functions. 
+`mid` is a tool to build an end-to-end type-safe API. The tool generates an API server and a client library as well as handling requests and managing the communication between the server and the client. 
 
-In short, all you have to write is the following _(plus the classes implementations, of course)_ in order to generate the API server and client code:
+`mid` simply works by converting the public methods for a given list of classes into endpoints (i.e. `/class_name/method_name`). The return type and the parameters of each method are parsed to generate the requests handlers, the serialization/deserialization code and the client library to be directly used by the frontend -- as simple as calling functions.
+
+
+For example:
+
+- you write this on the server side:
+    ```dart
+    class App {
+        final Database database;
+
+        App(this.database);
+
+        Future<UserData> getUserData(int uid) async {
+            final user = await database.getUserById(uid);
+            return user;
+        }
+    }
+    ```
+
+- you will be able to do this on the client side:
+
+    ```dart
+    final client = AppClient(url: 'localhost:8080');
+
+    final UserData data = await client.getUserData(42); 
+    ```
+
+
+In order for `mid` to generate the server side and client side code, the endpoints must be provided in the following manner:
+
+
+```dart
+Future<List<Object>> endpoints(Logger logger) async {
+    final database = Database(url: String.fromEnvironment('DATABASE_URL'));
+    return [
+       App(apiKey: apiKey, database: database, logger: logger);,
+    ];
+}
+```
+
+One can also create multiple routes and endpoints such as:
+
 
 ```dart
 Future<List<Object>> endpoints(Logger logger) async {
@@ -31,7 +67,8 @@ Future<List<Object>> endpoints(Logger logger) async {
 }
 ```
 
-For more details, see [Getting Started](#getting-started) or [Examples](#examples) below but don't forget to read the [Caveats](#caveats) first.
+
+For more details, see [Getting Started](#getting-started) or [Examples](#examples) and see the [Caveats](#caveats) below.
 
 
 ## Motivation
@@ -40,19 +77,6 @@ To have the ability to call the backend code from the frontend in a type safe ma
 
 `mid` is not intended to generate a REST API, but to generate an API server that can be seamlessly used by a Dart or Flutter frontend with a minimal effort. 
 
-## Caveats
-
-### Supported Classes
-Any class. `mid` will only expose the public methods of the given class and it'll not expose the ones for its super class(es).
-
-### Supported Return and Parameters Types 
-
-While `mid` can convert any class to an API server, the types for return statement and parameters are limited to the following:
-- Basic Dart Types (`int`, `double`, `num`, `bool`, `String`, `DateTime`)
-- Serializable Classes that contains `toJson` method and `fromJson` factory constructors. 
-- Iterables (i.e., `Map`, `Set`, `List`) of the Basic Types or Serializable Classes.
-- `Future` or `Stream` _(yes, stream)_ for any of the above. 
-
 ## Getting Started
 
 0. **Install `mid`:**
@@ -60,29 +84,22 @@ While `mid` can convert any class to an API server, the types for return stateme
       dart pub global activate mid
       ```
 
-1. **Create a shelf server project (skip if you have one)**
+1. **Create a `mid`  project:**
+      ```sh
+      mid create <project_name>
       ```
-      dart create -t server-shelf
+      This will create two dart projects in the following structure:
+      ```
+      <project_name>
+            |- <project_name>_client
+            |- <project_name>_server
       ```
 
-2. **In the root directory, run:**
-    ```sh
-    mid init
-    ```
-    This will create a folder called `mid` containing all of `mid`'s artificats.
-
-3. **Clear `bin/server.dart` and replace it with:**
-
-    ```dart
-    import '../mid/server.dart';
-    void main(List<String> args) => server(args);
-    ```
-
-  4. **open `mid/endpoints.dart` and add your code there.**
+  2. **open `<project_name>/<project_name>_server/mid/endpoints.dart` and add your endpoints there.**
   
-      You can create a `lib` folder, write your code there then import it to the `endpoints` file. 
+      You can create the endpoints classes inside the `lib` folder, and then import them to the `endpoints` file. 
 
-  5. **Generate endpoints:**
+  3. **Generate endpoints:**
 
       ```sh
       mid generate endpoints 
@@ -90,10 +107,10 @@ While `mid` can convert any class to an API server, the types for return stateme
 
       This will generate the server side code on top of [shelf](https://pub.dev/packages/shelf) server within `mid` folder. 
 
-  6. **Generate teh client code**
+  4. **Generate teh client code**
 
       ```sh
-      mid generate client --location='/path/to/client/code'
+      mid generate client 
       ```
 
 
@@ -104,6 +121,43 @@ Examples will be added soon to the [examples](/examples/) folder.
 
 <br><br>
 
+
+## Caveats 
+
+### Supported Classes
+Any class. `mid` will only expose the public methods of the given class and it'll not expose any of its superclass(es).
+
+### Supported Return Types and Method Parameters Types 
+
+- All core Types (`int`, `double`, `num`, `bool`, `String`, `DateTime`, `Duration`, etc.)
+- User defined Classes\*
+- Collections (i.e., `Map`, `Set`, `List`) of the Basic Types or Data Classes.
+- `Future` or `Stream` _(not supported yet)_ for any of the above. 
+
+\* `mid` is able to serialize user defined classes and their members recursively as long as they have an unnamed generative constructor with formal parameters only (i.e. all parameters using `this`). An example class would be:
+
+```dart
+class UserData {
+    final int id;
+    final String name;
+    // `MetaData` will be serialized even if it doesn't appear in any method return type or parameters types
+    final MetaData metadata; 
+    
+    // Must have unnamed generative constructor with formal parameters (i.e. using `this`). 
+    UserData({this.id, this.name, this.metadata});  
+
+    /* 
+        you can define your own methods, factory constructors, and whatnot 
+    */
+}
+
+```
+
+
+
+
+<!-- 
+
 ## Roadmap 
 
 [ ] API versioning and Preventing Unintended Breaking Changes
@@ -111,8 +165,6 @@ Examples will be added soon to the [examples](/examples/) folder.
 Disscusion: the idea here is to track methods return types and parameters so they do not break the api for apps, especially the one running an older version.
 For instance, adding a new required parameter to a method or changing the name of a parameter can break the api for existing apps. `mid` should keep track of API changes somehow and warn the user when such a change occurs. This could be done by storing the generated APIs in some sort of a database and whenever `mid generate endpoints` is called, `mid` would compare the newly generated API with the previous one and present the user with appropriate warning. 
 
-
-<!-- 
 
 if @serverOnly is supported for serializable class members, add the following caveat:
 
