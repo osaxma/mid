@@ -3,22 +3,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:mid/src/common/utils.dart';
 
-bool allArgumentsInUnnamedConstructorIsToThis(InterfaceType type) {
-  final constructors = type.element2.constructors.where((c) => c.isGenerative);
-
-  if (constructors.isEmpty) {
-    final name = type.getDisplayString(withNullability: false);
-    final packageURI = type.element2.librarySource.uri.toString();
-    throw Exception('$name at does not have a generative constructor (package: $packageURI');
-  }
-  final constructor = constructors.first;
-
-  constructor.parameters.any((p) => !p.isInitializingFormal);
-
-  // [ParameterElement.isInitializingFormal] refers when a field is initialized using `this` keyword.
-  return constructor.parameters.any((p) => !p.isInitializingFormal);
-}
-
 /// When [useToMapFromMap] is `true`, type.toMap() and Type.fromMap() (i.e. userData.toMap() & UserData.fromMap()).
 /// When `false`, the Serializer is used (i.e. UserDataSerializer.toMap() & UserDataSerializer.fromMap()).
 ///
@@ -200,4 +184,21 @@ List<ParameterElement> getGenerativeUnnamedConstructorParameters(InterfaceType t
     final uri = getTypePackageURI(type);
     throw Exception('$typeName does not have a generative unnamed constructor\n$uri');
   }
+}
+
+
+bool allArgumentsInUnnamedConstructorAreFormal(InterfaceType type) {
+  final constructors = type.element2.constructors.where((c) => c.isGenerative);
+
+  if (constructors.isEmpty) {
+    final name = type.getDisplayString(withNullability: false);
+    final packageURI = type.element2.librarySource.uri.toString();
+    throw Exception('$name at does not have a generative constructor (package: $packageURI');
+  }
+  final constructor = constructors.first;
+
+  constructor.parameters.any((p) => !p.isInitializingFormal);
+
+  // [ParameterElement.isInitializingFormal] refers when a field is initialized using `this` keyword.
+  return constructor.parameters.any((p) => !p.isInitializingFormal);
 }

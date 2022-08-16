@@ -19,6 +19,7 @@ bool isMidProject(String path) {
 }
 
 void clearDirContent(String path) {
+  // TODO: do some sanity checks here (e.g. ensure it's within a dart project) to prevent any stupid errors. 
   final dir = Directory(path);
   final dirContents = dir.listSync();
   for (var element in dirContents) {
