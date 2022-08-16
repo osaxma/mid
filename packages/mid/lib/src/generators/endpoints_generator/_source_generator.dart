@@ -4,8 +4,9 @@ import 'package:mid/src/common/analyzer.dart';
 
 import 'package:mid/src/common/extensions.dart';
 import 'package:mid/src/common/models.dart';
-import 'package:mid/src/generators/endpoints_generator/serializer.dart';
+import 'package:mid/src/generators/endpoints_generator/serializer_server.dart';
 import 'package:mid/src/generators/endpoints_generator/templates.dart';
+import 'package:mid/src/generators/serializer_common.dart';
 import 'package:mid/src/templates/init.dart';
 
 class EndPointsSourceGenerator {

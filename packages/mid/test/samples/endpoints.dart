@@ -12,10 +12,13 @@ class ReturnData {
   final int id;
   final String name;
   final InnerData innerData;
+  // test recursive errors
+  final Set<ReturnData> datas;
   ReturnData({
     required this.id,
     required this.name,
     required this.innerData,
+    required this.datas,
   });
 }
 
