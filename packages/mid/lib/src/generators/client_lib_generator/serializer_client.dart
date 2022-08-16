@@ -29,7 +29,8 @@ class ClientClassesSerializer {
     buff.writeln("import '$_collectionImportUri';");
 
     for (final t in types) {
-      final paras = _getConstructorParameters(t).where((element) => !elementHasAnnotation(element, 'serverOnly'));
+      final paras =
+          getGenerativeUnnamedConstructorParameters(t).where((element) => !elementHasAnnotation(element, 'serverOnly'));
       final name = t.getDisplayString(withNullability: false);
       final clazz = _DataClassGenerator(paras.toList(), name);
       buff.writeln(clazz.toSource());
@@ -38,11 +39,6 @@ class ClientClassesSerializer {
     final formatter = DartFormatter(pageWidth: 120);
 
     return formatter.format(buff.toString());
-  }
-
-  List<ParameterElement> _getConstructorParameters(InterfaceType type) {
-    // TODO: handle better -- we are looking for the unnamed generative constructor here
-    return type.element.constructors.firstWhere((c) => c.isGenerative).parameters;
   }
 }
 
@@ -132,6 +128,9 @@ class _DataClassGenerator {
   }
 
   Code generateFromMapConstructorBody() {
+    if (parameters.isEmpty) {
+      return Code('return $className();');
+    }
     final body = parameters
         .map((p) => generateFromMapArgumentAndAssignmentString(p))
         .reduce((value, element) => '$value,$element');
@@ -163,12 +162,14 @@ class _DataClassGenerator {
 
   ListBuilder<Method> buildMethods() {
     final methods = <Method>[
-      generateCopyWithMethod(),
       generateToJsonMethod(),
       generateToMapMethod(),
-      generateEqualityOperator(),
-      generateHashCodeGetter(),
-      generateToStringMethod(),
+      if (parameters.isNotEmpty) ...[
+        generateCopyWithMethod(),
+        generateEqualityOperator(),
+        generateHashCodeGetter(),
+        generateToStringMethod(),
+      ]
     ];
 
     return ListBuilder(methods);
@@ -194,6 +195,9 @@ class _DataClassGenerator {
   }
 
   Code generateToMapMethodBody() {
+    if (parameters.isEmpty) {
+      return Code('return {};');
+    }
     final body = parameters.map((p) => generateMapKeyValue(p)).reduce((value, element) => '$value,$element');
     return Code('return {$body,};');
   }
@@ -304,12 +308,16 @@ class _DataClassGenerator {
   ListBuilder<Field> _buildFields() {
     final fields = <Field>[];
     for (var param in parameters) {
-      fields.add(Field((b) {
-        b
-          ..name = param.name
-          ..modifier = FieldModifier.final$
-          ..type = refer(param.type.getDisplayString(withNullability: true));
-      }));
+      fields.add(
+        Field(
+          (b) {
+            b
+              ..name = param.name
+              ..modifier = FieldModifier.final$
+              ..type = refer(param.type.getDisplayString(withNullability: true));
+          },
+        ),
+      );
     }
 
     return ListBuilder(fields);

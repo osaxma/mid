@@ -1,13 +1,7 @@
-
-
-
-
-
-// maybe move to TypeInfo
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:mid/src/common/analyzer.dart';
-import 'package:mid/src/generators/endpoints_generator/serializer_server.dart';
 
 bool allArgumentsInUnnamedConstructorIsToThis(InterfaceType type) {
   final constructors = type.element.constructors.where((c) => c.isGenerative);
@@ -62,7 +56,7 @@ String deserializeValue(DartType type, String value, {required bool useToMapFrom
         return '$className.fromMap($value)';
       }
     } else {
-      final serializerName = ServerClassesSerializer.getSerializerName(type);
+      final serializerName = getSerializerName(type);
       if (isNullable) {
         return '$value == null ? null : $serializerName.fromMap($value)';
       } else {
@@ -144,9 +138,9 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
       }
     } else {
       if (isNullable) {
-        return '$value == null ? null : ${ServerClassesSerializer.getSerializerName(type)}.toMap($value)';
+        return '$value == null ? null : ${getSerializerName(type)}.toMap($value)';
       } else {
-        return '${ServerClassesSerializer.getSerializerName(type)}.toMap($value)';
+        return '${getSerializerName(type)}.toMap($value)';
       }
     }
   }
@@ -184,4 +178,26 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
   }
 
   throw UnimplementedError();
+}
+
+/// Generates the standard name of the `toMap`/`fromMap` Serializer based on [type]
+///
+/// e.g. if the class name is User, this returns `UserSerializer`
+///
+/// The caller then use the name to form the desired function:
+///
+/// e.g. UserSerializer.fromMap(...) or UserSerializer.toMap(...)
+String getSerializerName(InterfaceType type) {
+  return '${type.getDisplayString(withNullability: false)}Serializer';
+}
+
+List<ParameterElement> getGenerativeUnnamedConstructorParameters(InterfaceType type) {
+  // TODO: handle better -- we are looking for the unnamed generative constructor here
+  try {
+    return type.element.constructors.firstWhere((c) => c.isGenerative).parameters;
+  } catch (e) {
+    final typeName = type.getDisplayString(withNullability: true);
+    final uri = getTypePackageURI(type);
+    throw Exception('$typeName does not have a generative unnamed constructor\n$uri');
+  }
 }

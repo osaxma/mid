@@ -6,15 +6,10 @@ import 'package:dart_style/dart_style.dart';
 import 'package:mid/src/common/analyzer.dart';
 import 'package:mid/src/generators/serializer_common.dart';
 
-// todo: once this is working, clean up the client/server generator:
-//       - ensure the generated functin is called per format
-//       - import the appropriate file if serialization is in a separate file
-//       - remove code searching for `toMap`/'toJson`/`fromMap`/`fromJson`
-
 // note:
 // the choice to create separate serializers were for the following reasons:
 //  - prevent modifying the user code
-//  - support external components (auth API or storage API)
+//  - support external components (e.g. auth API or storage API)
 //    - there's no way to generate code for an external package in such case.
 //
 // This introduces a limitation of course, all retrun types and arguments types must adhere to some rules:
@@ -34,7 +29,7 @@ class Data {
 ///
 ///
 /// The generator should be provided a list of all the available [types]. That is,
-/// all the types used in any return statements or any arguments on the API server.
+/// all the non-dart types used in any return statements or any arguments on the API server.
 ///
 /// The generator will ensure each Type is generated only once in the following format:
 ///
@@ -46,38 +41,15 @@ class Data {
 ///   static Map<String, dynamic> toMap(TypeName instance) {/*  */}
 /// }
 /// ```
-///
-/// The generator will run recursively for non-Dart Type within the given list of types.
-/// And it'll generate the code for them as well.
-///
-/// For instance, if the given type is the following:
-/// ```dart
-/// class User {
-///     final int id;
-///     final String name;
-///     final UserData data;
-/// }
-/// ```
-/// Where `UserData` was not supplied within `types`, the serializer will be generated for `UserData`.
-/// In addition, if `UserData` contains another non-Dart type (e.g. `MetaData`), the serializer will
-/// be generated for `MetaData` as well.
-///
-///
 class ServerClassesSerializer {
   /// A set of all the available non-Dart types
   ///
   /// For `mid`, this mean the types for every return statement and argument.
-  // note: should we use [TypeInfo] instead?
   final Set<InterfaceType> types;
 
   ServerClassesSerializer({
     required this.types,
   });
-
-  /// Generates the standard name of the  `toMap` function based on [type]
-  static String getSerializerName(InterfaceType type) {
-    return type.getDisplayString(withNullability: false) + 'Serializer';
-  }
 
   String generateCode() {
     final code = StringBuffer();
@@ -126,7 +98,7 @@ static Map<String, dynamic> toMap($name instance) {
   }
 
   String _generateKeyValues(InterfaceType type, String dataSource) {
-    final paras = _getConstructorParameters(type);
+    final paras = getGenerativeUnnamedConstructorParameters(type);
     final buff = StringBuffer();
     for (final para in paras) {
       final key = para.name;
@@ -163,7 +135,7 @@ static $name fromMap(Map<String, dynamic> map) {
   }
 
   String _generateFromMapAssignment(InterfaceType type) {
-    final paras = _getConstructorParameters(type);
+    final paras = getGenerativeUnnamedConstructorParameters(type);
     final buff = StringBuffer();
     for (final para in paras) {
       final argName = para.name;
@@ -178,10 +150,5 @@ static $name fromMap(Map<String, dynamic> map) {
     }
 
     return buff.toString();
-  }
-
-  List<ParameterElement> _getConstructorParameters(InterfaceType type) {
-    // TODO: handle better -- we are looking for the unnamed generative constructor here
-    return type.element.constructors.firstWhere((c) => c.isGenerative).parameters;
   }
 }
