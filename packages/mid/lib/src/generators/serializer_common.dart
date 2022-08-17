@@ -11,7 +11,12 @@ import 'package:mid/src/common/utils.dart';
 String deserializeValue(DartType type, String value, {required bool useToMapFromMap}) {
   final isNullable = type.nullabilitySuffix != NullabilitySuffix.none;
   final typeName = type.getDisplayString(withNullability: true);
-  if (isBasicType(type) || type is! InterfaceType) {
+  // e.g. dynamic isn't an InterfaceType
+  if (type is! InterfaceType) {
+    return value;
+  }
+
+  if (isBasicType(type)) {
     return '$value as $typeName';
   }
 
@@ -53,7 +58,7 @@ String deserializeValue(DartType type, String value, {required bool useToMapFrom
     if (type.typeArguments.isEmpty) {
       return value;
     }
-    final t = type.typeArguments.first as InterfaceType;
+    final t = type.typeArguments.first;
     final listOrSet = type.isDartCoreList ? 'List' : 'Set';
     final typeArg =
         type.typeArguments.isEmpty ? '' : '<${type.typeArguments.first.getDisplayString(withNullability: true)} >';
@@ -83,6 +88,8 @@ String deserializeValue(DartType type, String value, {required bool useToMapFrom
       }
     }
   }
+
+  // TODO: throw a useful message containg the type that failed and its package uri
   throw UnimplementedError();
 }
 
@@ -93,7 +100,11 @@ String deserializeValue(DartType type, String value, {required bool useToMapFrom
 /// for the server since it uses the Serializer pattern.
 String serializeValue(DartType type, String value, {required bool useToMapFromMap}) {
   final isNullable = type.nullabilitySuffix != NullabilitySuffix.none;
-  if (isBasicType(type) || type is! InterfaceType) {
+  // e.g. dynamic isn't an InterfaceType
+  if (type is! InterfaceType) {
+    return value;
+  }
+  if (isBasicType(type)) {
     return value;
   }
 
@@ -133,13 +144,28 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
     if (type.typeArguments.isEmpty) {
       return value;
     }
-    final t = type.typeArguments.first as InterfaceType;
-    final v = serializeValue(t, 'x', useToMapFromMap: useToMapFromMap);
-    if (isNullable) {
-      return '$value?.map((x) => $v)';
+    final t = type.typeArguments.first;
+
+    String statement;
+
+    if (isBasicType(t)) {
+      // no mapping required for basic types
+      statement = value;
     } else {
-      return '$value.map((x) => $v)';
+      final v = serializeValue(t, 'x', useToMapFromMap: useToMapFromMap);
+      if (isNullable) {
+        statement = '$value?.map((x) => $v)';
+      } else {
+        statement = '$value.map((x) => $v)';
+      }
     }
+
+    if (type.isDartCoreSet) {
+      // set isn't serializable so we need to convert it to list
+      statement = isNullable && !statement.contains('?') ? '$statement?.toList()' : '$statement.toList()';
+    }
+
+    return statement;
   }
 
   if (type.isDartCoreMap) {
@@ -161,6 +187,7 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
     }
   }
 
+  // TODO: throw a useful message containg the type that failed and its package uri
   throw UnimplementedError();
 }
 
@@ -181,12 +208,11 @@ List<ParameterElement> getGenerativeUnnamedConstructorParameters(InterfaceType t
     return type.element2.constructors.firstWhere((c) => c.isGenerative).parameters;
   } catch (e) {
     final typeName = type.getDisplayString(withNullability: true);
-    final uri = getTypePackageURI(type);
-    throw Exception('$typeName does not have a generative unnamed constructor\n$uri');
+    throw Exception('$typeName does not have a generative unnamed constructor');
   }
 }
 
-
+/* 
 bool allArgumentsInUnnamedConstructorAreFormal(InterfaceType type) {
   final constructors = type.element2.constructors.where((c) => c.isGenerative);
 
@@ -202,3 +228,4 @@ bool allArgumentsInUnnamedConstructorAreFormal(InterfaceType type) {
   // [ParameterElement.isInitializingFormal] refers when a field is initialized using `this` keyword.
   return constructor.parameters.any((p) => !p.isInitializingFormal);
 }
+ */

@@ -202,3 +202,19 @@ note:
   cache response for functions where input is the same. On the server, the user may add an annotation such as @Cachable(duration: ....) (also added as headers on http request)
   the args can be hashd as a key for the cache. 
    -->
+
+
+
+<!-- 
+
+To Generate coverage:
+
+- run in root project:
+    dart test --coverage="coverage"  
+- then:
+    format_coverage --lcov --in=coverage --out=coverage/coverage.lcov  --report-on=lib
+- then:
+    genhtml coverage/coverage.lcov -o coverage/html  
+- then open it:
+    open coverage/html/index.html 
+-->
