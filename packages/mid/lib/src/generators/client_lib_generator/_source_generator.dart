@@ -27,6 +27,7 @@ import 'package:http/http.dart' as http;
     for (var m in classInfo.methodInfos) {
       methods.add(_generateMethod(m));
     }
+    methods.add(_executeMethod());
 
     final clazz = ClassBuilder()
       ..name = classInfo.classNameForClient
@@ -162,10 +163,13 @@ import 'package:http/http.dart' as http;
     }
 
     late final String returnStatement;
+    late final String dataAssignment;
     if (returnType.isVoid) {
       returnStatement = '';
+      dataAssignment = '';
     } else {
       returnStatement = deserializeValue(returnType as InterfaceType, '\$data', useToMapFromMap: true);
+      dataAssignment = 'final \$data = await _execute(\$args, \$route);';
     }
 
     // note the `$` prefix was added at the end of each variable to avoid naming conflicts with method arguments
@@ -176,21 +180,8 @@ import 'package:http/http.dart' as http;
 
   final \$route = '${method.routeName}';
 
-  final \$body = json.encode(\$args);
-  final \$headers = headersProvider();
-  \$headers['content-type'] = 'application/json';
+  $dataAssignment
 
-  final \$res = await http.post(
-      Uri.http(url, \$route),
-      headers: \$headers,
-      body: \$body,
-    );
-
-  if (\$res.statusCode >= 400) {
-    throw Exception(\$res.body);
-  }
-
-  final \$data = json.decode(\$res.body);
   return $returnStatement;
   ''');
   }
@@ -207,5 +198,41 @@ import 'package:http/http.dart' as http;
       return '';
     }
     return '${args.reduce((v, e) => '$v,\n$e')},';
+  }
+
+  Method _executeMethod() {
+    return Method((b) {
+      b.name = '_execute';
+      b.returns = refer('Future<dynamic>');
+      b.modifier = MethodModifier.async;
+      b.requiredParameters = ListBuilder([
+        Parameter((b) {
+          b.type = refer('Map<String, dynamic>');
+          b.name = 'args';
+        }),
+        Parameter((b) {
+          b.type = refer('String');
+          b.name = 'route';
+        }),
+      ]);
+      b.body = Code('''
+  final body = json.encode(args);
+  final headers = headersProvider();
+  headers['content-type'] = 'application/json';
+
+  final res = await http.post(
+    Uri.http(url, route),
+    headers: headers,
+    body: body,
+  );
+
+  if (res.statusCode >= 400) {
+    throw Exception(res.body);
+  }
+
+  final data = json.decode(res.body);
+  return data;
+''');
+    });
   }
 }

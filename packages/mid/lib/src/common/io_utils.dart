@@ -5,31 +5,16 @@ int get terminalWidth {
   if (stdout.hasTerminal) {
     return stdout.terminalColumns;
   }
-
   return 80;
 }
 
-bool isDartProject(String path) {
-  File('a').absolute;
-  return FileSystemEntity.isFileSync(p.join(path, 'pubspec.yaml'));
-}
-
-bool isMidProject(String path) {
-  return FileSystemEntity.isDirectorySync(p.join(path, 'mid'));
-}
-
 void clearDirContent(String path) {
-  // TODO: do some sanity checks here (e.g. ensure it's within a dart project) to prevent any stupid errors. 
+  // TODO: do some sanity checks here (e.g. ensure it's within a dart project) to prevent any stupid errors.
   final dir = Directory(path);
   final dirContents = dir.listSync();
   for (var element in dirContents) {
     element.deleteSync(recursive: true);
   }
-}
-
-void replaceFileContent(String path, String content) {
-  final file = File(path);
-  file.writeAsStringSync(content, mode: FileMode.writeOnly);
 }
 
 void createFileSync(String path, {String? contents, bool recursive = false}) {
@@ -53,7 +38,12 @@ Future<void> createDartProject(String projectPath, {bool force = false}) async {
 Future<void> addPubDeps(String projectPath, List<String> deps, {bool dev = false}) async {
   // note: this will fail if a dependency already exist with an error such:
   //      "<dep>" is already in "dependencies". Use "pub upgrade <dep>" to upgrade to a later version!
-  final args = ['pub', 'add', ...deps, if (dev) '--dev'];
+  final args = [
+    'pub',
+    'add',
+    ...deps,
+    if (dev) '--dev',
+  ];
 
   final res = await Process.run(
     Platform.executable,
@@ -125,4 +115,8 @@ String getClientProjectPathFromCurrentPath() {
   }
 
   throw Exception('could not find client project path');
+}
+
+bool isMidProject(String path) {
+  return FileSystemEntity.isDirectorySync(p.join(path, 'mid'));
 }

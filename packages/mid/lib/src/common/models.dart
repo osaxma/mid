@@ -1,8 +1,8 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:mid/src/common/utils.dart';
 
 import 'package:mid/src/common/extensions.dart';
+import 'package:mid/src/common/utils.dart';
 
 // TODO: re-evaluate if these wrappers since they were created in the early prototype
 //       some stuff are redundant and in many casses other part of the program needs access
@@ -111,4 +111,45 @@ class ArgumentInfo {
   // bool get isOptionalNamed => _parameterElement.isOptionalNamed;
   bool get hasDefaultValue => parameterElement.hasDefaultValue;
   String? get defaultValue => parameterElement.defaultValueCode;
+}
+
+/// Holds information about the current project
+class ProjectInfo {
+  /// The target project name
+  final String projectName;
+
+  /// The path to the root directory of the project
+  final String projectPath;
+
+  /// The path to the root directory of the client project
+  final String clientPath;
+
+  /// The path to the root directory of the server project
+  final String serverPath;
+
+  /// The width of the generated formatted code
+  final int formatedCodeWidth;
+
+  const ProjectInfo({
+    required this.projectName,
+    required this.projectPath,
+    required this.clientPath,
+    required this.serverPath,
+    this.formatedCodeWidth = 120,
+  });
+}
+
+/// Holds a generated source code and its target path
+class GeneratedSource {
+  /// The target path where this file should be created
+  final String targetPath;
+
+  /// The generated source code
+  // should this be formatted? 
+  final String source;
+
+  const GeneratedSource({
+    required this.targetPath,
+    required this.source,
+  });
 }

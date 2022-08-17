@@ -36,24 +36,6 @@ String deserializeValue(DartType type, String value, {required bool useToMapFrom
     }
   }
 
-  if (!isDartType(type)) {
-    if (useToMapFromMap) {
-      final className = type.getDisplayString(withNullability: false);
-      if (isNullable) {
-        return '$value == null ? null : $className.fromMap($value)';
-      } else {
-        return '$className.fromMap($value)';
-      }
-    } else {
-      final serializerName = getSerializerName(type);
-      if (isNullable) {
-        return '$value == null ? null : $serializerName.fromMap($value)';
-      } else {
-        return '$serializerName.fromMap($value)';
-      }
-    }
-  }
-
   if (type.isDartCoreList || type.isDartCoreSet) {
     if (type.typeArguments.isEmpty) {
       return value;
@@ -89,8 +71,22 @@ String deserializeValue(DartType type, String value, {required bool useToMapFrom
     }
   }
 
-  // TODO: throw a useful message containg the type that failed and its package uri
-  throw UnimplementedError();
+  // Since this is an [InterfaceType] and it's not any of the core types, we'll assume it's a serializable type
+  if (useToMapFromMap) {
+    final className = type.getDisplayString(withNullability: false);
+    if (isNullable) {
+      return '$value == null ? null : $className.fromMap($value)';
+    } else {
+      return '$className.fromMap($value)';
+    }
+  } else {
+    final serializerName = getSerializerName(type);
+    if (isNullable) {
+      return '$value == null ? null : $serializerName.fromMap($value)';
+    } else {
+      return '$serializerName.fromMap($value)';
+    }
+  }
 }
 
 /// When [useToMapFromMap] is `true`, type.toMap() and Type.fromMap() (i.e. userData.toMap() & UserData.fromMap()).
@@ -121,22 +117,6 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
       return '$value?.inMicroseconds';
     } else {
       return '$value.inMicroseconds';
-    }
-  }
-
-  if (!isDartType(type)) {
-    if (useToMapFromMap) {
-      if (isNullable) {
-        return '$value?.toMap()';
-      } else {
-        return '$value.toMap()';
-      }
-    } else {
-      if (isNullable) {
-        return '$value == null ? null : ${getSerializerName(type)}.toMap($value)';
-      } else {
-        return '${getSerializerName(type)}.toMap($value)';
-      }
     }
   }
 
@@ -187,8 +167,20 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
     }
   }
 
-  // TODO: throw a useful message containg the type that failed and its package uri
-  throw UnimplementedError();
+  // Since this is an [InterfaceType] and it's not any of the core types, we'll assume it's a serializable type
+  if (useToMapFromMap) {
+    if (isNullable) {
+      return '$value?.toMap()';
+    } else {
+      return '$value.toMap()';
+    }
+  } else {
+    if (isNullable) {
+      return '$value == null ? null : ${getSerializerName(type)}.toMap($value)';
+    } else {
+      return '${getSerializerName(type)}.toMap($value)';
+    }
+  }
 }
 
 /// Generates the standard name of the `toMap`/`fromMap` Serializer based on [type]
