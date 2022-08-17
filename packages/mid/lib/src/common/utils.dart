@@ -259,7 +259,7 @@ String? getTypePackageURI(InterfaceType type) {
 }
 
 String getEndpointsPath(String projectPath) {
-  final path = p.join(projectPath, 'mid', 'endpoints.dart');
+  final path = p.join(projectPath, 'lib/mid', 'endpoints.dart');
   if (FileSystemEntity.isFileSync(path)) {
     return path;
   } else {

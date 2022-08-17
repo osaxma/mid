@@ -8,9 +8,9 @@ import 'version.dart';
 
 class MIDCommandRunner extends CommandRunner<void> {
   // TODO
-  final Object? config;
+  final String workingDirectoryPath;
 
-  MIDCommandRunner([this.config])
+  MIDCommandRunner(this.workingDirectoryPath)
       : super(
           'mid',
           'mid - an API generation tool',
@@ -27,9 +27,9 @@ class MIDCommandRunner extends CommandRunner<void> {
       help: 'Print the current Melos version.',
     );
 
-    addCommand(GenerateCommand());
-    addCommand(CreateCommand());
-    addCommand(DebugCommand());
+    addCommand(GenerateCommand(workingDirectoryPath));
+    addCommand(CreateCommand(workingDirectoryPath));
+    addCommand(DebugCommand(workingDirectoryPath));
   }
 
   @override

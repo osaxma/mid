@@ -1,7 +1,12 @@
-
 /// project/bin/server.dart
-const binServerDotDart = '''
-import '../mid/server.dart';
+// const binServerDotDart = '''
+// import '../mid/server.dart';
+
+// void main(List<String> args) => server(args);
+// ''';
+
+String getServerDotDartContent(String projectName) => '''
+import 'package:${projectName}_server/mid/generated/server.dart';
 
 void main(List<String> args) => server(args);
 ''';
@@ -14,7 +19,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 
 import 'handlers.dart';
-import 'middlewares.dart';
+import '../middlewares.dart';
 
 void server(List<String> args) async {
   // Use any available host or container IP (usually `0.0.0.0`).
@@ -38,7 +43,6 @@ void server(List<String> args) async {
 }
 ''';
 
-
 /// `project/mid/endpoints.dart` file
 const endpointsDotDart = '''
 
@@ -55,7 +59,6 @@ Future<List<Object>> endpoints() async {
 }
 ''';
 
-
 /// `project/mid/middlewares.dart` file
 const middleWaresDotDart = '''
 import 'package:shelf/shelf.dart';
@@ -70,12 +73,11 @@ List<Middleware> getMiddlewares() {
 
 ''';
 
-
 /// `project/mid/handlers.dart` file
-/// 
+///
 /// This file will be updated by `mid generate endpoints`
-/// 
-/// The following code is just to prevent errors in other files referencing it. 
+///
+/// The following code is just to prevent errors in other files referencing it.
 const handlersDotDart = '''
 
 $generatedCodeMessage
@@ -91,7 +93,6 @@ Future<Router> generateRouter() async {
 
 
 ''';
-
 
 const generatedCodeMessage = '''
 /* 

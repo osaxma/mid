@@ -1,9 +1,7 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
-import 'package:meta/meta.dart';
 import 'package:mid/src/common/utils.dart';
-import 'package:mid/src/common/io_utils.dart';
 import 'package:mid/src/common/models.dart';
 import 'package:mid/src/generators/client_lib_generator/_source_generator.dart';
 import 'package:mid/src/generators/client_lib_generator/serializer_client.dart';
@@ -34,8 +32,8 @@ class ClientLibGenerator {
   });
 
   /// Generates the client library
-  /// 
-  /// Changes won't be commited until [commit] is invoked. 
+  ///
+  /// Changes won't be commited until [commit] is invoked.
   Future<void> generate() async {
     final endpointsPath = getEndpointsPath(serverProjectPath);
 
@@ -52,25 +50,63 @@ class ClientLibGenerator {
     _dataClasses = ClientClassesSerializer(types: types).generate();
   }
 
-  /// commit the generated code 
-  /// 
-  /// This will write the generated code into files. 
+  /// commit the generated code
+  ///
+  /// This will write the generated code into files.
   Future<void> commit() async {
-    final clientProjectPath = getClientProjectPathFromCurrentPath();
     for (final source in _clientSources) {
-      final file = File(p.join(clientProjectPath, 'lib', 'src', source.fileName));
+      final file = File(p.join(clientLibProjectPath, 'lib', 'routes', source.fileName));
       if (!file.existsSync()) {
         file.createSync(recursive: true);
       }
       file.writeAsStringSync(source.source);
     }
 
-    final file = File(p.join(clientProjectPath, 'lib', 'src', 'models.dart'));
+    final file = File(p.join(clientLibProjectPath, 'lib', 'models.dart'));
     if (!file.existsSync()) {
       file.createSync(recursive: true);
     }
     file.writeAsStringSync(_dataClasses);
+
+    final projectName = p.basename(p.dirname(clientLibProjectPath));
+    final clientDotDart = _generateClientDotDart(_clientSources, projectName);
+    final clientDotDartFile = File(p.join(clientLibProjectPath, 'lib', 'client.dart'));
+
+    if (!clientDotDartFile.existsSync()) {
+      clientDotDartFile.createSync(recursive: true);
+    }
+    clientDotDartFile.writeAsStringSync(clientDotDart);
   }
+}
+
+String _generateClientDotDart(List<_ClientSource> sources, String projectName) {
+  final importStatements = StringBuffer();
+  final fields = StringBuffer();
+  for (final src in sources) {
+    importStatements.writeln("import 'routes/${src.fileName}';");
+    fields.writeln(
+        'late final ${src.classInfo.className.toLowerCase()} = ${src.classInfo.classNameForClient}(url: url, headersProvider: headersProvider);');
+  }
+  final className = '${projectName.capitalizeFirst()}Client';
+
+  return '''
+${importStatements.toString()}
+
+class $className {
+
+  /// The server URL
+  final String url;
+
+  /// A function that should provide an up-to-date headers for each request
+  ///
+  /// e.g. Bearer Authentication (token)
+  final Map<String, String> Function() headersProvider;
+
+  $fields
+  
+  $className({required this.url, required this.headersProvider});
+}
+''';
 }
 
 class _ClientSource {

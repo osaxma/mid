@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 // import 'package:path/path.dart' as p;
 import 'package:mid/src/common/io_utils.dart';
@@ -6,8 +7,8 @@ import 'package:mid/src/common/io_utils.dart';
 import 'base.dart';
 
 class DebugCommand extends MIDCommand {
-  DebugCommand();
-
+  DebugCommand(this.workingDirectoryPath);
+  final String workingDirectoryPath;
   @override
   final String name = 'debug';
 
@@ -20,7 +21,7 @@ class DebugCommand extends MIDCommand {
 
   @override
   FutureOr<void>? run() async {
-    print(getClientProjectPathFromCurrentPath());
-    print(getServerProjectPathFromCurrentPath());
+    print(getClientProjectPath(workingDirectoryPath));
+    print(getServerProjectPath(workingDirectoryPath));
   }
 }

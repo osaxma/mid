@@ -11,16 +11,36 @@ import 'base.dart';
 /// This will create new directory containing two dart projects such as:
 ///   <project_name>
 ///         |- <project_name>_client
+///                 |- lib
+///                     |- models
+///                          |- model1.dart 
+///                          |- model2.dart 
+///                     |- routes 
+///                          |- route1.dart
+///                          |- route2.dart
+///                 |- models.dart 
+///                 |- client.dart 
 ///         |- <project_name>_server
+///                 |- bin
+///                     |- server.dart
+///                 |- lib/mid/
+///                         |- generated
+///                             |- handlers.dart
+///                             |- serializers.dart
+///                             |- server.dart
+///                         |- endpoints.dart
+///                         |- middlewares.dart
 ///         |- other files...
 class CreateCommand extends MIDCommand {
-  CreateCommand() {
+  CreateCommand(this.workingDirectoryPath) {
     argParser.addFlag(
       'force',
       negatable: false,
       help: 'Force project generation, even if the target directory already exists.',
     );
   }
+
+  final String workingDirectoryPath;
 
   @override
   final String name = 'create';
@@ -38,6 +58,8 @@ class CreateCommand extends MIDCommand {
       printUsage();
       return;
     }
+
+    // TODO: should thsi be relative to `workingDirectoryPath`
     final targetDir = Directory(argResults!.rest.first).absolute;
     final dir = targetDir.path;
     if (targetDir.existsSync() && !argResults!['force']) {
@@ -47,7 +69,7 @@ class CreateCommand extends MIDCommand {
 
     String projectName = p.basename(dir);
     if (projectName == '.') {
-      projectName = p.basename(Directory.current.path);
+      projectName = p.basename(workingDirectoryPath);
     }
 
     if (!targetDir.existsSync()) {
@@ -56,7 +78,7 @@ class CreateCommand extends MIDCommand {
 
     final serverProjectDir = p.normalize(p.join(targetDir.path, '${projectName}_server'));
     var prog = logger.progress('building server project');
-    await createServerProject(serverProjectDir);
+    await createServerProject(serverProjectDir, projectName);
     prog.finish();
 
     final clientProjectDir = p.normalize(p.join(targetDir.path, '${projectName}_client'));
@@ -67,7 +89,7 @@ class CreateCommand extends MIDCommand {
     return;
   }
 
-  Future<void> createServerProject(String path) async {
+  Future<void> createServerProject(String path, String projectName) async {
     await createDartProject(path, force: true);
     // delete bin folder, content of lib and content of test
     clearDirContent(p.join(path, 'bin'));
@@ -76,12 +98,12 @@ class CreateCommand extends MIDCommand {
     await addPubDeps(path, ['shelf', 'shelf_router', 'mid']);
 
     // create server default files
-    createFileSync(p.join(path, 'bin', 'server.dart'), contents: binServerDotDart);
-    createFileSync(p.join(path, 'mid', 'endpoints.dart'), contents: endpointsDotDart, recursive: true);
-    createFileSync(p.join(path, 'mid', 'server.dart'), contents: serverDotDart);
-    createFileSync(p.join(path, 'mid', 'middlewares.dart'), contents: middleWaresDotDart);
-    createFileSync(p.join(path, 'mid', 'handlers.dart'), contents: handlersDotDart);
-    createFileSync(p.join(path, 'mid', 'serializers.dart'), contents: '');
+    createFileSync(p.join(path, 'bin', 'server.dart'), contents: getServerDotDartContent(projectName));
+    createFileSync(p.join(path, 'lib/mid/', 'endpoints.dart'), contents: endpointsDotDart, recursive: true);
+    createFileSync(p.join(path, 'lib/mid/', 'middlewares.dart'), contents: middleWaresDotDart);
+    createFileSync(p.join(path, 'lib/mid/generated/', 'server.dart'), contents: serverDotDart, recursive: true);
+    createFileSync(p.join(path, 'lib/mid/generated/', 'handlers.dart'), contents: handlersDotDart);
+    createFileSync(p.join(path, 'lib/mid/generated/', 'serializers.dart'), contents: '');
     // TODO: add Dockerfile & .dockerignore (or use --template=server-shelf when creating dart project)
   }
 

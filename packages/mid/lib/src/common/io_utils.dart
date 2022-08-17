@@ -57,8 +57,7 @@ Future<void> addPubDeps(String projectPath, List<String> deps, {bool dev = false
   }
 }
 
-String getServerProjectPathFromCurrentPath() {
-  final currentDirPath = Directory.current.path;
+String getServerProjectPath(String currentDirPath) {
   final currentDirName = p.basename(currentDirPath);
 
   // if within <project_name>_server/
@@ -76,7 +75,7 @@ String getServerProjectPathFromCurrentPath() {
   }
 
   // if within <project_name>
-  final dirElements = Directory.current.listSync().whereType<Directory>();
+  final dirElements = Directory(currentDirPath).listSync().whereType<Directory>();
   for (var element in dirElements) {
     final path = element.path;
     if (path.endsWith('_server')) {
@@ -89,8 +88,7 @@ String getServerProjectPathFromCurrentPath() {
   throw Exception('could not find `mid` server project');
 }
 
-String getClientProjectPathFromCurrentPath() {
-  final currentDirPath = Directory.current.path;
+String getClientProjectPath(String currentDirPath) {
   final currentDirName = p.basename(currentDirPath);
   // if within <project_name>_client/
   if (currentDirName.endsWith('_client')) {
@@ -106,7 +104,7 @@ String getClientProjectPathFromCurrentPath() {
   }
 
   // if within <project_name>
-  final dirElements = Directory.current.listSync().whereType<Directory>();
+  final dirElements = Directory(currentDirPath).listSync().whereType<Directory>();
   for (var element in dirElements) {
     final path = element.path;
     if (path.endsWith('_client')) {
@@ -118,5 +116,5 @@ String getClientProjectPathFromCurrentPath() {
 }
 
 bool isMidProject(String path) {
-  return FileSystemEntity.isDirectorySync(p.join(path, 'mid'));
+  return FileSystemEntity.isDirectorySync(p.join(path, 'lib/mid'));
 }

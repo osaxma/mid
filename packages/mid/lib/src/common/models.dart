@@ -145,11 +145,24 @@ class GeneratedSource {
   final String targetPath;
 
   /// The generated source code
-  // should this be formatted? 
+  // should this be formatted?
   final String source;
+
+  /// For debugging, include the generator name
+  ///
+  /// e.g. Client Lib Generator or Server Serializer
+  final String generatorName;
+
+  /// Additional useful debug information
+  ///
+  /// If it's serializer, include the serialized class name.
+  /// If it's an endpoint, include the class/method name
+  final String? debugInfo;
 
   const GeneratedSource({
     required this.targetPath,
     required this.source,
+    required this.generatorName,
+    this.debugInfo,
   });
 }

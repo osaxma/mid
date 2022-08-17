@@ -1,24 +1,26 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:mid/src/common/io_utils.dart';
 import 'package:mid/src/generators/client_lib_generator/client_lib_generator.dart';
 import 'package:mid/src/generators/endpoints_generator/endpoints_generator.dart';
 
-
 import 'base.dart';
 
 // TODO(@osaxma): add `commit()` for all generators that is called after generation is successful
 //                currently if an exception is thrown or an error occured between generation,
-//                some files would be half written and such. 
-//              
+//                some files would be half written and such.
+//
 //                this will also allow using `--dry-run` for commands.
 
 class GenerateCommand extends MIDCommand {
-  GenerateCommand() {
+  GenerateCommand(this.workingDirectoryPath) {
     // TODO: combine into one tht generates both endpoints and client.
-    addSubcommand(GenerateEndPointsCommand());
-    addSubcommand(GenerateClientLibCommand());
+    addSubcommand(GenerateEndPointsCommand(workingDirectoryPath));
+    addSubcommand(GenerateClientLibCommand(workingDirectoryPath));
   }
+
+  final String workingDirectoryPath;
 
   @override
   final String name = 'generate';
@@ -34,7 +36,9 @@ class GenerateCommand extends MIDCommand {
 }
 
 class GenerateEndPointsCommand extends MIDCommand {
-  GenerateEndPointsCommand() {/*  */}
+  GenerateEndPointsCommand(this.workingDirectoryPath) {/*  */}
+
+  final String workingDirectoryPath;
 
   @override
   final String name = 'endpoints';
@@ -47,7 +51,7 @@ class GenerateEndPointsCommand extends MIDCommand {
 
   @override
   FutureOr<void>? run() async {
-    final path = getServerProjectPathFromCurrentPath();
+    final path = getServerProjectPath(workingDirectoryPath);
     final generator = EndPointsGenerator(
       serverProjectPath: path,
       logger: logger,
@@ -59,7 +63,9 @@ class GenerateEndPointsCommand extends MIDCommand {
 }
 
 class GenerateClientLibCommand extends MIDCommand {
-  GenerateClientLibCommand();
+  GenerateClientLibCommand(this.workingDirectoryPath);
+
+  final String workingDirectoryPath;
 
   @override
   final String name = 'client';
@@ -72,8 +78,8 @@ class GenerateClientLibCommand extends MIDCommand {
 
   @override
   FutureOr<void>? run() async {
-    final serverProjectPath = getServerProjectPathFromCurrentPath();
-    final clientLibraryPath = getClientProjectPathFromCurrentPath();
+    final serverProjectPath = getServerProjectPath(workingDirectoryPath);
+    final clientLibraryPath = getClientProjectPath(workingDirectoryPath);
 
     final generator = ClientLibGenerator(
       serverProjectPath: serverProjectPath,

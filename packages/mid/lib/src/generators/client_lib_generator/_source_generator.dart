@@ -17,7 +17,7 @@ class ClientEndPointGenerator {
   final imports = '''
 import 'dart:convert';
 
-import 'models.dart';
+import '../models.dart';
 import 'package:http/http.dart' as http;
 ''';
 
@@ -174,7 +174,7 @@ import 'package:http/http.dart' as http;
 
     // note the `$` prefix was added at the end of each variable to avoid naming conflicts with method arguments
     return Code('''
-  final \$args = {
+  final \$args = <String, dynamic>{
     $argsToKeyValue
   };
 
