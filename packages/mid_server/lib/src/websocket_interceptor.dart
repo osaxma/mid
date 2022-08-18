@@ -3,9 +3,8 @@
 //        where the package user can send data from client to server including auth if they wish too
 //        This will avoid relying on shelf package and the Request class and give the package more freedom
 //        in the future.
+import 'package:mid/protocol.dart';
 import 'package:shelf/shelf.dart';
-
-import 'protocol.dart';
 
 /// Implement this class to create custom interceptor(s) for the websocket connection
 ///
