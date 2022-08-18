@@ -63,7 +63,7 @@ class ServerClassesSerializer {
 
     final source = importBuffer.toString() + code.toString();
 
-    return DartFormatter().format(source);
+    return DartFormatter(pageWidth: 120).format(source);
   }
 
   String _classWrapper(InterfaceType type, String code) {

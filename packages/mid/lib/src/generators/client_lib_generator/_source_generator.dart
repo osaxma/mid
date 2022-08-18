@@ -37,7 +37,7 @@ import 'package:http/http.dart' as http;
 
     final source = clazz.build().accept(emitter).toString();
 
-    return DartFormatter().format(imports + source);
+    return DartFormatter(pageWidth: 120).format(imports + source);
   }
 
   ListBuilder<Field> _generateClassFields() {
