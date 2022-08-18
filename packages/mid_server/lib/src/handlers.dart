@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:shelf/shelf.dart';
 
+
+/// A base handler for any endpoint that returns a [Stream]
 abstract class StreamBaseHandler {
   /// the full route to the handler
   String get route;
@@ -9,6 +11,7 @@ abstract class StreamBaseHandler {
   Stream<String> handler(Map<String, dynamic> map);
 }
 
+/// A base handler for any endpoint that returns a [Future] or [Type] i.e. [FutureOr]
 abstract class FutureOrBaseHandler {
   /// the full route to the handler
   String get route;
