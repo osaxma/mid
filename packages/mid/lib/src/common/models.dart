@@ -67,7 +67,7 @@ class MethodInfo {
 
   String get source => methodElement.source.toString();
 
-  DartType get type => methodElement.returnType;
+  DartType get returnType => methodElement.returnType;
 
   MethodInfo({
     required this.className,

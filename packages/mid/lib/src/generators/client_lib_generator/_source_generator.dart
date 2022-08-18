@@ -96,7 +96,7 @@ import 'package:http/http.dart' as http;
   }
 
   Method _generateMethod(MethodInfo methodInfo) {
-    final returnType = _ensureReturnTypeHasFuture(methodInfo.type);
+    final returnType = _ensureReturnTypeHasFuture(methodInfo.returnType);
     final m = MethodBuilder();
     m
       ..name = methodInfo.methodName
@@ -154,7 +154,7 @@ import 'package:http/http.dart' as http;
 
   Code _generateMethodBody(MethodInfo method) {
     final argsToKeyValue = _convertMethodArgsToKeyValueString(method);
-    var returnType = method.type;
+    var returnType = method.returnType;
 
     if (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr || returnType.isDartAsyncStream) {
       if (returnType is InterfaceType && returnType.typeArguments.isNotEmpty) {
