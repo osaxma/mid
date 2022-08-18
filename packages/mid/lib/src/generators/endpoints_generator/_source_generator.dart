@@ -37,7 +37,7 @@ class EndPointsSourceGenerator {
     final imports = _imports.join('\n');
     final source = imports + _source.toString();
 
-    final formattedSource = DartFormatter().format(source);
+    final formattedSource = DartFormatter(pageWidth: 120).format(source);
 
     return formattedSource;
   }
@@ -81,7 +81,7 @@ class EndPointsSourceGenerator {
     final handlerClassName = '$className${methodName.capitalizeFirst()}Handler';
 
     // this is for the handler instance creation
-    _futureOrHandlersInstances.add('$handlerClassName(list[$index] as $className)');
+    _futureOrHandlersInstances.add('$handlerClassName(endpoints[$index] as $className)');
 
     final route = methodInfo.routeName;
     final assignments = _generateArgumentAssignment(methodInfo);
@@ -138,7 +138,7 @@ class $handlerClassName extends FutureOrBaseHandler {
     final handlerClassName = '$className${methodName.capitalizeFirst()}Handler';
 
     // this is for the handler instance creation
-    _streamHandlersInstances.add('$handlerClassName(list[$index] as $className)');
+    _streamHandlersInstances.add('$handlerClassName(endpoints[$index] as $className)');
 
     final route = methodInfo.routeName;
     final assignments = _generateArgumentAssignment(methodInfo);
@@ -254,8 +254,7 @@ class $handlerClassName extends StreamBaseHandler {
     final String handlers = _futureOrHandlersInstances.join(',');
 
     return '''
-Future<List<FutureOrBaseHandler>> getHandlers() async {
-  final list = await endpoints();
+List<FutureOrBaseHandler> getHandlers(List<Object> endpoints) {
   final handlers = <FutureOrBaseHandler>[
     $handlers
   ];
@@ -269,8 +268,7 @@ Future<List<FutureOrBaseHandler>> getHandlers() async {
     final String handlers = _streamHandlersInstances.join(',');
 
     return '''
-Future<List<StreamBaseHandler>> getStreamHandlers() async {
-  final list = await endpoints();
+List<StreamBaseHandler> getStreamHandlers(List<Object> endpoints) {
   final handlers = <StreamBaseHandler>[
     $handlers
   ];

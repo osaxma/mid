@@ -16,7 +16,8 @@ final Map<String, String> _defaultHeaders = {
 };
 
 Future<Router> generateRouter() async {
-  final handlers = await getHandlers();
+  final endpts = await endpoints();
+  final handlers = getHandlers(endpts);
   final router = Router();
   for (final handler in handlers) {
     router.add(handler.verb, handler.route, (Request request) => _defaultHandler(request, handler));
