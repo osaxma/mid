@@ -63,6 +63,10 @@ abstract class FutureOrBaseHandler {
 
 const streamBaseHandler = '''
 abstract class StreamBaseHandler {
-  /* WIP */
+  /// the full route to the handler
+  String get route;
+  
+  /// The request handler
+  Stream<String> handler(Map<String, dynamic> map);
 }
 ''';
