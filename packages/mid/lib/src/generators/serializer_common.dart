@@ -81,6 +81,22 @@ String deserializeValue(DartType type, String value, {required bool useToMapFrom
     }
   }
 
+  if (isUri(type)) {
+    if (isNullable) {
+      return "$value == null ? null : Uri.parse($value)";
+    } else {
+      return "Uri.parse($value)";
+    }
+  }
+
+  if (isBigInt(type)) {
+    if (isNullable) {
+      return "$value == null ? null : BigInt.parse($value)";
+    } else {
+      return "BigInt.parse($value)";
+    }
+  }
+
   if (isOtherDartType(type) || isAsyncType(type) || type.isDartCoreIterable) {
     throw Exception('$typeName is not a serializable type');
   }
@@ -191,6 +207,14 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
       return "$value?.name";
     } else {
       return "$value.name";
+    }
+  }
+
+  if (isUri(type) || isBigInt(type)) {
+    if (isNullable) {
+      return "$value?.toString()";
+    } else {
+      return "$value.toString()";
     }
   }
 

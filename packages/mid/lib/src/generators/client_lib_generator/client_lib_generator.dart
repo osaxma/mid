@@ -101,8 +101,18 @@ ${importStatements.toString()}
 class $className extends BaseClient {
 
   $fields
-  
-  $className({required String url,  required Map<String, String> Function() headersProvider}) 
+
+  /// The main client for the application
+  /// 
+  /// The client contains each route to a collection of endpoints as defined on the server.
+  /// 
+  /// The [url] must be the url of the server.
+  /// 
+  /// The [headersProvider] is an optional callback function that is called before sending
+  /// any request. The callback must return a `Map<String, String>` that will be added
+  /// to the headers of each request. `Authorization header` is one example of what could
+  /// be provided.
+  $className({required String url,  HeadersProvider? headersProvider}) 
     : super(url: url, headersProvider: headersProvider);
 }
 ''';

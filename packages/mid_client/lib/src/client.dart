@@ -6,6 +6,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'package:mid/protocol.dart';
 
+typedef HeadersProvider = Map<String, String> Function();
+
 class BaseClient {
   /// A function that should provide an up-to-date headers for each request
   ///
@@ -13,7 +15,7 @@ class BaseClient {
   // TODO: this is a temp solution until we support either interceptors or a custom `ConnectionData`
   //       speaking of which, a custom `ConnectionData` is preferable since it can be used with both
   //       http and websocket as well as hide the `http` stuff under the hood.
-  final Map<String, String> Function() headersProvider;
+  final HeadersProvider? headersProvider;
 
   /// The Websocket URI from the given [url]
   late final Uri wsURI;
@@ -25,7 +27,7 @@ class BaseClient {
 
   late final MidWebSocketClient _wsClient;
 
-  BaseClient({required String url, required this.headersProvider}) {
+  BaseClient({required String url, this.headersProvider}) {
     if (!url.contains('http')) {
       url = 'http://$url';
     }
@@ -144,19 +146,13 @@ class MidWebSocketClient {
 class MidHttpClient {
   final Uri uri;
 
-  /// A function that should provide an up-to-date headers for each request
-  ///
-  /// e.g. Bearer Authentication (token)
-  // TODO: this is a temp solution until we support either interceptors or a custom `ConnectionData`
-  //       speaking of which, a custom `ConnectionData` is preferable since it can be used with both
-  //       http and websocket as well as hide the `http` stuff under the hood.
-  final Map<String, String> Function() headersProvider;
+  HeadersProvider? headersProvider;
 
   MidHttpClient(this.uri, this.headersProvider);
 
   Future<dynamic> executeHttp(Map<String, dynamic> args, String route) async {
     final body = json.encode(args);
-    final headers = headersProvider();
+    final headers = headersProvider?.call() ?? <String, String>{};
     headers['content-type'] = 'application/json';
 
     final res = await http.post(

@@ -90,7 +90,7 @@ Any class of an `EndPoints`\* type. `mid` will only expose the public methods of
 
 ### Supported Return Types and Method Parameters Types 
 
-- All core Types (`int`, `double`, `num`, `bool`, `String`, `DateTime`, `Duration`, etc.)
+- All core Types (`int`, `double`, `num`, `bool`, `String`, `DateTime`, `Duration`, `enum`, `Uri`, `BigInt`)
 - User defined Classes\*
 - Collections (i.e., `Map`, `Set`, `List`) of any of the above.
 - `Future` or `Stream` for any of the above. 

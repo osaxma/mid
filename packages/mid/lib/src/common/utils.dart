@@ -77,11 +77,21 @@ bool isDartType(DartType type) {
       isDartCollection(type) ||
       isAsyncType(type) ||
       isOtherDartType(type) ||
-     isEnum(type);
+      isEnum(type) ||
+      isUri(type) ||
+      isBigInt(type);
 }
 
 // do not use `type.isDartCoreEnum` since that represnt the class `Enum`
-bool isEnum(DartType type) =>  type.element2 is EnumElement;
+bool isEnum(DartType type) => type.element2 is EnumElement;
+
+bool isUri(DartType type) =>
+    type.getDisplayString(withNullability: false) == 'Uri' && isFromCoreLib(type as InterfaceType);
+
+bool isBigInt(DartType type) =>
+    type.getDisplayString(withNullability: false) == 'BigInt' && isFromCoreLib(type as InterfaceType);
+
+bool isFromCoreLib(InterfaceType type) => getTypePackageURI(type) == 'dart:core';
 
 bool isBasicType(DartType type) {
   return type.isDartCoreBool ||
