@@ -1,6 +1,6 @@
 name: mid
 description: a tool for building an end-to-end typesafe APIs in pure dart
-version: 0.0.1+2
+version: 0.0.2
 homepage: https://www.github.com/osaxma/mid
 
 executables:

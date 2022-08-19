@@ -1,3 +1,7 @@
+## 0.0.2
+
+Support returning a stream
+
 ## 0.0.1+2
 
 Updated Protocol to include stop.
