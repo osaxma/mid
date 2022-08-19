@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:cli_util/cli_logging.dart';
 import 'package:mid/src/common/models.dart';
 import 'package:mid/src/common/utils.dart';
-import 'package:mid/src/generators/endpoints_generator/serializer_server.dart';
+import 'package:mid/src/generators/server_lib_generator/serializer_server.dart';
 import 'package:path/path.dart' as p;
 
 import '_source_generator.dart';
 
-class EndPointsGenerator {
+class ServerLibGenerator {
   final String serverProjectPath;
   final Logger logger;
 
@@ -16,7 +16,7 @@ class EndPointsGenerator {
   late final String _serializersSource;
   final List<ClassInfo>? routes;
 
-  EndPointsGenerator({
+  ServerLibGenerator({
     required this.serverProjectPath,
     required this.logger,
     this.routes,

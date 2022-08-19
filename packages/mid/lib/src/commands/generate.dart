@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:mid/src/common/io_utils.dart';
+import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/client_lib_generator/client_lib_generator.dart';
-import 'package:mid/src/generators/endpoints_generator/endpoints_generator.dart';
+import 'package:mid/src/generators/server_lib_generator/server_lib_generator.dart';
 
 import 'base.dart';
 
@@ -17,6 +18,7 @@ class GenerateCommand extends MIDCommand {
     // TODO: combine into one tht generates both endpoints and client.
     addSubcommand(GenerateEndPointsCommand(workingDirectoryPath));
     addSubcommand(GenerateClientLibCommand(workingDirectoryPath));
+    addSubcommand(GenerateAllCommand(workingDirectoryPath));
   }
 
   final String workingDirectoryPath;
@@ -40,18 +42,18 @@ class GenerateEndPointsCommand extends MIDCommand {
   final String workingDirectoryPath;
 
   @override
-  final String name = 'endpoints';
+  final String name = 'server';
 
   @override
-  final List<String> aliases = ['e'];
+  final List<String> aliases = ['s'];
 
   @override
-  final String description = 'generates api endpoints';
+  final String description = 'generates server library';
 
   @override
   FutureOr<void>? run() async {
     final path = getServerProjectPath(workingDirectoryPath);
-    final generator = EndPointsGenerator(
+    final generator = ServerLibGenerator(
       serverProjectPath: path,
       logger: logger,
     );
@@ -88,5 +90,45 @@ class GenerateClientLibCommand extends MIDCommand {
 
     await generator.generate();
     await generator.commit();
+  }
+}
+
+class GenerateAllCommand extends MIDCommand {
+  GenerateAllCommand(this.workingDirectoryPath);
+
+  final String workingDirectoryPath;
+
+  @override
+  final String name = 'all';
+
+  @override
+  final String description = 'generates both server and client libraries';
+
+  @override
+  FutureOr<void>? run() async {
+    final serverProjectPath = getServerProjectPath(workingDirectoryPath);
+    final clientLibraryPath = getClientProjectPath(workingDirectoryPath);
+
+    final endpointsPath = getEndpointsPath(serverProjectPath);
+    final routes = await parseRoutes(endpointsPath, logger);
+
+    final clientGenerator = ClientLibGenerator(
+      serverProjectPath: serverProjectPath,
+      clientLibProjectPath: clientLibraryPath,
+      logger: logger,
+      routes: routes,
+    );
+
+    final serverGenerator = ServerLibGenerator(
+      serverProjectPath: serverProjectPath,
+      logger: logger,
+      routes: routes,
+    );
+
+    await clientGenerator.generate();
+    await serverGenerator.generate();
+
+    await clientGenerator.commit();
+    await serverGenerator.commit();
   }
 }

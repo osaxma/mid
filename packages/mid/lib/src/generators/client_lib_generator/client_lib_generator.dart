@@ -24,11 +24,13 @@ class ClientLibGenerator {
 
   late final String _dataClasses;
   final _clientSources = <_ClientSource>[];
+  final List<ClassInfo>? routes;
 
   ClientLibGenerator({
     required this.serverProjectPath,
     required this.logger,
     required this.clientLibProjectPath,
+    this.routes,
   });
 
   /// Generates the client library
@@ -37,7 +39,7 @@ class ClientLibGenerator {
   Future<void> generate() async {
     final endpointsPath = getEndpointsPath(serverProjectPath);
 
-    final routes = await parseRoutes(endpointsPath, logger);
+    final routes = this.routes ?? await parseRoutes(endpointsPath, logger);
 
     for (final route in routes) {
       final generator = ClientEndPointGenerator(route);
