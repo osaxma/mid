@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
+import 'package:mid/src/common/types_collector.dart';
 import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/common/models.dart';
 import 'package:mid/src/generators/client_lib_generator/_source_generator.dart';

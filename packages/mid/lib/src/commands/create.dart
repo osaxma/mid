@@ -95,7 +95,7 @@ class CreateCommand extends MIDCommand {
     clearDirContent(p.join(path, 'bin'));
     clearDirContent(p.join(path, 'lib'));
     clearDirContent(p.join(path, 'test'));
-    await addPubDeps(path, ['shelf', 'shelf_router', 'mid', 'mid_server']);
+    await addPubDeps(path, ['shelf', 'shelf_router', 'mid', 'mid_server', 'collection']);
 
     // create server default files
     createFileSync(p.join(path, 'bin', 'server.dart'), contents: getServerDotDartContent(projectName));

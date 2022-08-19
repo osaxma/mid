@@ -28,17 +28,31 @@ class ClientClassesSerializer {
     buff.writeln("import '$_collectionImportUri';");
 
     for (final t in types) {
-      final paras =
-          getGenerativeUnnamedConstructorParameters(t).where((element) => !elementHasAnnotation(element, 'serverOnly'));
-      final name = t.getDisplayString(withNullability: false);
-      final clazz = _DataClassGenerator(paras.toList(), name);
-      buff.writeln(clazz.toSource());
+      if (isEnum(t)) {
+        final source = copyEnum(t);
+        buff.writeln(source);
+      } else {
+        final paras = getGenerativeUnnamedConstructorParameters(t, skipServerOnly: true);
+        final name = t.getDisplayString(withNullability: false);
+        final clazz = _DataClassGenerator(paras.toList(), name);
+        buff.writeln(clazz.toSource());
+      }
     }
 
     final formatter = DartFormatter(pageWidth: 120);
 
     return formatter.format(buff.toString());
   }
+}
+
+String copyEnum(InterfaceType type) {
+  final node = getAstNodeFromElement(type.element2);
+
+  if (node == null) {
+    throw Exception('Failed to get the AST node of the enum');
+  }
+
+  return node.toSource();
 }
 
 class _DataClassGenerator {
@@ -94,6 +108,9 @@ class _DataClassGenerator {
               ..named = true
               ..toThis = true
               ..required = param.isRequired;
+            if (param.hasDefaultValue) {
+              b.defaultTo = Code(param.defaultValueCode!);
+            }
           },
         ),
       );

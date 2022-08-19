@@ -52,16 +52,21 @@ class ServerClassesSerializer {
 
   String generateCode() {
     final code = StringBuffer();
-    final importBuffer = StringBuffer();
+    final imports = <String>{
+      "import 'package:collection/collection.dart';"
+    };
 
     for (final t in types) {
+      if (isEnum(t)) {
+        continue;
+      }
       final toMap = _generateToMap(t);
       final fromMap = _generateFromMap(t);
       code.writeln(_classWrapper(t, toMap + '\n' + fromMap));
-      importBuffer.writeln("import '${getTypePackageURI(t)}';");
+      imports.add("import '${getTypePackageURI(t)}';");
     }
 
-    final source = importBuffer.toString() + code.toString();
+    final source = imports.join('\n').toString() + code.toString();
 
     return DartFormatter(pageWidth: 120).format(source);
   }

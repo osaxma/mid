@@ -71,6 +71,20 @@ String deserializeValue(DartType type, String value, {required bool useToMapFrom
     }
   }
 
+  if (isEnum(type)) {
+    final enumName = type.getDisplayString(withNullability: false);
+    if (isNullable) {
+      // NOTE: `firstWhereOrNull` requirs importing `collection` package!
+      return "$enumName.values.firstWhereOrNull((e) => e.name == $value)";
+    } else {
+      return "$enumName.values.firstWhere((e) => e.name == $value)";
+    }
+  }
+
+  if (isOtherDartType(type) || isAsyncType(type) || type.isDartCoreIterable) {
+    throw Exception('$typeName is not a serializable type');
+  }
+
   // Since this is an [InterfaceType] and it's not any of the core types, we'll assume it's a serializable type
   if (useToMapFromMap) {
     final className = type.getDisplayString(withNullability: false);
@@ -172,6 +186,19 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
     }
   }
 
+  if (isEnum(type)) {
+    if (isNullable) {
+      return "$value?.name";
+    } else {
+      return "$value.name";
+    }
+  }
+
+  if (isOtherDartType(type) || isAsyncType(type) || type.isDartCoreIterable) {
+    final typeName = type.getDisplayString(withNullability: true);
+    throw Exception('$typeName is not a serializable type');
+  }
+
   // Since this is an [InterfaceType] and it's not any of the core types, we'll assume it's a serializable type
   if (useToMapFromMap) {
     if (isNullable) {
@@ -181,7 +208,7 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
     }
   } else {
     if (isNullable) {
-      return '$value == null ? null : ${getSerializerName(type)}.toMap($value)';
+      return '$value == null ? null : ${getSerializerName(type)}.toMap($value!)';
     } else {
       return '${getSerializerName(type)}.toMap($value)';
     }
@@ -199,10 +226,16 @@ String getSerializerName(InterfaceType type) {
   return '${type.getDisplayString(withNullability: false)}Serializer';
 }
 
-List<ParameterElement> getGenerativeUnnamedConstructorParameters(InterfaceType type) {
+/// Set [skipServerOnly] to true so any parameters with [serverOnly] annotation will be ignored
+List<ParameterElement> getGenerativeUnnamedConstructorParameters(InterfaceType type, {bool skipServerOnly = false}) {
   // TODO: handle better -- we are looking for the unnamed generative constructor here
   try {
-    return type.element2.constructors.firstWhere((c) => c.isGenerative).parameters;
+    final paras = type.element2.constructors.firstWhere((c) => c.isGenerative).parameters;
+    if (skipServerOnly) {
+      return paras;
+    } else {
+      return paras.where((element) => !elementHasAnnotation(element, 'serverOnly')).toList();
+    }
   } catch (e) {
     final typeName = type.getDisplayString(withNullability: true);
     throw Exception('$typeName does not have a generative unnamed constructor');

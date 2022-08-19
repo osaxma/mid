@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
 import 'package:mid/src/common/models.dart';
+import 'package:mid/src/common/types_collector.dart';
 import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/server_lib_generator/serializer_server.dart';
 import 'package:path/path.dart' as p;

@@ -1,4 +1,4 @@
-List<Object> endpoints() {
+List<Object> getEndPoints() {
   return [
     EndPoint(),
   ];
