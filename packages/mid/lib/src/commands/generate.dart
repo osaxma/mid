@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:mid/src/common/io_utils.dart';
 import 'package:mid/src/generators/client_lib_generator/client_lib_generator.dart';

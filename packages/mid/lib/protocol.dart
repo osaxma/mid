@@ -79,6 +79,11 @@ enum MessageType {
   connectionInit,
 
   /// Direction: Client --> Server
+  /// 
+  /// stop listening to stream
+  stop,
+
+  /// Direction: Client --> Server
   updateHeaders,
 
   /// Direction: Server --> Client
