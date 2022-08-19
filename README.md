@@ -44,6 +44,23 @@ In short:
 
 See the [Quick Start Tutorial](https://github.com/osaxma/mid/tree/main/tutorials/quick_start/README.md) to learn how to use `mid` in no time. 
 
+## Getting Started
+
+### Installation:
+
+```sh
+dart pub global activate mid
+```
+
+### Tutorials:
+
+- [Quick Start Tutorial](https://github.com/osaxma/mid/tree/main/tutorials/quick_start/README.md) 
+
+
+### Examples:
+
+- Examples will be added **SOON** to the [examples](https://github.com/osaxma/mid/tree/main/examples) folder. 
+
 
 ## Motivation
 
@@ -63,24 +80,6 @@ To support streaming data from the server to the client, [shelf_web_socket] is u
 [shelf_router]: https://pub.dev/packages/shelf_router
 [shelf_web_socket]: https://pub.dev/packages/shelf_web_socket
 [web_socket_channel]: https://pub.dev/packages/web_socket_channel
-
-## Getting Started
-
-### Installation:
-
-```sh
-dart pub global activate mid
-```
-
-### Tutorials:
-
-- [Quick Start Tutorial](https://github.com/osaxma/mid/tree/main/tutorials/quick_start/README.md) 
-
-
-### Examples:
-
-- Examples will be added **SOON** to the [examples](https://github.com/osaxma/mid/tree/main/examples) folder. 
-
 
 ## Additional Notes 
 
