@@ -138,6 +138,9 @@ class MidWebSocketClient {
   }
 }
 
+// TODO: figure out the best way to generate the server
+// - Should we use http.post directly
+//   - or create a single client? (if so, see: https://github.com/dart-lang/http/issues/422)
 class MidHttpClient {
   final Uri uri;
 

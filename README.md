@@ -1,17 +1,14 @@
 # mid 
 
-> ⚠️ warning: The project is experimental! ⚠️
+> ⚠️ warning: the project is still experimental! 
 
-`mid` is a tool to build an end-to-end typesafe API. The tool generates an API server and a client library as well as handling requests and managing the communication between the server and the client. 
+`mid` is a tool to build an end-to-end typesafe API in dart. The tool generates an API server and a client library in addition to handling requests and managing communication between the server and the client. 
 
-`mid` simply works by converting the public methods for a given list of classes into endpoints (i.e. `/class_name/method_name`). The return type and the parameters of each method are parsed to generate the requests handlers, the serialization/deserialization code and the client library to be directly used by the frontend -- as simple as calling functions.
+In short:
 
-
-For example:
-
-- you write this on the server side:
+- You write this on the server side:
     ```dart
-    class App {
+    class App extends EndPoints {
         final Database database;
 
         App(this.database);
@@ -20,19 +17,111 @@ For example:
             final user = await database.getUserById(uid);
             return user;
         }
+
+        Stream<List<Post>> timeline(int uid) {
+            return database.timelineStream(uid);
+        }
+
+        Future<void> updateProfile(UserProfile profile) {
+            await database.updateProfile(profile);
+        }
     }
     ```
 
-- you will be able to do this on the client side:
+- And `mid` enables you to do this on the client side:
 
     ```dart
-    final client = AppClient(url: 'localhost:8080');
+    final client = TheClient(url: 'localhost:8080');
 
     final UserData data = await client.getUserData(42); 
+
+    final  Stream<List<Post>> posts = await client.timeline(uid); 
+
+    final newProfile = profile.copyWith(photoURL: photoURL);
+    await client.updateProfile(newProfile); 
     ```
 
 
-In order for `mid` to generate the server side and client side code, the endpoints must be provided in the following manner:
+See the [Quick Start Tutorial](https://github.com/osaxma/mid/tree/main/tutorials/quick_start/README.md) to learn how to use `mid` in no time. 
+
+
+## Motivation
+
+To have the ability to call the backend code from the frontend in a type safe manner and as simple as calling a function in pure Dart. 
+
+> Note: `mid` is not intended to generate a REST API, but to generate an API server that can be seamlessly used by a Dart or Flutter frontend with a minimal effort. 
+
+
+## How does it work
+`mid` simply works by converting the public methods for a given list of classes into endpoints on a [shelf][] server by generating a [shelf_router][] and its handlers. In addition, the return type and the parameters types of each method are parsed and analyzed to generate the serialization/deserialization code for each type. 
+
+The client library is generated in a similar manner where each class, method, return type and parameter type is regenerated so that each endpoint becomes a simple function. 
+
+To support streaming data from the server to the client, [shelf_web_socket] is used on the server while [web_socket_channel][] on the client. 
+
+[shelf]: https://pub.dev/packages/shelf
+[shelf_router]: https://pub.dev/packages/shelf_router
+[shelf_web_socket]: https://pub.dev/packages/shelf_web_socket
+[web_socket_channel]: https://pub.dev/packages/web_socket_channel
+
+## Getting Started
+
+### Installation:
+
+```sh
+dart pub global activate mid
+```
+
+### Tutorials:
+
+- [Quick Start Tutorial](https://github.com/osaxma/mid/tree/main/tutorials/quick_start/README.md) 
+
+
+### Examples:
+
+- Examples will be added **SOON** to the [examples](https://github.com/osaxma/mid/tree/main/examples) folder. 
+
+
+## Additional Notes 
+
+### Supported Classes
+Any class of an `EndPoints`\* type. `mid` will only expose the public methods of the given class and it'll not expose any of its superclass(es).
+
+\* `EndPoints` is just a type -- for now there's nothing to implement. a class just needs to implement, extend or mixin `EndPoints` so it can be converted. 
+
+### Supported Return Types and Method Parameters Types 
+
+- All core Types (`int`, `double`, `num`, `bool`, `String`, `DateTime`, `Duration`, etc.)
+- User defined Classes\*
+- Collections (i.e., `Map`, `Set`, `List`) of any of the above.
+- `Future` or `Stream` for any of the above. 
+
+\* `mid` is able to serialize user defined classes and their members recursively as long as they have an unnamed generative constructor with formal parameters only (i.e. all parameters using `this`). An example class would be:
+
+```dart
+class UserData {
+  final int id;
+  final String name;
+  final bool isAdmin;
+  // `MetaData` must follow the same rules including its members.
+  final MetaData? metadata;
+
+  // this is what `mid` is looking for (i.e. no assignment in initializer list or constructor body):
+  UserData({
+    required this.id,
+    required this.name,
+    this.metadata,
+    this.isAdmin = false,
+  });
+
+  /* you can define your own methods, factory constructors, and whatnot */
+}
+```
+
+
+
+<!-- 
+
 
 
 ```dart
@@ -68,89 +157,7 @@ Future<List<Object>> endpoints(Logger logger) async {
 ```
 
 
-For more details, see [Getting Started](#getting-started) or [Examples](#examples) and see the [Caveats](#caveats) below.
-
-
-## Motivation
-
-To have the ability to call the backend code from the frontend in a type safe manner and as simple as calling a function in pure Dart. 
-
-`mid` is not intended to generate a REST API, but to generate an API server that can be seamlessly used by a Dart or Flutter frontend with a minimal effort. 
-
-## Getting Started
-
-0. **Install `mid`:**
-      ```sh
-      dart pub global activate mid
-      ```
-
-1. **Create a `mid`  project:**
-      ```sh
-      mid create <project_name>
-      ```
-      This will create two dart projects in the following structure:
-      ```
-      <project_name>
-            |- <project_name>_client
-            |- <project_name>_server
-      ```
-
-  2. **open `<project_name>/<project_name>_server/mid/endpoints.dart` and add your endpoints there.**
-  
-      You can create the endpoints classes inside the `lib` folder, and then import them to the `endpoints` file. 
-
-  3. **Generate endpoints:**
-
-      ```sh
-      mid generate endpoints 
-      ```
-
-      This will generate the server side code on top of [shelf](https://pub.dev/packages/shelf) server within `mid` folder. 
-
-  4. **Generate teh client code**
-
-      ```sh
-      mid generate client 
-      ```
-
-
-
-## Examples 
-
-Examples will be added soon to the [examples](/examples/) folder. 
-
-
-## Caveats 
-
-### Supported Classes
-Any class. `mid` will only expose the public methods of the given class and it'll not expose any of its superclass(es).
-
-### Supported Return Types and Method Parameters Types 
-
-- All core Types (`int`, `double`, `num`, `bool`, `String`, `DateTime`, `Duration`, etc.)
-- User defined Classes\*
-- Collections (i.e., `Map`, `Set`, `List`) of any of the above.
-- `Future` or `Stream` _(not supported yet)_ for any of the above. 
-
-\* `mid` is able to serialize user defined classes and their members recursively as long as they have an unnamed generative constructor with formal parameters only (i.e. all parameters using `this`). An example class would be:
-
-```dart
-class UserData {
-    final int id;
-    final String name;
-    // `MetaData` will be serialized even if it doesn't appear in any method return type or parameters types
-    final MetaData metadata; 
-    
-    // Must have unnamed generative constructor with formal parameters (i.e. using `this`). 
-    UserData({this.id, this.name, this.metadata});  
-
-    /* 
-        you can define your own methods, factory constructors, and whatnot 
-    */
-}
-
-```
-
+ -->
 
 
 
@@ -218,3 +225,77 @@ To Generate coverage:
 - then open it:
     open coverage/html/index.html 
 -->
+
+
+
+<!-- 
+1. **Create a `mid`  project:**
+      ```sh
+      mid create <project_name>
+      ```
+      This will create two dart projects in the following structure:
+      ```
+      <project_name>
+            |- <project_name>_client
+            |- <project_name>_server
+      ```
+
+  2. **open `<project_name>_server/mid/endpoints.dart` and add your endpoints there.**
+
+        for example:
+
+        ```dart
+        Future<List<EndPoints>> getEndPoints(Logger logger) async {
+            final database = Database(url: String.fromEnvironment('DATABASE_URL'));
+            final storageURL = String.fromEnvironment('STORAGE_KEY');
+            final apiKey = String.fromEnvironment('API_KEY');
+
+            final authAPI =  Auth(database: database, logger: logger);
+
+            final storageAPI = Storage(apiKey: apiKey, url: storageURL, database: database, logger: logger);
+
+            final applicationAPI = App(apiKey: apiKey, database: database, logger: logger);
+
+            return [
+                authAPI,
+                storageAPI,
+                applicationAPI,
+            ];
+        }
+        ```
+        
+  
+      You can create the endpoints classes inside the `lib` folder, and then import them to the `endpoints` file. 
+
+  3. **Generate server and client libraries:**
+
+      ```sh
+      mid generate all 
+      ```
+
+  4. **run the server from within `<project_name>_server` directory**
+
+      ```sh
+      dart run bin/server.dart
+      -> Server listening on port 8000
+      ```
+  5. **import the client project into your frontend and you're set to go**
+    
+        a. Inside the root of the fronted project, run the following:
+
+        ```sh
+        flutter pub add <project_name>_client --path "/path/to/<project_name>_client"
+        ```
+        b. Inside the file where you'd like to use the client, import the package:
+        ```dart
+        import 'package:<project_name>_client/<project_name>_client.dart';
+        ```
+        c. To get the client, it'll be:
+        ```dart
+        // replace `ProjectName` with the actual project name
+        // replace `localhost:8080` with the actual url and port if different. 
+        final client = ProjectNameClient(url: 'localhost:8080'); 
+        ```
+
+
+ -->
