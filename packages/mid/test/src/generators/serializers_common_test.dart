@@ -298,7 +298,7 @@ void main() {
 
         final valueAssignment = 'value';
         final serialiedValue = serializeValue(type, valueAssignment, useToMapFromMap: false).replaceAll(' ', '');
-        var expectedValue = 'value.map((x) => DataSerializer.toMap(x))'.replaceAll(' ', '');
+        var expectedValue = 'value.map((x) => DataSerializer.toMap(x)).toList()'.replaceAll(' ', '');
         expect(serialiedValue, expectedValue);
 
         final deserializedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false).replaceAll(' ', '');

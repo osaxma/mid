@@ -129,21 +129,26 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
     String statement;
 
     if (isBasicType(t)) {
-      // no mapping required for basic types
-      statement = value;
+      if (type.isDartCoreSet) {
+        // set isn't serializable so we need to convert it to list
+        statement = isNullable ? '$value?.toList()' : '$value.toList()';
+      } else {
+        // no mapping required for basic types
+        statement = value;
+      }
     } else {
       final v = serializeValue(t, 'x', useToMapFromMap: useToMapFromMap);
+      // mapping generates an iterrable so we need to convert it into a list.
       if (isNullable) {
-        statement = '$value?.map((x) => $v)';
+        statement = '$value?.map((x) => $v).toList()';
       } else {
-        statement = '$value.map((x) => $v)';
+        statement = '$value.map((x) => $v).toList()';
       }
     }
 
-    if (type.isDartCoreSet) {
-      // set isn't serializable so we need to convert it to list
-      statement = isNullable && !statement.contains('?') ? '$statement?.toList()' : '$statement.toList()';
-    }
+    // if (type.isDartCoreSet) {
+    //   statement = isNullable && !statement.contains('?') ? '$statement?.toList()' : '$statement.toList()';
+    // }
 
     return statement;
   }
