@@ -91,7 +91,7 @@ String _generateClientDotDart(List<_ClientSource> sources, String projectName) {
     final routeClassName = src.classInfo.classNameForClient;
     fields.writeln('late final $fieldName = $routeClassName($args);');
   }
-  final className = '${projectName.capitalizeFirst()}Client';
+  final className = '${projectName.toPascalCaseFromSnakeCase()}Client';
 
   return '''
 import 'package:mid_client/mid_client.dart';
