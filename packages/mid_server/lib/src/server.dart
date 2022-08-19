@@ -1,21 +1,19 @@
-import 'dart:io';
-
+import 'package:mid_server/mid_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
-import 'package:shelf_router/shelf_router.dart';
 
-void midServer(Router router, List<Middleware> middlewares) async {
-  // Use any available host or container IP (usually `0.0.0.0`).
-  final ip = InternetAddress.anyIPv4;
+import 'router.dart';
+
+void midServer(ServerConfig config) async {
+  final router = generateRouter(config.futureOrHandlers, config.streamHandlers);
+
   Pipeline pipeline = Pipeline();
-  for (final middleware in middlewares) {
+  for (final middleware in config.middlewares) {
     pipeline = pipeline.addMiddleware(middleware);
   }
 
   final handler = pipeline.addHandler(router);
 
-  // For running in containers, we respect the PORT environment variable.
-  final port = int.parse(Platform.environment['PORT'] ?? '8000');
-  final server = await serve(handler, ip, port);
+  final server = await serve(handler, config.ip, config.port);
   print('Server listening on port ${server.port}');
 }
