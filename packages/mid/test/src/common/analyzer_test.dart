@@ -1,5 +1,5 @@
 
-import 'package:mid/src/common/utils.dart';
+import 'package:mid/src/common/types_collector.dart';
 import 'package:mid/src/common/visitors.dart';
 import 'package:test/test.dart';
 
@@ -13,11 +13,10 @@ void main() async {
   group('functions tests', () {
     test('find all non-Dart types', () {
       // there is only one method
-      final method = collector.routes.first.methodInfos.first.methodElement;
-      final types = findAllNonDartTypesFromMethodElement(method);
+      final types = getAllNonDartTypes(collector.routes);
       final typesNames = types.map((e) => e.getDisplayString(withNullability: false));
 
-      expect({'ReturnData', 'Data', 'InnerData', 'DeepData'}, equals(typesNames));
+      expect(typesNames, equals({'ReturnData', 'Data', 'InnerData', 'DeepData'}));
     });
   });
 }
