@@ -14,7 +14,7 @@ class RoutesCollectorFromEndpointsFunction extends SimpleAstVisitor {
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.name2.value() == 'endpoints') {
+    if (node.name2.value() == 'getEndPoints') {
       node.visitChildren(_VisitReturnStatement(filePath: filePath, routes: routes));
     }
     return super.visitFunctionDeclaration(node);
