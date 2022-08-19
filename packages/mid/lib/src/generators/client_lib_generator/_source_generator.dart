@@ -1,5 +1,8 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:dart_style/dart_style.dart';
+// TODO: remove this from dependencies after removing all ListBuilder instances
+//      it turs out we can use `b.addAll()` or `b.add()` directly
+//      see example at `code_builder` readme.
 import 'package:built_collection/built_collection.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:mid/src/common/models.dart';
@@ -14,53 +17,54 @@ class ClientEndPointGenerator {
     this.classInfo,
   );
 
-  final imports = '''
-import 'dart:convert';
-
-import '../models.dart';
-import 'package:http/http.dart' as http;
-''';
-
   /// returns the source code for the generated client class
   String generate() {
     final methods = <Method>[];
     for (var m in classInfo.methodInfos) {
-      methods.add(_generateMethod(m));
+      if (m.returnType.isDartAsyncStream) {
+        methods.add(_generateStreamMethod(m));
+      } else {
+        methods.add(_generateFutureMethod(m));
+      }
     }
-    methods.add(_executeMethod());
 
     final clazz = ClassBuilder()
       ..name = classInfo.classNameForClient
+      ..extend = refer('BaseClientRoute')
       ..fields = _generateClassFields()
       ..constructors = _generateConstructors()
       ..methods = ListBuilder(methods);
 
-    final source = clazz.build().accept(emitter).toString();
+    final lib = Library((b) {
+      b.body.addAll([
+        Directive.import('package:mid_client/mid_client.dart'),
+        Directive.import('package:http/http.dart', as: 'http'),
+        Directive.import('../models.dart'),
+        clazz.build(),
+      ]);
+    });
 
-    return DartFormatter(pageWidth: 120).format(imports + source);
+    final source = lib.accept(emitter).toString();
+
+    return DartFormatter(pageWidth: 120).format(source);
   }
 
   ListBuilder<Field> _generateClassFields() {
     final fields = <Field>[
       Field(
         (b) {
-          b.name = 'url';
+          b.name = 'httpExecute';
+          b.annotations = overrideAnnotation();
           b.modifier = FieldModifier.final$;
-          b.docs = ListBuilder(['/// The server URL']);
-          b.type = refer('String');
+          b.type = refer('Execute<Future<dynamic>>');
         },
       ),
-      // TODO@(osaxma): change to interceptors instead
       Field(
         (b) {
-          b.name = 'headersProvider';
-          b.docs = ListBuilder([
-            '/// A function that should provide an up-to-date headers for each request',
-            '///',
-            '/// e.g. Bearer Authentication (token) ',
-          ]);
+          b.name = 'streamExecute';
+          b.annotations = overrideAnnotation();
           b.modifier = FieldModifier.final$;
-          b.type = refer('Map<String, String> Function()');
+          b.type = refer('Execute<Stream<dynamic>>');
         },
       ),
     ];
@@ -75,7 +79,7 @@ import 'package:http/http.dart' as http;
           [
             Parameter(
               (b) {
-                b.name = 'url';
+                b.name = 'httpExecute';
                 b.named = true;
                 b.required = true;
                 b.toThis = true;
@@ -83,7 +87,7 @@ import 'package:http/http.dart' as http;
             ),
             Parameter(
               (b) {
-                b.name = 'headersProvider';
+                b.name = 'streamExecute';
                 b.named = true;
                 b.required = true;
                 b.toThis = true;
@@ -95,12 +99,27 @@ import 'package:http/http.dart' as http;
     ]);
   }
 
-  Method _generateMethod(MethodInfo methodInfo) {
+  Method _generateFutureMethod(MethodInfo methodInfo) {
     final returnType = _ensureReturnTypeHasFuture(methodInfo.returnType);
     final m = MethodBuilder();
     m
       ..name = methodInfo.methodName
       ..modifier = MethodModifier.async
+      // required here means positionl ¯\_(ツ)_/¯
+      // see: https://github.com/dart-lang/code_builder/issues/355
+      ..requiredParameters = _generatePositionalParameters(methodInfo)
+      ..optionalParameters = _generateNamedParameters(methodInfo)
+      ..body = _generateMethodBody(methodInfo)
+      ..returns = Reference(returnType);
+
+    return m.build();
+  }
+
+  Method _generateStreamMethod(MethodInfo methodInfo) {
+    final returnType = methodInfo.returnType.getDisplayString(withNullability: true);
+    final m = MethodBuilder();
+    m
+      ..name = methodInfo.methodName
       // required here means positionl ¯\_(ツ)_/¯
       // see: https://github.com/dart-lang/code_builder/issues/355
       ..requiredParameters = _generatePositionalParameters(methodInfo)
@@ -156,7 +175,7 @@ import 'package:http/http.dart' as http;
     final argsToKeyValue = _convertMethodArgsToKeyValueString(method);
     var returnType = method.returnType;
 
-    if (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr || returnType.isDartAsyncStream) {
+    if (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr) {
       if (returnType is InterfaceType && returnType.typeArguments.isNotEmpty) {
         returnType = returnType.typeArguments.first;
       }
@@ -165,11 +184,16 @@ import 'package:http/http.dart' as http;
     late final String returnStatement;
     late final String dataAssignment;
     if (returnType.isVoid) {
+      dataAssignment = 'await httpExecute(\$args, \$route);';
       returnStatement = '';
-      dataAssignment = '';
+    } else if (returnType.isDartAsyncStream) {
+      dataAssignment = 'final \$data = streamExecute(\$args, \$route);';
+      final innerType = (method.returnType as InterfaceType).typeArguments.first;
+      final deserializedValue = deserializeValue(innerType, 'event', useToMapFromMap: true);
+      returnStatement = '\$data.map((event) => $deserializedValue)';
     } else {
-      returnStatement = deserializeValue(returnType as InterfaceType, '\$data', useToMapFromMap: true);
-      dataAssignment = 'final \$data = await _execute(\$args, \$route);';
+      dataAssignment = 'final \$data = await httpExecute(\$args, \$route);';
+      returnStatement = deserializeValue(returnType, '\$data', useToMapFromMap: true);
     }
 
     // note the `$` prefix was added at the end of each variable to avoid naming conflicts with method arguments
@@ -200,39 +224,7 @@ import 'package:http/http.dart' as http;
     return '${args.reduce((v, e) => '$v,\n$e')},';
   }
 
-  Method _executeMethod() {
-    return Method((b) {
-      b.name = '_execute';
-      b.returns = refer('Future<dynamic>');
-      b.modifier = MethodModifier.async;
-      b.requiredParameters = ListBuilder([
-        Parameter((b) {
-          b.type = refer('Map<String, dynamic>');
-          b.name = 'args';
-        }),
-        Parameter((b) {
-          b.type = refer('String');
-          b.name = 'route';
-        }),
-      ]);
-      b.body = Code('''
-  final body = json.encode(args);
-  final headers = headersProvider();
-  headers['content-type'] = 'application/json';
-
-  final res = await http.post(
-    Uri.http(url, route),
-    headers: headers,
-    body: body,
-  );
-
-  if (res.statusCode >= 400) {
-    throw Exception(res.body);
-  }
-
-  final data = json.decode(res.body);
-  return data;
-''');
-    });
+  ListBuilder<Expression> overrideAnnotation() {
+    return ListBuilder(const [CodeExpression(Code('override'))]);
   }
 }

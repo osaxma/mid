@@ -7,9 +7,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:mid/protocol.dart';
 
 class BaseClient {
-  /// The server URL
-  final String url;
-
   /// A function that should provide an up-to-date headers for each request
   ///
   /// e.g. Bearer Authentication (token)
@@ -18,30 +15,72 @@ class BaseClient {
   //       http and websocket as well as hide the `http` stuff under the hood.
   final Map<String, String> Function() headersProvider;
 
-  BaseClient({required this.url, required this.headersProvider});
+  /// The Websocket URI from the given [url]
+  late final Uri wsURI;
 
-  Future<dynamic> executeHttp(Map<String, dynamic> args, String route) async {
-    final body = json.encode(args);
-    final headers = headersProvider();
-    headers['content-type'] = 'application/json';
+  /// The HTTP URI parsed from the given [url]
+  late final Uri httpURI;
 
-    final res = await http.post(
-      Uri.http(url, route),
-      headers: headers,
-      body: body,
-    );
+  late final MidHttpClient _httpClient;
 
-    if (res.statusCode >= 400) {
-      throw Exception(res.body);
+  late final MidWebSocketClient _wsClient;
+
+  BaseClient({required String url, required this.headersProvider}) {
+    if (!url.contains('http')) {
+      url = 'http://$url';
+    }
+    try {
+      httpURI = Uri.parse(url);
+    } catch (e) {
+      throw Exception('Uri.parse Failed to parse: $url due to the following error: $e');
     }
 
-    final data = json.decode(res.body);
-    return data;
+    if (httpURI.scheme == 'https') {
+      wsURI = httpURI.replace(scheme: 'wss', path: 'ws');
+    } else {
+      wsURI = httpURI.replace(scheme: 'ws', path: 'ws');
+    }
+
+    _wsClient = MidWebSocketClient(uri: wsURI);
+    _httpClient = MidHttpClient(httpURI, headersProvider);
+  }
+
+  Future<dynamic> executeHttp(Map<String, dynamic> args, String route) => _httpClient.executeHttp(args, route);
+
+  Stream<dynamic> executeStream(Map<String, dynamic> args, String route) => _wsClient.executeStream(args, route);
+}
+
+class MidWebSocketClient {
+  final Uri uri;
+  MidWebSocketClient({
+    required this.uri,
+  });
+  // TODO: this should be initted in a method for handling errors and retrying
+  WebSocketChannel? _conn;
+
+  void connect() {
+    _conn = WebSocketChannel.connect(uri);
+  }
+
+  // TODO: should this be <Message> instead and handle [MessageType.error] here?
+  Stream<dynamic> get stream {
+    if (_conn == null) {
+      throw Exception('Websocket connection was not initialized');
+    }
+    return _conn!.stream;
+  }
+
+  Sink<dynamic> get sink {
+    if (_conn == null) {
+      throw Exception('Websocket connection was not initialized');
+    }
+    return _conn!.sink;
   }
 
   Stream<dynamic> executeStream(Map<String, dynamic> args, String route) {
-    final ws = WebSocketChannel.connect(Uri.parse('ws://localhost:8000/ws'));
-
+    if (_conn == null) {
+      connect();
+    }
     final id = 'random_string';
     final initMsg = Message(
       id: 'random_string',
@@ -63,11 +102,11 @@ class BaseClient {
     void dispose() {
       sub?.cancel();
       ctrl.close();
-      ws.sink.add(stopMsg);
+      sink.add(stopMsg);
     }
 
     ctrl.onListen = () {
-      sub = ws.stream
+      sub = stream
           .map((event) => Message.fromJson(event))
           .where((event) => event.id == id)
           .where((event) {
@@ -77,16 +116,18 @@ class BaseClient {
             }
             return true;
           })
-          .map((event) => event.payload)
+          // TODO: make sure the payload is a string first
+          //       all streams data are encoded as json string in the server handlers.
+          .map((event) => event.payload as String)
           .listen((event) {
-            ctrl.sink.add(event);
+            ctrl.sink.add(json.decode(event));
           }, onDone: () {
             dispose();
           }, onError: (err) {
             ctrl.addError(err);
             dispose();
           });
-      ws.sink.add(initMsg);
+      sink.add(initMsg);
     };
 
     ctrl.onCancel = () {
@@ -97,23 +138,35 @@ class BaseClient {
   }
 }
 
-class MidWebSocketClient {
-  final String url;
-  MidWebSocketClient({
-    required this.url,
-  });
-  // TODO: this should be initted in a method for handling errors and retrying
-  late final _conn = WebSocketChannel.connect(Uri.parse(url));
-
-  // TODO: should this be <Message> instead and handle [MessageType.error] here?
-  Stream<dynamic> get stream => _conn.stream;
-  Sink<dynamic> get sink => _conn.sink;
-}
-
-
 class MidHttpClient {
-  final String url;
+  final Uri uri;
 
-  MidHttpClient(this.url);
+  /// A function that should provide an up-to-date headers for each request
+  ///
+  /// e.g. Bearer Authentication (token)
+  // TODO: this is a temp solution until we support either interceptors or a custom `ConnectionData`
+  //       speaking of which, a custom `ConnectionData` is preferable since it can be used with both
+  //       http and websocket as well as hide the `http` stuff under the hood.
+  final Map<String, String> Function() headersProvider;
+
+  MidHttpClient(this.uri, this.headersProvider);
+
+  Future<dynamic> executeHttp(Map<String, dynamic> args, String route) async {
+    final body = json.encode(args);
+    final headers = headersProvider();
+    headers['content-type'] = 'application/json';
+
+    final res = await http.post(
+      uri,
+      headers: headers,
+      body: body,
+    );
+
+    if (res.statusCode >= 400) {
+      throw Exception(res.body);
+    }
+
+    final data = json.decode(res.body);
+    return data;
+  }
 }
-
