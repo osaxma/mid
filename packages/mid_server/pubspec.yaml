@@ -1,6 +1,6 @@
 name: mid_server
 description: a package for supporting servers that are built using the mid package
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/osaxma/mid/
 
 environment:
@@ -11,7 +11,7 @@ dev_dependencies:
   test: ^1.16.0
   
 dependencies: 
-  mid: ^0.0.1+2
+  mid: ^0.0.2
   shelf: ^1.3.2
   shelf_router: ^1.1.3
   shelf_web_socket: ^1.0.2
