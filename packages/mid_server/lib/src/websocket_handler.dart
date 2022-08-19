@@ -30,6 +30,7 @@ class WebsocketHandler {
       webSocket.sink,
       _getHandler,
       request,
+      interceptors: [],
     );
     handler.listen();
   }
@@ -76,7 +77,6 @@ class _MessageHandler {
   }
 
   void onData(dynamic event) {
-    print('received event $event');
     try {
       var message = Message.fromJson(event);
       message = interceptClient(message);

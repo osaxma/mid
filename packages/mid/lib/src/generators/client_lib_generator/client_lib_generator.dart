@@ -5,7 +5,6 @@ import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/common/models.dart';
 import 'package:mid/src/generators/client_lib_generator/_source_generator.dart';
 import 'package:mid/src/generators/client_lib_generator/serializer_client.dart';
-import 'package:mid/src/templates/server_templates.dart';
 import 'package:path/path.dart' as p;
 import 'package:mid/src/common/extensions.dart';
 
@@ -85,7 +84,7 @@ String _generateClientDotDart(List<_ClientSource> sources, String projectName) {
   final fields = StringBuffer();
   for (final src in sources) {
     importStatements.writeln("import 'routes/${src.fileName}';");
-    final args = 'httpExecute: executeHttp, streamExecute: executeStream';
+    final args = 'executeHttp, executeStream';
     final fieldName = src.classInfo.className.toLowerCase();
     final routeClassName = src.classInfo.classNameForClient;
     fields.writeln('late final $fieldName = $routeClassName($args);');
