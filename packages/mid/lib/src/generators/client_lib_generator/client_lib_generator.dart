@@ -5,6 +5,7 @@ import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/common/models.dart';
 import 'package:mid/src/generators/client_lib_generator/_source_generator.dart';
 import 'package:mid/src/generators/client_lib_generator/serializer_client.dart';
+import 'package:mid/src/templates/server_templates.dart';
 import 'package:path/path.dart' as p;
 import 'package:mid/src/common/extensions.dart';
 
@@ -84,27 +85,23 @@ String _generateClientDotDart(List<_ClientSource> sources, String projectName) {
   final fields = StringBuffer();
   for (final src in sources) {
     importStatements.writeln("import 'routes/${src.fileName}';");
-    fields.writeln(
-        'late final ${src.classInfo.className.toLowerCase()} = ${src.classInfo.classNameForClient}(url: url, headersProvider: headersProvider);');
+    final args = 'httpExecute: executeHttp, streamExecute: executeStream';
+    final fieldName = src.classInfo.className.toLowerCase();
+    final routeClassName = src.classInfo.classNameForClient;
+    fields.writeln('late final $fieldName = $routeClassName($args);');
   }
   final className = '${projectName.capitalizeFirst()}Client';
 
   return '''
+import 'package:mid_client/mid_client.dart';
 ${importStatements.toString()}
 
-class $className {
-
-  /// The server URL
-  final String url;
-
-  /// A function that should provide an up-to-date headers for each request
-  ///
-  /// e.g. Bearer Authentication (token)
-  final Map<String, String> Function() headersProvider;
+class $className extends BaseClient {
 
   $fields
   
-  $className({required this.url, required this.headersProvider});
+  $className({required String url,  required Map<String, String> Function() headersProvider}) 
+    : super(url: url, headersProvider: headersProvider);
 }
 ''';
 }

@@ -5,7 +5,6 @@ import 'package:shelf_router/shelf_router.dart';
 Router generateRouter(List<FutureOrBaseHandler> futureOrHandlers, List<StreamBaseHandler> streamHandlers) {
   final router = Router();
   for (final handler in futureOrHandlers) {
-    print('adding ${handler.route} to route');
     router.add(handler.verb, handler.route, (Request request) => defaultHandler(request, handler));
   }
 

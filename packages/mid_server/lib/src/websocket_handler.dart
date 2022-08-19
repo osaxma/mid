@@ -133,7 +133,13 @@ class _MessageHandler {
 
     _handlerSub = stream.listen(
       (event) {
-        sink.add(Message(type: MessageType.data, payload: event).toJson());
+        sink.add(
+          Message(
+            id: message.id,
+            type: MessageType.data,
+            payload: event,
+          ).toJson(),
+        );
       },
       onDone: onDone,
       onError: onError,
