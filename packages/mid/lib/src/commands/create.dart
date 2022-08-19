@@ -95,14 +95,13 @@ class CreateCommand extends MIDCommand {
     clearDirContent(p.join(path, 'bin'));
     clearDirContent(p.join(path, 'lib'));
     clearDirContent(p.join(path, 'test'));
-    await addPubDeps(path, ['shelf', 'shelf_router', 'mid']);
+    await addPubDeps(path, ['shelf', 'shelf_router', 'mid', 'mid_server']);
 
     // create server default files
     createFileSync(p.join(path, 'bin', 'server.dart'), contents: getServerDotDartContent(projectName));
     createFileSync(p.join(path, 'lib/mid/', 'endpoints.dart'), contents: endpointsDotDart, recursive: true);
     createFileSync(p.join(path, 'lib/mid/', 'middlewares.dart'), contents: middleWaresDotDart);
-    createFileSync(p.join(path, 'lib/mid/generated/', 'server.dart'), contents: serverDotDart, recursive: true);
-    createFileSync(p.join(path, 'lib/mid/generated/', 'handlers.dart'), contents: handlersDotDart);
+    createFileSync(p.join(path, 'lib/mid/generated/', 'handlers.dart'), contents: handlersDotDart, recursive: true);
     createFileSync(p.join(path, 'lib/mid/generated/', 'serializers.dart'), contents: '');
     // TODO: add Dockerfile & .dockerignore (or use --template=server-shelf when creating dart project)
   }
@@ -114,6 +113,6 @@ class CreateCommand extends MIDCommand {
     clearDirContent(p.join(path, 'lib'));
     clearDirContent(p.join(path, 'test'));
 
-    await addPubDeps(path, ['http', 'collection']);
+    await addPubDeps(path, ['http', 'collection', 'mid', 'mid_client']);
   }
 }

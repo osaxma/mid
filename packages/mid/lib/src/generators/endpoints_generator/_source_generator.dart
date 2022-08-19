@@ -20,10 +20,11 @@ class EndPointsSourceGenerator {
   String generate() {
     _imports.clear();
     _source.clear();
+    _imports.add(ignoreUnusedImports);
     _imports.add(generatedCodeMessage);
 
     _addDefaultImports();
-    _addDefaultTemplates();
+
 
     int i = 0;
     for (final route in routes) {
@@ -45,16 +46,11 @@ class EndPointsSourceGenerator {
   void _addDefaultImports() {
     _imports.add(asyncImport);
     _imports.add(dartConvertImport);
+    _imports.add(midPkgImport);
     _imports.add(shelfImport);
-    _imports.add(shelfRouterImport);
+    _imports.add(midServerPkgImport);
     _imports.add(endpointsImport);
     _imports.add(serializersImport);
-  }
-
-  void _addDefaultTemplates() {
-    _source.writeln(generateRouterMethod);
-    _source.writeln(futureOrBaseHandler);
-    _source.writeln(streamBaseHandler);
   }
 
   void _addImport(String packageURI) {
@@ -254,7 +250,7 @@ class $handlerClassName extends StreamBaseHandler {
     final String handlers = _futureOrHandlersInstances.join(',');
 
     return '''
-List<FutureOrBaseHandler> getHandlers(List<Object> endpoints) {
+List<FutureOrBaseHandler> getFutureOrHandlers(List<EndPoints> endpoints) {
   final handlers = <FutureOrBaseHandler>[
     $handlers
   ];
@@ -268,7 +264,7 @@ List<FutureOrBaseHandler> getHandlers(List<Object> endpoints) {
     final String handlers = _streamHandlersInstances.join(',');
 
     return '''
-List<StreamBaseHandler> getStreamHandlers(List<Object> endpoints) {
+List<StreamBaseHandler> getStreamHandlers(List<EndPoints> endpoints) {
   final handlers = <StreamBaseHandler>[
     $handlers
   ];

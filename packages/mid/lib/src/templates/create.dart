@@ -6,51 +6,71 @@
 // ''';
 
 String getServerDotDartContent(String projectName) => '''
-import 'package:${projectName}_server/mid/generated/server.dart';
-
-void main(List<String> args) => server(args);
-''';
-
-/// `project/mid/server.dart` file
-const serverDotDart = r'''
 import 'dart:io';
 
-import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart';
+import 'package:mid_server/mid_server.dart';
+import 'package:${projectName}_server/mid/endpoints.dart';
+import 'package:${projectName}_server/mid/middlewares.dart';
+import 'package:${projectName}_server/mid/generated/handlers.dart';
 
-import 'handlers.dart';
-import '../middlewares.dart';
+Future<void> main(List<String> args) async {
+  final endpts = await getEndPoints();
 
-void server(List<String> args) async {
-  // Use any available host or container IP (usually `0.0.0.0`).
-  final ip = InternetAddress.anyIPv4;
+  final serverConfig = ServerConfig(
+    futureOrHandlers: getFutureOrHandlers(endpts),
+    streamHandlers: getStreamHandlers(endpts),
+    middlewares: getMiddlewares(),
+    // Use any available host or container IP (usually `0.0.0.0`).
+    ip: InternetAddress.anyIPv4,
+    // For running in containers, the PORT environment variable would be used.
+    port: int.parse(Platform.environment['PORT'] ?? '8000'),
+  );
 
-  final router = await generateRouter();
-
-  final middlewares = getMiddlewares();
-
-  Pipeline pipeline = Pipeline();
-  for(final middleware in middlewares) {
-    pipeline = pipeline.addMiddleware(middleware);
-  }
-
-  final handler = pipeline.addHandler(router);
-
-  // For running in containers, we respect the PORT environment variable.
-  final port = int.parse(Platform.environment['PORT'] ?? '8080');
-  final server = await serve(handler, ip, port);
-  print('Server listening on port ${server.port}');
+  midServer(serverConfig);
 }
 ''';
 
+// /// `project/mid/server.dart` file
+// const serverDotDart = r'''
+// import 'dart:io';
+
+// import 'package:shelf/shelf.dart';
+// import 'package:shelf/shelf_io.dart';
+
+// import 'handlers.dart';
+// import '../middlewares.dart';
+
+// void server(List<String> args) async {
+//   // Use any available host or container IP (usually `0.0.0.0`).
+//   final ip = InternetAddress.anyIPv4;
+
+//   final router = await generateRouter();
+
+//   final middlewares = getMiddlewares();
+
+//   Pipeline pipeline = Pipeline();
+//   for(final middleware in middlewares) {
+//     pipeline = pipeline.addMiddleware(middleware);
+//   }
+
+//   final handler = pipeline.addHandler(router);
+
+//   // For running in containers, we respect the PORT environment variable.
+//   final port = int.parse(Platform.environment['PORT'] ?? '8080');
+//   final server = await serve(handler, ip, port);
+//   print('Server listening on port ${server.port}');
+// }
+// ''';
+
 /// `project/mid/endpoints.dart` file
 const endpointsDotDart = '''
+import 'package:mid/mid.dart';
 
-Future<List<Object>> endpoints() async {
+Future<List<EndPoints>> getEndPoints() async {
 
   /* do any initializations here */
 
-  return <Object>[
+  return <EndPoints>[
     /* 
       Add the class instances here then run the following from the root of the project:
       ~> mid generate endpoints
@@ -79,17 +99,24 @@ List<Middleware> getMiddlewares() {
 ///
 /// The following code is just to prevent errors in other files referencing it.
 const handlersDotDart = '''
-
+$ignoreUnusedImports
 $generatedCodeMessage
 
-
+import 'package:mid/mid.dart';
+import 'package:mid_server/mid_server.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-Future<Router> generateRouter() async {
-  // The code here will be generated after running `mid generate endpoints` 
-  throw UnimplementedError;
+List<FutureOrBaseHandler> getFutureOrHandlers(List<EndPoints> endpoints) {
+  final handlers = <FutureOrBaseHandler>[];
+
+  return handlers;
 }
 
+List<StreamBaseHandler> getStreamHandlers(List<EndPoints> endpoints) {
+  final handlers = <StreamBaseHandler>[];
+
+  return handlers;
+}
 
 
 ''';
@@ -103,4 +130,9 @@ const generatedCodeMessage = '''
   ║                                                                            ║
   ╚════════════════════════════════════════════════════════════════════════════╝
 */
+''';
+
+
+const ignoreUnusedImports = '''
+// ignore_for_file: unused_import
 ''';
