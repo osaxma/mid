@@ -1,3 +1,5 @@
-dependency_overrides:
-  mid:
-    path: ../mid
+# TODO: uncomment when Dart 2.18 comes out
+# when publishing to pub, this throws an error 
+# dependency_overrides:
+#   mid:
+#     path: ../mid

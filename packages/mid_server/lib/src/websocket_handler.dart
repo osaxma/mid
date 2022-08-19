@@ -95,6 +95,10 @@ class _MessageHandler {
           // TODO: Handle this case.
           break;
 
+        case MessageType.stop:
+          // TODO: Handle this case.
+          break;
+
         // These are Server --> Client types so they are not supposed to be sent by the client
         case MessageType.error:
         case MessageType.data:
