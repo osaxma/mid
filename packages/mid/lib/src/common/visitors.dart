@@ -55,11 +55,4 @@ class _VisitReturnStatement extends RecursiveAstVisitor {
       routes.add(classInfo);
     }
   }
-
-  @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    // print('visiting variable declaration ');
-    // print(node.toSource());
-    return super.visitVariableDeclaration(node);
-  }
 }

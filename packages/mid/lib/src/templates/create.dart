@@ -1,10 +1,4 @@
 /// project/bin/server.dart
-// const binServerDotDart = '''
-// import '../mid/server.dart';
-
-// void main(List<String> args) => server(args);
-// ''';
-
 String getServerDotDartContent(String projectName) => '''
 import 'dart:io';
 
@@ -29,38 +23,6 @@ Future<void> main(List<String> args) async {
   midServer(serverConfig);
 }
 ''';
-
-// /// `project/mid/server.dart` file
-// const serverDotDart = r'''
-// import 'dart:io';
-
-// import 'package:shelf/shelf.dart';
-// import 'package:shelf/shelf_io.dart';
-
-// import 'handlers.dart';
-// import '../middlewares.dart';
-
-// void server(List<String> args) async {
-//   // Use any available host or container IP (usually `0.0.0.0`).
-//   final ip = InternetAddress.anyIPv4;
-
-//   final router = await generateRouter();
-
-//   final middlewares = getMiddlewares();
-
-//   Pipeline pipeline = Pipeline();
-//   for(final middleware in middlewares) {
-//     pipeline = pipeline.addMiddleware(middleware);
-//   }
-
-//   final handler = pipeline.addHandler(router);
-
-//   // For running in containers, we respect the PORT environment variable.
-//   final port = int.parse(Platform.environment['PORT'] ?? '8080');
-//   final server = await serve(handler, ip, port);
-//   print('Server listening on port ${server.port}');
-// }
-// ''';
 
 /// `project/mid/endpoints.dart` file
 const endpointsDotDart = '''
@@ -99,7 +61,7 @@ List<Middleware> getMiddlewares() {
 ///
 /// The following code is just to prevent errors in other files referencing it.
 const handlersDotDart = '''
-$ignoreUnusedImports
+// ignore_for_file: $unusedImportLint
 $generatedCodeMessage
 
 import 'package:mid/mid.dart';
@@ -132,7 +94,15 @@ const generatedCodeMessage = '''
 */
 ''';
 
+const unusedFieldLint = 'unused_field';
+const unusedImportLint = 'unused_import';
 
-const ignoreUnusedImports = '''
-// ignore_for_file: unused_import
-''';
+/// Generates the following string assuming [lints] contains `unused_import` and `unused_field`:
+///
+/// ```
+/// // ignore_for_file: unused_import, unused_field
+/// ```
+///
+String generateIgnoreForFile(List<String> lints) {
+  return '// ignore_for_file: ${lints.join(', ')}';
+}

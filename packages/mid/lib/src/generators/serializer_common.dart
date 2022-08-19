@@ -203,21 +203,3 @@ List<ParameterElement> getGenerativeUnnamedConstructorParameters(InterfaceType t
     throw Exception('$typeName does not have a generative unnamed constructor');
   }
 }
-
-/* 
-bool allArgumentsInUnnamedConstructorAreFormal(InterfaceType type) {
-  final constructors = type.element2.constructors.where((c) => c.isGenerative);
-
-  if (constructors.isEmpty) {
-    final name = type.getDisplayString(withNullability: false);
-    final packageURI = type.element2.librarySource.uri.toString();
-    throw Exception('$name at does not have a generative constructor (package: $packageURI');
-  }
-  final constructor = constructors.first;
-
-  constructor.parameters.any((p) => !p.isInitializingFormal);
-
-  // [ParameterElement.isInitializingFormal] refers when a field is initialized using `this` keyword.
-  return constructor.parameters.any((p) => !p.isInitializingFormal);
-}
- */

@@ -20,7 +20,7 @@ class EndPointsSourceGenerator {
   String generate() {
     _imports.clear();
     _source.clear();
-    _imports.add(ignoreUnusedImports);
+    _imports.add(generateIgnoreForFile([unusedImportLint]));
     _imports.add(generatedCodeMessage);
 
     _addDefaultImports();

@@ -3,11 +3,10 @@ import 'package:args/command_runner.dart';
 import 'package:mid/src/commands/generate.dart';
 
 import 'commands/create.dart';
-import 'commands/debug.dart';
 import 'version.dart';
 
 class MIDCommandRunner extends CommandRunner<void> {
-  // TODO
+  /// The working directory of a mid project
   final String workingDirectoryPath;
 
   MIDCommandRunner(this.workingDirectoryPath)
@@ -29,7 +28,6 @@ class MIDCommandRunner extends CommandRunner<void> {
 
     addCommand(GenerateCommand(workingDirectoryPath));
     addCommand(CreateCommand(workingDirectoryPath));
-    addCommand(DebugCommand(workingDirectoryPath));
   }
 
   @override

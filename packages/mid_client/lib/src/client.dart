@@ -157,7 +157,7 @@ class MidHttpClient {
     headers['content-type'] = 'application/json';
 
     final res = await http.post(
-      uri,
+      uri.replace(path: route),
       headers: headers,
       body: body,
     );

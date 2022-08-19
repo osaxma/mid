@@ -1,12 +1,10 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:dart_style/dart_style.dart';
-// TODO: remove this from dependencies after removing all ListBuilder instances
-//      it turs out we can use `b.addAll()` or `b.add()` directly
-//      see example at `code_builder` readme.
 import 'package:built_collection/built_collection.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:mid/src/common/models.dart';
 import 'package:mid/src/generators/serializer_common.dart';
+import 'package:mid/src/templates/create.dart';
 
 class ClientEndPointGenerator {
   final ClassInfo classInfo;
@@ -30,15 +28,16 @@ class ClientEndPointGenerator {
 
     final clazz = ClassBuilder()
       ..name = classInfo.classNameForClient
-      ..extend = refer('BaseClientRoute')
       ..fields = _generateClassFields()
       ..constructors = _generateConstructors()
       ..methods = ListBuilder(methods);
 
     final lib = Library((b) {
       b.body.addAll([
+        Code(generateIgnoreForFile([unusedImportLint, unusedFieldLint])),
+        // must be added to avoid an error 
+        Code('\n'),
         Directive.import('package:mid_client/mid_client.dart'),
-        Directive.import('package:http/http.dart', as: 'http'),
         Directive.import('../models.dart'),
         clazz.build(),
       ]);
@@ -53,16 +52,14 @@ class ClientEndPointGenerator {
     final fields = <Field>[
       Field(
         (b) {
-          b.name = 'httpExecute';
-          b.annotations = overrideAnnotation();
+          b.name = '_httpExecute';
           b.modifier = FieldModifier.final$;
           b.type = refer('Execute<Future<dynamic>>');
         },
       ),
       Field(
         (b) {
-          b.name = 'streamExecute';
-          b.annotations = overrideAnnotation();
+          b.name = '_streamExecute';
           b.modifier = FieldModifier.final$;
           b.type = refer('Execute<Stream<dynamic>>');
         },
@@ -75,21 +72,17 @@ class ClientEndPointGenerator {
   ListBuilder<Constructor> _generateConstructors() {
     return ListBuilder([
       Constructor((b) {
-        b.optionalParameters = ListBuilder(
+        b.requiredParameters = ListBuilder(
           [
             Parameter(
               (b) {
-                b.name = 'httpExecute';
-                b.named = true;
-                b.required = true;
+                b.name = '_httpExecute';
                 b.toThis = true;
               },
             ),
             Parameter(
               (b) {
-                b.name = 'streamExecute';
-                b.named = true;
-                b.required = true;
+                b.name = '_streamExecute';
                 b.toThis = true;
               },
             ),
@@ -184,15 +177,15 @@ class ClientEndPointGenerator {
     late final String returnStatement;
     late final String dataAssignment;
     if (returnType.isVoid) {
-      dataAssignment = 'await httpExecute(\$args, \$route);';
+      dataAssignment = 'await _httpExecute(\$args, \$route);';
       returnStatement = '';
     } else if (returnType.isDartAsyncStream) {
-      dataAssignment = 'final \$data = streamExecute(\$args, \$route);';
+      dataAssignment = 'final \$data = _streamExecute(\$args, \$route);';
       final innerType = (method.returnType as InterfaceType).typeArguments.first;
       final deserializedValue = deserializeValue(innerType, 'event', useToMapFromMap: true);
       returnStatement = '\$data.map((event) => $deserializedValue)';
     } else {
-      dataAssignment = 'final \$data = await httpExecute(\$args, \$route);';
+      dataAssignment = 'final \$data = await _httpExecute(\$args, \$route);';
       returnStatement = deserializeValue(returnType, '\$data', useToMapFromMap: true);
     }
 
