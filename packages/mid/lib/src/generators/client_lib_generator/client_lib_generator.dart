@@ -89,7 +89,7 @@ String _generateClientDotDart(List<_ClientSource> sources, String projectName) {
     importStatements.writeln("import 'routes/${src.fileName}';");
     final args = 'executeHttp, executeStream';
     final fieldName = src.classInfo.className.toLowerCase();
-    final routeClassName = src.classInfo.classNameForClient;
+    final routeClassName = src.classInfo.routeNameForClient;
     fields.writeln('late final $fieldName = $routeClassName($args);');
   }
   final className = '${projectName.toPascalCaseFromSnakeCase()}Client';

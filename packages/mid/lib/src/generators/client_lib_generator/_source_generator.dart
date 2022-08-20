@@ -27,7 +27,7 @@ class ClientEndPointGenerator {
     }
 
     final clazz = ClassBuilder()
-      ..name = classInfo.classNameForClient
+      ..name = classInfo.routeNameForClient
       ..fields = _generateClassFields()
       ..constructors = _generateConstructors()
       ..methods = ListBuilder(methods);

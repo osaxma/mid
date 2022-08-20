@@ -14,7 +14,7 @@ class ClassInfo {
   final String packageURI;
   final List<MethodInfo> methodInfos;
 
-  String get classNameForClient => '${className}Client';
+  String get routeNameForClient => '${className}Route';
 
   // for now we treat all as post requests
   final String verb = 'POST';
