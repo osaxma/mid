@@ -14,6 +14,13 @@ void midServer(ServerConfig config) async {
 
   final handler = pipeline.addHandler(router);
 
-  final server = await serve(handler, config.ip, config.port);
+  final server = await serve(
+    handler,
+    config.address,
+    config.port,
+    securityContext: config.securityContext,
+    backlog: config.backlog,
+    shared: config.shared,
+  );
   print('Server listening on port ${server.port}');
 }
