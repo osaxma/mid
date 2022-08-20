@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:mid/protocol.dart';
+import 'package:mid_protocol/mid_protocol.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MidWebSocketClient {

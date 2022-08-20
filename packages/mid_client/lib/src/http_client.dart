@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-
-import 'types.dart';
+import 'package:mid_client/src/interceptor.dart';
 
 // TODO: figure out the best way to generate the server
 // - Should we use http.post directly
@@ -10,13 +9,20 @@ import 'types.dart';
 class MidHttpClient {
   final Uri uri;
 
-  HeadersProvider? headersProvider;
+  final Map<String, String> defaultHeaders;
 
-  MidHttpClient(this.uri, this.headersProvider);
+  final List<Interceptor> interceptors;
+
+  MidHttpClient({
+    required this.uri,
+    required this.defaultHeaders,
+    required this.interceptors,
+  });
 
   Future<dynamic> executeHttp(Map<String, dynamic> args, String route) async {
     final body = json.encode(args);
-    final headers = headersProvider?.call() ?? <String, String>{};
+    final headers = defaultHeaders;
+    headers.removeWhere((key, value) => key.toLowerCase() == 'content-type');
     headers['content-type'] = 'application/json';
 
     final res = await http.post(

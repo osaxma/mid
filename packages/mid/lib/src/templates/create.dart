@@ -45,6 +45,16 @@ Future<List<EndPoints>> getEndPoints() async {
 const middleWaresDotDart = '''
 import 'package:shelf/shelf.dart';
 
+
+/// User defined middlewares
+/// 
+/// 
+/// Important Note: 
+/// Any request for a websocket connection (i.e. `/ws` route), it will not contain client headers. 
+/// Make sure to skip such requests.
+/// 
+/// Alternatively, use [MessageInterceptor] to intercept incoming [Message]s where [Message.type] is
+/// [MessageType.updateHeaders] to authenticate client websocket connections. 
 List<Middleware> getMiddlewares() {
   return <Middleware>[
     // the default shelf logger 

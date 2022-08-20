@@ -1,12 +1,11 @@
 import 'dart:async';
 
-import 'package:mid/protocol.dart';
+import 'package:mid_protocol/mid_protocol.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'handlers.dart';
-import 'websocket_interceptor.dart';
 
 class WebsocketHandler {
   final List<StreamBaseHandler> handlers;
@@ -96,6 +95,12 @@ class _MessageHandler {
           break;
 
         case MessageType.stop:
+          // TODO: Handle this case.
+          break;
+        case MessageType.subscribe:
+          // TODO: Handle this case.
+          break;
+        case MessageType.endpoint:
           // TODO: Handle this case.
           break;
 
