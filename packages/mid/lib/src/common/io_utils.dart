@@ -11,9 +11,11 @@ int get terminalWidth {
 void clearDirContent(String path) {
   // TODO: do some sanity checks here (e.g. ensure it's within a dart project) to prevent any stupid errors.
   final dir = Directory(path);
-  final dirContents = dir.listSync();
-  for (var element in dirContents) {
-    element.deleteSync(recursive: true);
+  if (dir.existsSync()) {
+    final dirContents = dir.listSync();
+    for (var element in dirContents) {
+      element.deleteSync(recursive: true);
+    }
   }
 }
 

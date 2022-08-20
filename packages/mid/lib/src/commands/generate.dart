@@ -4,6 +4,7 @@ import 'package:mid/src/common/io_utils.dart';
 import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/client_lib_generator/client_lib_generator.dart';
 import 'package:mid/src/generators/server_lib_generator/server_lib_generator.dart';
+import 'package:path/path.dart' as p;
 
 import 'base.dart';
 
@@ -89,6 +90,8 @@ class GenerateClientLibCommand extends MIDCommand {
     );
 
     await generator.generate();
+
+   _clearClientRoutes(clientLibraryPath);
     await generator.commit();
   }
 }
@@ -125,10 +128,22 @@ class GenerateAllCommand extends MIDCommand {
       routes: routes,
     );
 
-    await clientGenerator.generate();
     await serverGenerator.generate();
+    await clientGenerator.generate();
 
-    await clientGenerator.commit();
     await serverGenerator.commit();
+    _clearClientRoutes(clientLibraryPath);
+    await clientGenerator.commit();
   }
+}
+
+
+/// deletes all routes for new ones to be generated
+/// 
+/// This is necessary since a route name may change or get deleted between runs
+/// 
+/// Unlike models, which exists in a single file and it gets replaced, routes
+/// are within a directory. 
+void _clearClientRoutes(String clientLibraryPath) {
+  clearDirContent(p.join(clientLibraryPath, 'lib', 'routes'));
 }
