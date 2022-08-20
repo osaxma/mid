@@ -4,7 +4,6 @@
 //        This will avoid relying on shelf package and the Request class and give the package more freedom
 //        in the future.
 import 'package:mid/protocol.dart';
-import 'package:shelf/shelf.dart';
 
 /// Implement this class to create custom interceptor(s) for the websocket connection
 ///
@@ -13,12 +12,8 @@ import 'package:shelf/shelf.dart';
 /// terminated.
 abstract class MessageInterceptor {
   /// Intercept messages sent by the client to the server
-  ///
-  /// The [request] is the initial request that was used to establish the connection
-  Message clientMessage(Message message, Request request);
+  Message clientMessage(Message message);
 
   /// Intercept messages sent by the server to the client
-  ///
-  /// The [request] is the initial request that was used to establish the connection
-  Message serverMessage(Message message, Request request);
+  Message serverMessage(Message message);
 }

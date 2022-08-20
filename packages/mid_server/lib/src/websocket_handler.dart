@@ -166,14 +166,14 @@ class _MessageHandler {
 
   Message interceptClient(Message message) {
     for (final i in interceptors) {
-      message = i.clientMessage(message, request);
+      message = i.clientMessage(message);
     }
     return message;
   }
 
   Message interceptServer(Message message) {
     for (final i in interceptors) {
-      message = i.serverMessage(message, request);
+      message = i.serverMessage(message);
     }
     return message;
   }
