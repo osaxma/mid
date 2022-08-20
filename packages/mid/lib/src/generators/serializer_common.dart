@@ -64,9 +64,9 @@ String deserializeValue(DartType type, String value, {required bool useToMapFrom
       final k = deserializeValue(keyType, 'k', useToMapFromMap: useToMapFromMap);
       final v = deserializeValue(valueType, 'v', useToMapFromMap: useToMapFromMap);
       if (isNullable) {
-        return "$value?.map((k, v) => MapEntry($k, $v))";
+        return "($value as Map?)?.map((k, v) => MapEntry($k, $v))";
       } else {
-        return "$value.map((k, v) => MapEntry($k, $v))";
+        return "($value as Map).map((k, v) => MapEntry($k, $v))";
       }
     }
   }
