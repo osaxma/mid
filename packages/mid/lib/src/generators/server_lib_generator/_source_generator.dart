@@ -24,6 +24,7 @@ class EndPointsSourceGenerator {
     _imports.add(generatedCodeMessage);
 
     _addDefaultImports();
+    _source.writeln(_generateGetHandlers());
 
     int i = 0;
     for (final route in routes) {
@@ -246,7 +247,7 @@ class $handlerClassName extends StreamBaseHandler {
     final String handlers = _futureOrHandlersInstances.join(',');
 
     return '''
-List<FutureOrBaseHandler> getFutureOrHandlers(List<EndPoints> endpoints) {
+List<FutureOrBaseHandler> _getFutureOrHandlers(List<EndPoints> endpoints) {
   final handlers = <FutureOrBaseHandler>[
     $handlers
   ];
@@ -260,12 +261,23 @@ List<FutureOrBaseHandler> getFutureOrHandlers(List<EndPoints> endpoints) {
     final String handlers = _streamHandlersInstances.join(',');
 
     return '''
-List<StreamBaseHandler> getStreamHandlers(List<EndPoints> endpoints) {
+List<StreamBaseHandler> _getStreamHandlers(List<EndPoints> endpoints) {
   final handlers = <StreamBaseHandler>[
     $handlers
   ];
 
   return handlers;
+}
+''';
+  }
+
+  String _generateGetHandlers() {
+    return '''
+List<BaseHandler> getHandlers(List<EndPoints> endpoints) {
+  return [
+    ..._getFutureOrHandlers(endpoints),
+    ..._getStreamHandlers(endpoints),
+  ];
 }
 ''';
   }

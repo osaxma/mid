@@ -8,14 +8,13 @@ import 'package:${projectName}_server/mid/middlewares.dart';
 import 'package:${projectName}_server/mid/generated/handlers.dart';
 
 Future<void> main(List<String> args) async {
-  final endpts = await getEndPoints();
-
   final serverConfig = ServerConfig(
-    futureOrHandlers: getFutureOrHandlers(endpts),
-    streamHandlers: getStreamHandlers(endpts),
-    middlewares: getMiddlewares(),
+    handlers: getHandlers(await getEndPoints()), // don't modify this line
+    middlewares: getMiddlewares(), // // don't modify
+
     // Use any available host or container IP (usually `0.0.0.0`).
     ip: InternetAddress.anyIPv4,
+    
     // For running in containers, the PORT environment variable would be used.
     port: int.parse(Platform.environment['PORT'] ?? '8000'),
   );

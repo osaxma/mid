@@ -7,11 +7,8 @@ import 'package:mid_server/mid_server.dart';
 
 /// Server Configuration that will be passed to the shelf server
 class ServerConfig {
-  /// The list of [Stream] handlers to be handled by the websocket handler
-  final List<StreamBaseHandler> streamHandlers;
-
-  /// The list of [FutureOr] handlers to be handled by the http handler
-  final List<FutureOrBaseHandler> futureOrHandlers;
+  /// The list of handlers for handling http and websocket requests
+  final List<BaseHandler> handlers;
 
   /// A list of [Middleware]s that are passed to shelf server
   final List<Middleware> middlewares;
@@ -44,12 +41,11 @@ class ServerConfig {
   final bool shared;
 
   ServerConfig({
-    required this.streamHandlers,
-    required this.futureOrHandlers,
+    required this.handlers,
     required this.address,
     required this.port,
     this.middlewares = const [],
-    this.messagesInterceptor = const [], 
+    this.messagesInterceptor = const [],
     this.securityContext,
     this.backlog,
     this.shared = false,

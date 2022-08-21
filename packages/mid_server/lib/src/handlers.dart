@@ -2,20 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 
-/// A base handler for any endpoint that returns a [Stream]
-abstract class StreamBaseHandler {
+abstract class BaseHandler {
   /// the full route to the handler
   String get route;
+}
 
+/// A base handler for any endpoint that returns a [Stream]
+abstract class StreamBaseHandler implements BaseHandler {
   /// The request handler
   Stream<String> handler(Map<String, dynamic> map);
 }
 
 /// A base handler for any endpoint that returns a [Future] or [Type] i.e. [FutureOr]
-abstract class FutureOrBaseHandler {
-  /// the full route to the handler
-  String get route;
-
+abstract class FutureOrBaseHandler implements BaseHandler {
   /// The request handler
   FutureOr<String> handler(Map<String, dynamic> map);
 
