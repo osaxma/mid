@@ -5,7 +5,7 @@ import 'package:shelf/shelf_io.dart';
 import 'router.dart';
 
 void midServer(ServerConfig config) async {
-  final router = generateRouter(config.futureOrHandlers, config.streamHandlers);
+  final router = generateRouter(config);
 
   Pipeline pipeline = Pipeline();
   for (final middleware in config.middlewares) {

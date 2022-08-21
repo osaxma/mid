@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:mid_protocol/mid_protocol.dart';
 import 'package:shelf/shelf.dart';
 
 import 'package:mid_server/mid_server.dart';
@@ -14,6 +15,9 @@ class ServerConfig {
 
   /// A list of [Middleware]s that are passed to shelf server
   final List<Middleware> middlewares;
+
+  /// A list of of websocket messages interceptors
+  final List<MessageInterceptor> messagesInterceptor;
 
   /// The IP Address used for the server
   /// See the documentation for [HttpServer.bind] and [HttpServer.bindSecure]
@@ -42,9 +46,10 @@ class ServerConfig {
   ServerConfig({
     required this.streamHandlers,
     required this.futureOrHandlers,
-    required this.middlewares,
     required this.address,
     required this.port,
+    this.middlewares = const [],
+    this.messagesInterceptor = const [], 
     this.securityContext,
     this.backlog,
     this.shared = false,
