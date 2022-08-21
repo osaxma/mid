@@ -95,25 +95,51 @@ String _generateClientDotDart(List<_ClientSource> sources, String projectName) {
   final className = '${projectName.toPascalCaseFromSnakeCase()}Client';
 
   return '''
+import 'package:mid_protocol/mid_protocol.dart';
 import 'package:mid_client/mid_client.dart';
 ${importStatements.toString()}
 
+/// A wrapper client for the http and websocket clients of a mid project
 class $className extends BaseClient {
 
   $fields
 
-  /// The main client for the application
-  /// 
-  /// The client contains each route to a collection of endpoints as defined on the server.
-  /// 
-  /// The [url] must be the url of the server.
-  /// 
-  /// The [headersProvider] is an optional callback function that is called before sending
-  /// any request. The callback must return a `Map<String, String>` that will be added
-  /// to the headers of each request. `Authorization header` is one example of what could
-  /// be provided.
-  $className({required String url,  HeadersProvider? headersProvider}) 
-    : super(url: url, headersProvider: headersProvider);
+  /// A wrapper client for the http and websocket clients of a mid project
+  ///
+  /// [url] is the server url. The client will parse the uri for both http and websocket.
+  ///
+  /// [initialHeaders] that will be used for sending http requests and establishing the
+  /// websocket connection. The headers can be updated by invoking [updateHeaders] at any
+  /// time. Alternatively, the headers for http requests can be modified by intercepting
+  /// the requests (does not apply for websocket connection -- see [updateHeaders])
+  ///
+  /// [interceptors] a List of Interceptors that intercept http requests and responses
+  ///
+  /// Each [Interceptor.onRequest] is invoked before sending the request.
+  /// And each [Interceptor.onResponse] is invoked before returning a response.
+  ///
+  /// The [interceptors] are invoked based on their order in the list starting from index 0.
+  ///
+  /// Important Notes:
+  /// - Avoid changing ['content-type'] header as it'll be overwritten by the client.
+  ///   For now, all requests will have "'content-type': 'application/json'".
+  /// - All requests are sent using `http.post` at the time being.
+  /// - The [interceptors] are not invoked on endpoints with a [Stream] retruen type
+  ///   - see [updateHeaders] for more info.
+  ///
+  /// [messageInterceptors] -- a list of interceptors to intercept messages between
+  /// the server and the client of the websocket connection.
+  $className({
+    required String url,
+    Map<String, String>? initialHeaders,
+    List<Interceptor> interceptors = const [],
+    List<MessageInterceptor> messageInterceptors = const [],
+  }) : super(
+          url: url,
+          interceptors: interceptors,
+          messageInterceptors: messageInterceptors,
+          initialHeaders: initialHeaders,
+        );
 }
 ''';
 }
