@@ -39,9 +39,9 @@ class BaseClient {
   /// - All requests are sent using `http.post` at the time being.
   /// - The [interceptors] are not invoked on endpoints with a [Stream] retruen type
   ///   - see [updateHeaders] for more info.
-  /// 
+  ///
   /// [messageInterceptors] -- a list of interceptors to intercept messages between
-  /// the server and the client of the websocket connection.  
+  /// the server and the client of the websocket connection.
   BaseClient({
     required String url,
     Map<String, String>? initialHeaders,
@@ -65,7 +65,7 @@ class BaseClient {
       wsURI = httpURI.replace(scheme: 'ws', path: 'ws');
     }
 
-    _wsClient = MidWebSocketClient(uri: wsURI, headers: headers);
+    _wsClient = MidWebSocketClient(uri: wsURI, headers: headers, interceptors: messageInterceptors);
     _httpClient = MidHttpClient(uri: httpURI, headers: headers, interceptors: interceptors);
   }
 
