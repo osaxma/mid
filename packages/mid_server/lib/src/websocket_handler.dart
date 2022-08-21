@@ -1,19 +1,20 @@
 import 'dart:async';
 
-import 'package:mid_protocol/mid_protocol.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+import 'package:mid_protocol/mid_protocol.dart';
 
 import 'handlers.dart';
 
 class WebsocketHandler {
   final List<StreamBaseHandler> handlers;
 
-  // TODO: add messages middleware
-
+  final List<MessageInterceptor> interceptors;
   WebsocketHandler({
     required this.handlers,
+    required this.interceptors,
   });
 
   // a workaround to pass the request to the messageHandler
@@ -23,13 +24,14 @@ class WebsocketHandler {
     })(request);
   }
 
+  // The webSocket here is for a single client
   void _messagesHandler(WebSocketChannel webSocket, Request request) {
     final handler = _MessageHandler(
-      webSocket.stream,
+      webSocket.stream, // this is a single sub stream! TODO: do same logic as in client
       webSocket.sink,
       _getHandler,
       request,
-      interceptors: [],
+      interceptors: interceptors,
     );
     handler.listen();
   }
@@ -45,6 +47,8 @@ class WebsocketHandler {
   }
 }
 
+// TODO: this class is a mess -- it's handling the connection as well as message requests.
+//       at least move all message requests out
 class _MessageHandler {
   // note: the request may contains authentication token which may expire during the life of this connection
   //       the client may request to update these headers solely to update the auth token.
@@ -54,10 +58,12 @@ class _MessageHandler {
   final Request request;
   final Stream stream;
   final WebSocketSink sink;
-  late final StreamSubscription sub;
+  late final StreamSubscription connSub;
   StreamSubscription? _handlerSub;
   final StreamBaseHandler Function(String) streamHandlerProvider;
   final List<MessageInterceptor> interceptors;
+
+  final List<_EndPointSubscription> activeSubs = [];
 
   bool initted = false;
 
@@ -70,21 +76,34 @@ class _MessageHandler {
   });
 
   void listen() {
-    sub = stream.listen(onData);
-    sub.onError(onError);
-    sub.onDone(onDone);
+    connSub = stream.listen(onData);
+    connSub.onError(_onConnError);
+    connSub.onDone(_onConnDone);
+  }
+
+  void _onConnError(dynamic err) {
+    // TODO: this might not work if the conn failed
+    sendMessage(Message(type: MessageType.error, payload: err));
+    _connDispose();
+  }
+
+  void _onConnDone() => _connDispose();
+
+  void _connDispose() {
+    connSub.cancel();
+    sink.close(1000, 'done');
+    _handlerSub?.cancel();
   }
 
   void onData(dynamic event) {
     try {
-      var message = Message.fromJson(event);
-      message = interceptClient(message);
+      final message = interceptClient(Message.fromJson(event));
       switch (message.type) {
         case MessageType.ping:
-          sendMessage(pongMsg);
+          sendMessage(pongMsg.copyWith(id: message.id));
           break;
         case MessageType.connectionInit:
-          handleInit(message);
+          sendMessage(ackMsg.copyWith(id: message.id));
           break;
         case MessageType.updateHeaders:
           // TODO: Handle this case.
@@ -94,11 +113,12 @@ class _MessageHandler {
           // TODO: Handle this case.
           break;
 
-        case MessageType.stop:
+        case MessageType.subscribe:
+          handleSubscribe(message);
           // TODO: Handle this case.
           break;
-        case MessageType.subscribe:
-          // TODO: Handle this case.
+        case MessageType.stop:
+          handleStop(message);
           break;
         case MessageType.endpoint:
           // TODO: Handle this case.
@@ -116,18 +136,70 @@ class _MessageHandler {
         payload: 'message: $event\nerror: $e',
       );
       sendMessage(errorMessage);
-      sub.cancel();
+      connSub.cancel();
       // TODO: provide a meaningful close code and close reason
       sink.close(1000, 'TBD');
       _handlerSub?.cancel();
     }
   }
 
-  void handleInit(Message message) {
-    final payload = message.payload;
-    if (payload == null || payload is! Map<String, dynamic>) {
-      throw Exception('the payload for ${message.type.name} must be a string');
+  void handleStop(Message message) {
+    final id = message.id;
+    if (id == null) {
+      sendMessage(
+        Message(
+          id: id,
+          type: MessageType.error,
+          payload: 'Subscriptions must have a message id',
+        ),
+      );
+      return;
     }
+
+    // verify this happened?
+    cancelActiveSub(id);
+    // TODO: send acknowledgement?
+  }
+
+  void handleSubscribe(Message message) {
+    final payload = message.payload;
+    final id = message.id;
+
+    if (payload == null || payload is! Map<String, dynamic>) {
+      sendMessage(
+        Message(
+          id: id,
+          type: MessageType.error,
+          payload: 'the payload for ${message.type.name} must be a string',
+        ),
+      );
+      return;
+    }
+
+    if (id == null) {
+      sendMessage(
+        Message(
+          id: id,
+          type: MessageType.error,
+          payload: 'Subscriptions must have a message id',
+        ),
+      );
+      return;
+    }
+
+    // TODO: make sure to check for duplicate ids at the client side
+    // the client should check for duplicate ids before sending them
+    // otherwise, returning a message with the same id would be received by the former subscription
+    //
+    // if (activeSubs.any((e) => e.id == message.id)) {
+    //   sendMessage(
+    //     Message(
+    //       id: message.id,
+    //       type: MessageType.error,
+    //       payload: 'An active subscription already exists with message id ${message.id}. Message must have a message id',
+    //     ),
+    //   );
+    // }
 
     final route = payload['route'];
     final data = payload['data'];
@@ -136,52 +208,73 @@ class _MessageHandler {
 
     final stream = handler.handler(data);
 
-    _handlerSub = stream.listen(
+    final sub = _handlerSub = stream.listen(
       (event) {
         sink.add(
           Message(
-            id: message.id,
+            id: id,
             type: MessageType.data,
             payload: event,
           ).toJson(),
         );
       },
-      onDone: onDone,
-      onError: onError,
+      onDone: () {
+        cancelActiveSub(id);
+      },
+      onError: (err, s) {
+        cancelActiveSub(id);
+        sendMessage(
+          Message(id: id, type: MessageType.error, payload: 'Endpoint subscription error. $err'),
+        );
+      },
     );
+
+    activeSubs.add(_EndPointSubscription(message.id!, sub));
   }
 
-  void onError(dynamic err) {
-    sink.add(Message(type: MessageType.error, payload: err));
-    _dispose();
-  }
-
-  void onDone() => _dispose();
-
-  void _dispose() {
-    sub.cancel();
-    sink.close(1000, 'done');
-    _handlerSub?.cancel();
+  void cancelActiveSub(String id) {
+    final idx = activeSubs.indexWhere((element) => element.messageID == id);
+    if (idx != -1) {
+      activeSubs[idx].sub.cancel();
+      activeSubs.removeAt(idx);
+    }
+    if (activeSubs.isEmpty) {
+      _connDispose();
+    }
   }
 
   void sendMessage(Message message) {
-    message = interceptServer(message);
-    sink.add(message.toJson());
+    sink.add(interceptServer(message).toJson());
   }
 
   Message interceptClient(Message message) {
-    for (final i in interceptors) {
-      message = i.clientMessage(message);
-    }
-    return message;
+    return interceptors.fold(message, (previousValue, element) => element.clientMessage(previousValue));
   }
 
   Message interceptServer(Message message) {
-    for (final i in interceptors) {
-      message = i.serverMessage(message);
-    }
-    return message;
+    return interceptors.fold(message, (previousValue, element) => element.serverMessage(previousValue));
   }
 }
 
 const pongMsg = Message(type: MessageType.pong);
+const ackMsg = Message(type: MessageType.connectionAcknowledge);
+
+/// simple wrapper around a subscription
+///
+/// this is used to keep a reference of a subscription for canceling it or any other reason.
+class _EndPointSubscription {
+  final String messageID;
+  final StreamSubscription<String> sub;
+
+  _EndPointSubscription(this.messageID, this.sub);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is _EndPointSubscription && other.messageID == messageID;
+  }
+
+  @override
+  int get hashCode => messageID.hashCode;
+}
