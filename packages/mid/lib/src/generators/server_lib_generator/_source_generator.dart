@@ -25,7 +25,6 @@ class EndPointsSourceGenerator {
 
     _addDefaultImports();
 
-
     int i = 0;
     for (final route in routes) {
       _generateHandler(route, i);
@@ -100,7 +99,7 @@ class EndPointsSourceGenerator {
     }
 
     final isFuture = methodInfo.returnType.isDartAsyncFuture;
-    final returnType = isFuture ? 'Future<Response>' : 'Response';
+    final returnType = isFuture ? 'Future<String>' : 'String';
     final asyncKeyWord = isFuture ? 'async' : '';
 
     return '''
@@ -114,13 +113,10 @@ class $handlerClassName extends FutureOrBaseHandler {
   @override
   $returnType handler(Map<String, dynamic> map) $asyncKeyWord {
     $assignments
-    try {
-      $methodInvocation
+      
+    $methodInvocation
 
-      return Response.ok(json.encode($responseBody));
-    } catch (e) {
-      return Response.badRequest(body: e.toString());
-    }
+    return json.encode($responseBody);
   }
 }
 

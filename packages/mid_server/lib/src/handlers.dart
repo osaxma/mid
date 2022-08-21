@@ -17,7 +17,7 @@ abstract class FutureOrBaseHandler {
   String get route;
 
   /// The request handler
-  FutureOr<Response> handler(Map<String, dynamic> map); // need importing async =>  import 'dart:async';
+  FutureOr<String> handler(Map<String, dynamic> map);
 
   /// The HTTP verb
   // for now only post is used for all types of requests
@@ -44,16 +44,11 @@ Future<Response> defaultHandler(Request request, FutureOrBaseHandler baseHandler
 
   try {
     final Map<String, dynamic> bodayMap = json.decode(body);
-    final response = await baseHandler.handler(bodayMap);
+    final result = await baseHandler.handler(bodayMap);
+    final response = Response.ok(result);
     response.change(headers: _defaultHeaders);
     return response;
   } catch (e) {
     return Response.badRequest(body: 'failed to decode request body $e');
   }
-}
-
-
-
-class Handlers {
-  
 }
