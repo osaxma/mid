@@ -5,8 +5,8 @@ import 'package:http/http.dart';
 /// A base client Interceptor for intercepting requests and responses
 /// between the client and the server
 /// 
-/// Extend this class and override either method or both. By default,
-/// the interceptor return the same request or response.
+/// Extend this class and override either method or both. By default, 
+/// each interceptor return the same message when it's not overridden.
 abstract class Interceptor {
   /// Intercept a request before it's sent to the server
   FutureOr<Request> onRequest(Request request) => request;

@@ -89,10 +89,11 @@ class _MessageHandler {
 
   void _onConnDone() => _connDispose();
 
-  void _connDispose() {
-    connSub.cancel();
-    sink.close(1000, 'done');
-    _handlerSub?.cancel();
+  void _connDispose() async {
+    // this is causing an issue where the program does not exit :/
+    // see: https://github.com/dart-lang/sdk/issues/49777
+    // connSub.cancel();
+    await sink.close(1000, 'done');
   }
 
   void onData(dynamic event) {
