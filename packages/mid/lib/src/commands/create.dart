@@ -13,13 +13,13 @@ import 'base.dart';
 ///         |- <project_name>_client
 ///                 |- lib
 ///                     |- models
-///                          |- model1.dart 
-///                          |- model2.dart 
-///                     |- routes 
+///                          |- model1.dart
+///                          |- model2.dart
+///                     |- routes
 ///                          |- route1.dart
 ///                          |- route2.dart
-///                 |- models.dart 
-///                 |- client.dart 
+///                 |- models.dart
+///                 |- client.dart
 ///         |- <project_name>_server
 ///                 |- bin
 ///                     |- server.dart
@@ -95,7 +95,7 @@ class CreateCommand extends MIDCommand {
     clearDirContent(p.join(path, 'bin'));
     clearDirContent(p.join(path, 'lib'));
     clearDirContent(p.join(path, 'test'));
-    await addPubDeps(path, ['shelf', 'shelf_router', 'mid', 'mid_server', 'collection']);
+    await addPubDeps(path, ['shelf', 'shelf_router', 'mid', 'mid_server', 'mid_protocol', 'collection']);
 
     // create server default files
     createFileSync(p.join(path, 'bin', 'server.dart'), contents: getServerDotDartContent(projectName));
@@ -113,6 +113,6 @@ class CreateCommand extends MIDCommand {
     clearDirContent(p.join(path, 'lib'));
     clearDirContent(p.join(path, 'test'));
 
-    await addPubDeps(path, ['http', 'collection', 'mid', 'mid_client']);
+    await addPubDeps(path, ['http', 'collection', 'mid', 'mid_protocol', 'mid_client']);
   }
 }
