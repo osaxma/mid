@@ -7,8 +7,8 @@ import 'message.dart';
 /// terminated and the [Message] will not reach its destination.
 abstract class MessageInterceptor {
   /// Intercept messages sent by the client to the server
-  Message clientMessage(Message message);
+  Message clientMessage(Message message) => message;
 
   /// Intercept messages sent by the server to the client
-  Message serverMessage(Message message);
+  Message serverMessage(Message message) => message;
 }
