@@ -9,25 +9,31 @@ import 'package:mid_client/src/interceptor.dart';
 class MidHttpClient {
   final Uri uri;
 
-  final Map<String, String> defaultHeaders;
+  late Map<String, String> _headers;
+
+  void updateHeaders(Map<String, String> newHeaders) {
+    _headers = {...newHeaders};
+    _headers.removeWhere((key, value) => key.toLowerCase() == 'content-type');
+  }
 
   final List<Interceptor> interceptors;
 
   MidHttpClient({
     required this.uri,
-    required this.defaultHeaders,
+    required Map<String, String> headers,
     required this.interceptors,
-  });
+  }) {
+    updateHeaders(headers);
+  }
 
   Future<dynamic> executeHttp(Map<String, dynamic> args, String route) async {
     final body = json.encode(args);
-    final headers = defaultHeaders;
-    headers.removeWhere((key, value) => key.toLowerCase() == 'content-type');
-    headers['content-type'] = 'application/json';
+    _headers.removeWhere((key, value) => key.toLowerCase() == 'content-type');
+    _headers['content-type'] = 'application/json';
 
     final res = await http.post(
       uri.replace(path: route),
-      headers: headers,
+      headers: _headers,
       body: body,
     );
 

@@ -6,9 +6,19 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MidWebSocketClient {
   final Uri uri;
+
+  late Map<String, String> _headers;
+
+  void updateHeaders(Map<String, String> newHeaders) {
+    _headers = {...newHeaders};
+  }
+
   MidWebSocketClient({
     required this.uri,
-  });
+    required Map<String, String> headers,
+  }) {
+    updateHeaders(headers);
+  }
   // TODO: this should be initted in a method for handling errors and retrying
   WebSocketChannel? _conn;
 
