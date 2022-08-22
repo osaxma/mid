@@ -1,3 +1,9 @@
+## 0.0.4
+
+ - **FEAT**: updated protocol.
+ - **FEAT**: handle stop messages.
+ - **FEAT**: added http req/res interceptors.
+
 ## 0.0.3
 
 - Stream support improvements

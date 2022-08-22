@@ -1,3 +1,8 @@
+## 0.0.4
+
+ - **FEAT**: updated protocol.
+ - **FEAT**: updated client interface.
+
 ## 0.0.3
 
 - Streams support improvements.
