@@ -16,7 +16,7 @@ extension StringUtils on String {
 
   /// Converts snake_case to PascalCase
   String toPascalCaseFromSnakeCase() {
-    if (!contains('_')) return this;
+    if (!contains('_')) return capitalizeFirst();
 
     return toCamelCaseFromSnakeCase().capitalizeFirst();
   }

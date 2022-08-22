@@ -69,5 +69,11 @@ void main() {
       final expected = 'a b c d e f';
       expect(string, expected);
     });
+
+    test(' - from snake3_case to PascalCase name with numbers', () {
+      final string = 'dart3'.toPascalCaseFromSnakeCase();
+      final expected = 'Dart3';
+      expect(string, expected);
+    });
   });
 }
