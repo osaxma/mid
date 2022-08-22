@@ -38,29 +38,33 @@ abstract class Message {
       throw Exception('"Message.fromMap failed due to unkown MessageType -- type $type');
     }
 
-    switch (messageType) {
-      case MessageType.ping:
-        return PingMessage();
-      case MessageType.pong:
-        return PongMessage();
-      case MessageType.connectionInit:
-        return ConnectionInitMessage.fromMap(map);
-      case MessageType.connectionUpdate:
-        return ConnectionUpdateMessage.fromMap(map);
-      case MessageType.connectionAcknowledge:
-        return ConnectionAcknowledgeMessage();
-      case MessageType.subscribe:
-        return SubscribeMessage.fromMap(map);
-      case MessageType.stop:
-        return StopMessage(id: map['id']);
-      case MessageType.complete:
-        return CompleteMessage(id: map['id']);
-      case MessageType.data:
-        return DataMessage.fromMap(map);
-      case MessageType.error:
-        return ErrorMessage.fromMap(map);
-      case MessageType.endpoint:
-        return EndpointMessage.fromMap(map);
+    try {
+      switch (messageType) {
+        case MessageType.ping:
+          return PingMessage();
+        case MessageType.pong:
+          return PongMessage();
+        case MessageType.connectionInit:
+          return ConnectionInitMessage.fromMap(map);
+        case MessageType.connectionUpdate:
+          return ConnectionUpdateMessage.fromMap(map);
+        case MessageType.connectionAcknowledge:
+          return ConnectionAcknowledgeMessage();
+        case MessageType.subscribe:
+          return SubscribeMessage.fromMap(map);
+        case MessageType.stop:
+          return StopMessage(id: map['id']);
+        case MessageType.complete:
+          return CompleteMessage(id: map['id']);
+        case MessageType.data:
+          return DataMessage.fromMap(map);
+        case MessageType.error:
+          return ErrorMessage.fromMap(map);
+        case MessageType.endpoint:
+          return EndpointMessage.fromMap(map);
+      }
+    } catch (e) {
+      throw Exception('Message.fromMap failed to parse the following map\n$map\ndue to the following error:\n$e');
     }
   }
   factory Message.fromJson(String source) => Message.fromMap(json.decode(source));
@@ -165,6 +169,9 @@ class ConnectionPayload {
       headers: Map<String, String>.from(map['headers']),
     );
   }
+
+  @override
+  String toString() => 'ConnectionPayload(headers: $headers)';
 }
 
 class ConnectionAcknowledgeMessage extends Message {
@@ -206,7 +213,7 @@ class ErrorMessage extends Message {
     return {
       'id': id,
       'type': type.name,
-      'isConnError': isConnectionError,
+      'isConnectionError': isConnectionError,
       'payload': payload.toMap(),
     };
   }
@@ -241,6 +248,9 @@ class ErrorPayload {
       errorMessage: map['errorMessage'],
     );
   }
+
+  @override
+  String toString() => 'ErrorPayload(errorCode: $errorCode, errorMessage: $errorMessage)';
 }
 
 /* -------------------------------------------------------------------------- */
@@ -294,6 +304,9 @@ class SubscribePayload {
       args: Map<String, dynamic>.from(map['args']),
     );
   }
+
+  @override
+  String toString() => 'SubscribePayload(route: $route, args: $args)';
 }
 
 /* -------------------------------------------------------------------------- */
@@ -410,6 +423,9 @@ class EndpointPayload {
       args: Map<String, dynamic>.from(map['args']),
     );
   }
+
+  @override
+  String toString() => 'EndpointPayload(route: $route, args: $args)';
 }
 
 final reservedMessageIDs = [
