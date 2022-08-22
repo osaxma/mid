@@ -1,3 +1,7 @@
+## 0.0.3
+
+- Streams support improvements.
+
 ## 0.0.2
 
 - Support streams.

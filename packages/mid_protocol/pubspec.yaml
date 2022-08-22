@@ -1,6 +1,6 @@
 name: mid_protocol
 description: A protocol for supporting the communication between mid servers and clients.
-version: 0.0.1
+version: 0.0.2
 homepage: https://www.github.com/osaxma/mid
 
 environment:

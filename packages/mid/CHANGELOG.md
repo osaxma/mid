@@ -1,3 +1,7 @@
+## 0.0.3
+
+Various changes in generated code structure. 
+
 ## 0.0.2
 
 Support returning a stream
