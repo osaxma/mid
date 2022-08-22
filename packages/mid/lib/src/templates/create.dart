@@ -13,7 +13,7 @@ Future<void> main(List<String> args) async {
     middlewares: getMiddlewares(), // // don't modify
 
     // Use any available host or container IP (usually `0.0.0.0`).
-    ip: InternetAddress.anyIPv4,
+    address: InternetAddress.anyIPv4,
     
     // For running in containers, the PORT environment variable would be used.
     port: int.parse(Platform.environment['PORT'] ?? '8000'),
@@ -77,13 +77,20 @@ import 'package:mid/mid.dart';
 import 'package:mid_server/mid_server.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-List<FutureOrBaseHandler> getFutureOrHandlers(List<EndPoints> endpoints) {
+List<BaseHandler> getHandlers(List<EndPoints> endpoints) {
+  return [
+    ..._getFutureOrHandlers(endpoints),
+    ..._getStreamHandlers(endpoints),
+  ];
+}
+
+List<FutureOrBaseHandler> _getFutureOrHandlers(List<EndPoints> endpoints) {
   final handlers = <FutureOrBaseHandler>[];
 
   return handlers;
 }
 
-List<StreamBaseHandler> getStreamHandlers(List<EndPoints> endpoints) {
+List<StreamBaseHandler> _getStreamHandlers(List<EndPoints> endpoints) {
   final handlers = <StreamBaseHandler>[];
 
   return handlers;
