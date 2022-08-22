@@ -1,3 +1,7 @@
+## 0.0.3+1
+
+ - **FIX**: updated cli version output.
+
 ## 0.0.3
 
 Various changes in generated code structure. 
