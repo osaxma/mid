@@ -5,17 +5,23 @@ packages:
 
 command:
   bootstrap:
-    usePubspecOverrides: true
+    usePubspecOverrides:
+      true
+
+  version:
+    # Only allow versioning to happen on main branch.
+    branch: main
 
 scripts:
   version: dart run scripts/generate_version.dart
 
   analyze:
+    description: Analayze the project 
     exec: dart analyze .
 
   format:
+    description: Format the project 
     exec: dart format -l 120 lib
-
 
   activate:
     description: Activate the local version of mid for development.
