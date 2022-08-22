@@ -179,8 +179,8 @@ class EndPointStream {
   // that is, nothing can be added to stream nor can the stream be closed until the
   // addStream completes (see its docs).
   void _onListen() {
-    _sub = mapStream(rootStream).listen(controller.sink.add);
-    _sub!.onError(controller.sink.addError);
+    _sub = mapStream(rootStream).listen(addEvent);
+    _sub!.onError(addError);
     _sub!.onDone(_onCancel);
     onListen?.call();
   }
@@ -194,16 +194,29 @@ class EndPointStream {
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
-    controller.sink.addError(error, stackTrace);
+    if (!controller.isClosed) {
+      controller.sink.addError(error, stackTrace);
+    }
   }
 
-  // void addEvent(Message event) {
-  //   controller.sink.add(mapStream(event));
-  // }
+  void addEvent(String event) {
+    if (!controller.isClosed) {
+      controller.sink.add(event);
+    }
+  }
+
+  void handleComplete(Message message) {
+    if (!controller.isClosed) {
+      _onCancel();
+    }
+  }
 
   Stream<String> mapStream(Stream<Message> stream) => stream.where((event) {
         if (event.type == MessageType.error) {
-          controller.sink.addError(Exception(event.payload));
+          addError(Exception(event.payload));
+          return false;
+        } else if (event.type == MessageType.complete) {
+          handleComplete(event);
           return false;
         }
         return true;
