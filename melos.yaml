@@ -15,3 +15,12 @@ scripts:
 
   format:
     exec: dart format -l 120 lib
+
+
+  activate:
+    description: Activate the local version of mid for development.
+    run: dart pub global activate --source="path" . --executable="mid" --overwrite
+
+  activate:pub:
+    description: Activate the published version of mid.
+    run: dart pub global activate mid

@@ -1,6 +1,9 @@
 name: "mid_monorepo"
 publish_to: none
 
+executables:
+  mid: mid_dev
+
 environment:
   sdk: '>=2.17.6 <3.0.0'
 
