@@ -8,6 +8,8 @@ command:
     usePubspecOverrides: true
 
 scripts:
+  version: dart run scripts/generate_version.dart
+
   analyze:
     exec: dart analyze .
 

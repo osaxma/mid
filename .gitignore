@@ -1,9 +1,18 @@
+# Files and directories created by pub.
+.dart_tool/
+.packages
+pubspec.lock
+
+# Conventional directory for build output.
+build/
+coverage/
+
+
+# IDE folder
 .vscode/
-
 .idea/
-
-.temp/
-
-temp.md
-
 *.iml
+
+# osaxma local repo 
+.temp/
+temp.md
