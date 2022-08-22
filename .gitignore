@@ -1,3 +1,9 @@
 .vscode/
 
+.idea/
+
+.temp/
+
 temp.md
+
+*.iml

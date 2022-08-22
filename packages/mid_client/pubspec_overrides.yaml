@@ -1,0 +1,6 @@
+# melos_managed_dependency_overrides: mid,mid_protocol
+dependency_overrides:
+  mid:
+    path: ../mid
+  mid_protocol:
+    path: ../mid_protocol
