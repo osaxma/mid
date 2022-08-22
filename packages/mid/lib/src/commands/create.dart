@@ -12,14 +12,17 @@ import 'base.dart';
 ///   <project_name>
 ///         |- <project_name>_client
 ///                 |- lib
-///                     |- models
-///                          |- model1.dart
-///                          |- model2.dart
-///                     |- routes
-///                          |- route1.dart
-///                          |- route2.dart
-///                 |- models.dart
-///                 |- client.dart
+///                     |- mid
+///                         |- routes
+///                               |- route_1.dart
+///                               |- route_2.dart
+///                         |- models
+///                               |- models.dart (for now all in one file)
+///                         |- client.dart
+///                         |- models.dart (to export models)
+///                         |- routes.dart (to export routes)
+///                         |- interceptors.dart (to export interceptors types)
+///                     |- <project_name>_client.dart (exports client, models, routes, interceptors)
 ///         |- <project_name>_server
 ///                 |- bin
 ///                     |- server.dart
@@ -27,7 +30,6 @@ import 'base.dart';
 ///                         |- generated
 ///                             |- handlers.dart
 ///                             |- serializers.dart
-///                             |- server.dart
 ///                         |- endpoints.dart
 ///                         |- middlewares.dart
 ///         |- other files...

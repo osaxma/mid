@@ -13,6 +13,7 @@ command:
     branch: main
 
 scripts:
+  # this is a hook on `melos version`
   version: dart run scripts/generate_version.dart
 
   analyze:

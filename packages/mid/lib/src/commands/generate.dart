@@ -90,8 +90,6 @@ class GenerateClientLibCommand extends MIDCommand {
     );
 
     await generator.generate();
-
-   _clearClientRoutes(clientLibraryPath);
     await generator.commit();
   }
 }
@@ -132,18 +130,7 @@ class GenerateAllCommand extends MIDCommand {
     await clientGenerator.generate();
 
     await serverGenerator.commit();
-    _clearClientRoutes(clientLibraryPath);
     await clientGenerator.commit();
   }
 }
 
-
-/// deletes all routes for new ones to be generated
-/// 
-/// This is necessary since a route name may change or get deleted between runs
-/// 
-/// Unlike models, which exists in a single file and it gets replaced, routes
-/// are within a directory. 
-void _clearClientRoutes(String clientLibraryPath) {
-  clearDirContent(p.join(clientLibraryPath, 'lib', 'routes'));
-}

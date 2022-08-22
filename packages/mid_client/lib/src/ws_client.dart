@@ -6,6 +6,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'package:mid_protocol/mid_protocol.dart';
 
+// TODO: this class is a bit messy, clean up and split where necessary.
 class MidWebSocketClient {
   final Uri uri;
 
@@ -148,17 +149,6 @@ class MidWebSocketClient {
   }
 }
 
-const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890-_';
-final _randomGenerator = Random();
-String _generateRandomID(int length) => String.fromCharCodes(
-      Iterable.generate(
-        length,
-        (_) => _chars.codeUnitAt(
-          _randomGenerator.nextInt(_chars.length),
-        ),
-      ),
-    );
-
 class EndPointStream {
   final String id;
   final String route;
@@ -231,3 +221,14 @@ class EndPointStream {
   // maybe this should be handled at the endpoint handler itself
   // .map((event) => json.decode(event));
 }
+
+const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890-_';
+final _randomGenerator = Random();
+String _generateRandomID(int length) => String.fromCharCodes(
+      Iterable.generate(
+        length,
+        (_) => _chars.codeUnitAt(
+          _randomGenerator.nextInt(_chars.length),
+        ),
+      ),
+    );
