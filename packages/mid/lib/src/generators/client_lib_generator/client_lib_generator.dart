@@ -130,16 +130,11 @@ class $className extends BaseClient {
   /// [messageInterceptors] -- a list of interceptors to intercept messages between
   /// the server and the client of the websocket connection.
   $className({
-    required String url,
-    Map<String, String>? initialHeaders,
-    List<Interceptor> interceptors = const [],
-    List<MessageInterceptor> messageInterceptors = const [],
-  }) : super(
-          url: url,
-          interceptors: interceptors,
-          messageInterceptors: messageInterceptors,
-          initialHeaders: initialHeaders,
-        );
+    required super.url,
+    super.initialHeaders,
+    super.interceptors,
+    super.messageInterceptors,
+  });
 }
 ''';
 }
