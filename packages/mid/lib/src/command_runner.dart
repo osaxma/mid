@@ -3,7 +3,7 @@ import 'package:args/command_runner.dart';
 import 'package:mid/src/commands/generate.dart';
 
 import 'commands/create.dart';
-import 'version.dart';
+import '../version.dart';
 
 class MIDCommandRunner extends CommandRunner<void> {
   /// The working directory of a mid project
