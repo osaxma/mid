@@ -166,11 +166,15 @@ class _MessageHandler {
     final payload = message.payload;
     final id = message.id;
 
-    if (payload == null || payload is! Map<String, dynamic>) {
+    if (payload == null || payload is! SubscribePayload) {
       sendMessage(
         ErrorMessage(
           id: id,
-          payload: ErrorPayload(errorCode: -1, errorMessage: 'the payload for ${message.type.name} must be a string'),
+          payload: ErrorPayload(
+            errorCode: -1,
+            errorMessage:
+                'the payload for ${message.type.name} must be a SubscribePayload but recived ${payload.runtimeType}',
+          ),
         ),
       );
       return;
@@ -190,8 +194,8 @@ class _MessageHandler {
     //   );
     // }
 
-    final route = payload['route'];
-    final data = payload['data'];
+    final route = payload.route;
+    final data = payload.args;
 
     final handler = streamHandlerProvider(route);
 
