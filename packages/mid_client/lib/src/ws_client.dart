@@ -43,14 +43,23 @@ class MidWebSocketClient {
   void close() async {
     await _conn?.sink.close(1000, 'Normal Closure');
     _conn = null;
+    _rootStream = null;
   }
+
+  Stream<dynamic>? _rootStream;
 
   // TODO: should this be <Message> instead and handle [MessageType.error] here?
   Stream<dynamic> get stream {
     if (_conn == null) {
-      throw Exception('Websocket connection was not initialized');
+      connect();
     }
-    return _conn!.stream;
+
+    return _rootStream ??= _conn!.stream.asBroadcastStream(
+      // onListen: (subscription) {},
+      onCancel: (subscription) {
+        close();
+      },
+    );
   }
 
   Sink<dynamic> get sink {
@@ -108,10 +117,6 @@ class MidWebSocketClient {
   }
 
   Stream<dynamic> executeStream(Map<String, dynamic> args, String route) {
-    if (_conn == null) {
-      connect();
-    }
-
     final id = _generateRandomID(10);
     final subscribeMsg = SubscribeMessage(
       id: id,
