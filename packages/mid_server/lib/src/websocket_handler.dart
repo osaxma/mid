@@ -82,8 +82,6 @@ class _MessageHandler {
   }
 
   void _onConnError(dynamic err) {
-    // TODO: this might not work if the conn failed
-    sendMessage(Message(type: MessageType.error, payload: err));
     _connDispose();
   }
 
@@ -101,12 +99,12 @@ class _MessageHandler {
       final message = interceptClient(Message.fromJson(event));
       switch (message.type) {
         case MessageType.ping:
-          sendMessage(pongMsg.copyWith(id: message.id));
+          sendMessage(pongMsg);
           break;
         case MessageType.connectionInit:
-          sendMessage(ackMsg.copyWith(id: message.id));
+          sendMessage(ConnectionAcknowledgeMessage());
           break;
-        case MessageType.updateHeaders:
+        case MessageType.connectionUpdate:
           // TODO: Handle this case.
           break;
 
@@ -128,13 +126,23 @@ class _MessageHandler {
         // These are Server --> Client types so they are not supposed to be sent by the client
         case MessageType.error:
         case MessageType.data:
+        case MessageType.complete:
         case MessageType.connectionAcknowledge:
-          sendMessage(Message(type: MessageType.error, payload: 'Invalid MessageType ${message.type}'));
+          sendMessage(
+            ErrorMessage(
+              id: message.id,
+              payload: ErrorPayload(errorCode: -1, errorMessage: 'Invalid MessageType ${message.type}'),
+            ),
+          );
       }
     } catch (e) {
-      final errorMessage = Message(
-        type: MessageType.error,
-        payload: 'message: $event\nerror: $e',
+      // 'message: $event\nerror: $e'
+      final errorMessage = ErrorMessage(
+        id: defaultErrorID,
+        payload: ErrorPayload(
+          errorCode: -1,
+          errorMessage: 'message: $event\nerror: $e',
+        ),
       );
       sendMessage(errorMessage);
       connSub.cancel();
@@ -146,16 +154,8 @@ class _MessageHandler {
 
   void handleStop(Message message) {
     final id = message.id;
-    if (id == null) {
-      sendMessage(
-        Message(
-          id: id,
-          type: MessageType.error,
-          payload: 'Subscriptions must have a message id',
-        ),
-      );
-      return;
-    }
+
+    sendMessage(CompleteMessage(id: id));
 
     // verify this happened?
     cancelActiveSub(id);
@@ -168,21 +168,9 @@ class _MessageHandler {
 
     if (payload == null || payload is! Map<String, dynamic>) {
       sendMessage(
-        Message(
+        ErrorMessage(
           id: id,
-          type: MessageType.error,
-          payload: 'the payload for ${message.type.name} must be a string',
-        ),
-      );
-      return;
-    }
-
-    if (id == null) {
-      sendMessage(
-        Message(
-          id: id,
-          type: MessageType.error,
-          payload: 'Subscriptions must have a message id',
+          payload: ErrorPayload(errorCode: -1, errorMessage: 'the payload for ${message.type.name} must be a string'),
         ),
       );
       return;
@@ -212,9 +200,8 @@ class _MessageHandler {
     final sub = _handlerSub = stream.listen(
       (event) {
         sink.add(
-          Message(
+          DataMessage(
             id: id,
-            type: MessageType.data,
             payload: event,
           ).toJson(),
         );
@@ -225,12 +212,12 @@ class _MessageHandler {
       onError: (err, s) {
         cancelActiveSub(id);
         sendMessage(
-          Message(id: id, type: MessageType.error, payload: 'Endpoint subscription error. $err'),
+          ErrorMessage(id: id, payload: ErrorPayload(errorCode: -1, errorMessage: 'Endpoint subscription error. $err')),
         );
       },
     );
 
-    activeSubs.add(_EndPointSubscription(message.id!, sub));
+    activeSubs.add(_EndPointSubscription(message.id, sub));
   }
 
   void cancelActiveSub(String id) {
@@ -257,8 +244,9 @@ class _MessageHandler {
   }
 }
 
-const pongMsg = Message(type: MessageType.pong);
-const ackMsg = Message(type: MessageType.connectionAcknowledge);
+const pingMsg = PingMessage();
+const pongMsg = PongMessage();
+const ackMsg = ConnectionAcknowledgeMessage();
 
 /// simple wrapper around a subscription
 ///

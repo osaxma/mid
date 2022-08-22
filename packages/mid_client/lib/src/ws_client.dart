@@ -66,7 +66,7 @@ class MidWebSocketClient {
       return;
     }
 
-    _sendMessage(Message(type: MessageType.updateHeaders, payload: _headers));
+    _sendMessage(ConnectionUpdateMessage(payload: ConnectionPayload(headers: _headers)));
   }
 
   void _sendMessage(Message message) {
@@ -88,7 +88,7 @@ class MidWebSocketClient {
       // await _getStream(initMsg.id!)
       //     .firstWhere((element) => element.type == MessageType.connectionAcknowledge)
       //     .timeout(Duration(seconds: 5));
-      _sendMessage(initMsg);
+      _sendMessage(ConnectionInitMessage(payload: ConnectionPayload(headers: _headers)));
     } catch (e) {
       // handle error.. this should inform all those who are subscribing to the _conn (that's why it's better to have our broadcast)
       print('init msg failed error $e');
@@ -113,18 +113,13 @@ class MidWebSocketClient {
     }
 
     final id = _generateRandomID(10);
-    final subscribeMsg = Message(
+    final subscribeMsg = SubscribeMessage(
       id: id,
-      type: MessageType.subscribe,
-      payload: {
-        'route': route,
-        'data': args,
-      },
+      payload: SubscribePayload(args: args, route: route),
     );
 
-    final stopMsg = Message(
+    final stopMsg = StopMessage(
       id: id,
-      type: MessageType.stop,
     );
 
     final endpointStream = EndPointStream(
@@ -147,8 +142,6 @@ class MidWebSocketClient {
     return endpointStream.stream.map((event) => json.decode(event));
   }
 }
-
-const initMsg = Message(id: 'init', type: MessageType.connectionInit);
 
 const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890-_';
 final _randomGenerator = Random();

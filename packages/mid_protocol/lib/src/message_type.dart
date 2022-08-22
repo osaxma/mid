@@ -6,6 +6,10 @@
 ///   - Bidrectional (both of the above)
 ///
 /// See the documentation above each type for more details.
+///
+/// Inspired by: [GraphQL over WebSocket Protocol][]
+///
+/// [GraphQL over WebSocket Protocol]: https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md
 enum MessageType {
   /// Direction: bi-directional
   ///
@@ -15,7 +19,7 @@ enum MessageType {
 
   /// Direction: bi-directional
   ///
-  /// a response to a [ping]
+  /// a response to a [ping].
   pong,
 
   /// Direction: Client --> Server
@@ -28,9 +32,18 @@ enum MessageType {
   /// was established.
   connectionInit,
 
+  /// Direction: Client --> Server
+  ///
+  /// Updates the existing connections headers
+  ///
+  /// The main use case is updating Authentication headers
+  /// before they expire to prevent terminating any live
+  /// subscription or terminating the entire connection.
+  connectionUpdate,
+
   /// Direction: Server --> Client
   ///
-  /// a response to a [connectionInit] request
+  /// a response to a [connectionInit] and [connectionUpdate]. 
   connectionAcknowledge,
 
   /// Direction: Client --> Server
@@ -43,13 +56,12 @@ enum MessageType {
   /// stop a subscription to a stream endpoint
   stop,
 
-  /// Direction: Client --> Server
+  /// Direction: Server --> Client
   ///
-  /// Any headers that server expects from the client.
-  ///
-  /// The main use case is updating Authentication headers
-  /// before expiry to keep the connection alive.
-  updateHeaders,
+  /// Indicates that a subscription was complete.
+  /// This event is either sent after the last event
+  /// [subscribe] of a stream, or after a [stop] message.
+  complete,
 
   /// Direction: Server --> Client
   ///

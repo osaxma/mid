@@ -1,85 +1,419 @@
-// note: the protocol is kept in `mid` package because it's used between both `mid_server` & `mid_client`
 import 'dart:convert';
 
 import 'message_type.dart';
 
-/// A representation of a message that's exchanged between the server and the client
-class Message {
-  final String? id;
-  final Object? payload;
-  final MessageType type;
-  const Message({
-    this.id,
-    this.payload,
-    required this.type,
-  });
+/// The base class representing a message in mid websocket protocol
+///
+/// Each [MessageType] has its own [Message] with a specific payload type
+/// Some [MessageType] such as `ping` and `pong` share the same type
+/// i.e. NoPayLoadMessage
+///
+abstract class Message {
+  const Message();
+  String get id;
+  MessageType get type;
+  Object? get payload => null;
 
-  Message copyWith({
-    String? id,
-    Object? payload,
-    MessageType? type,
-  }) {
-    return Message(
-      id: id ?? this.id,
-      payload: payload ?? this.payload,
-      type: type ?? this.type,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'payload': payload,
-      'type': type.name,
-    };
-  }
-
-  factory Message.fromMap(Map<String, dynamic> map) {
-    final type = MessageType.fromName(map['type']);
-    if (type == null) {
-      throw Exception('Unknown MessageType');
-    }
-    return Message(
-      id: map['id'],
-      payload: map['payload'],
-      type: type,
-    );
-  }
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'type': type.name,
+        'payload': payload,
+      };
 
   String toJson() => json.encode(toMap());
 
-  factory Message.fromJson(String source) => Message.fromMap(json.decode(source));
-
   @override
-  String toString() => 'Message(id: $id, payload: $payload, type: $type)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is Message && other.id == id && other.payload == payload && other.type == type;
+  String toString() {
+    return 'Message(id: $id, type: $type, payload: $payload)';
   }
 
-  @override
-  int get hashCode => id.hashCode ^ payload.hashCode ^ type.hashCode;
+  factory Message.fromMap(Map<String, dynamic> map) {
+    final type = map['type'];
+    if (map['type'] == null || map['type'] is! String) {
+      throw Exception('"Message.fromMap failed due to unkown MessageType -- type $type');
+    }
+
+    final messageType = MessageType.fromName(type);
+    if (messageType == null) {
+      throw Exception('"Message.fromMap failed due to unkown MessageType -- type $type');
+    }
+
+    switch (messageType) {
+      case MessageType.ping:
+        return PingMessage();
+      case MessageType.pong:
+        return PongMessage();
+      case MessageType.connectionInit:
+        return ConnectionInitMessage.fromMap(map);
+      case MessageType.connectionUpdate:
+        return ConnectionUpdateMessage.fromMap(map);
+      case MessageType.connectionAcknowledge:
+        return ConnectionAcknowledgeMessage();
+      case MessageType.subscribe:
+        return SubscribeMessage.fromMap(map);
+      case MessageType.stop:
+        return StopMessage(id: map['id']);
+      case MessageType.complete:
+        return CompleteMessage(id: map['id']);
+      case MessageType.data:
+        return DataMessage.fromMap(map);
+      case MessageType.error:
+        return ErrorMessage.fromMap(map);
+      case MessageType.endpoint:
+        return EndpointMessage.fromMap(map);
+    }
+  }
+  factory Message.fromJson(String source) => Message.fromMap(json.decode(source));
 }
 
-// abstract class Payload {}
+/* -------------------------------------------------------------------------- */
+/*                                  ping pong                                 */
+/* -------------------------------------------------------------------------- */
 
-// class InitPayload extends Payload {
-//   final String route;
+class PingMessage extends Message {
+  const PingMessage();
 
-//   InitPayload(this.route);
-// }
+  @override
+  String get id => type.name;
 
-// class DataPayload<T> extends Payload {
-//   final T data;
+  @override
+  final MessageType type = MessageType.ping;
+}
 
-//   DataPayload(this.data);
-// }
+class PongMessage extends Message {
+  const PongMessage();
 
-// class ErrorPayload extends Payload {
-//   final String errorMessage;
+  @override
+  String get id => type.name;
 
-//   ErrorPayload(this.errorMessage);
-// }
+  @override
+  final MessageType type = MessageType.ping;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               connection                                   */
+/* -------------------------------------------------------------------------- */
+
+class ConnectionInitMessage extends Message {
+  @override
+  final ConnectionPayload payload;
+
+  const ConnectionInitMessage({required this.payload});
+
+  @override
+  String get id => type.name;
+
+  @override
+  MessageType get type => MessageType.connectionInit;
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'type': type.name,
+      'payload': payload.toMap(),
+    };
+  }
+
+  factory ConnectionInitMessage.fromMap(Map<String, dynamic> map) {
+    return ConnectionInitMessage(
+      payload: ConnectionPayload.fromMap(map['payload']),
+    );
+  }
+}
+
+class ConnectionUpdateMessage extends Message {
+  @override
+  final ConnectionPayload payload;
+
+  const ConnectionUpdateMessage({required this.payload});
+
+  @override
+  String get id => type.name;
+
+  @override
+  MessageType get type => MessageType.connectionUpdate;
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'type': type.name,
+      'payload': payload.toMap(),
+    };
+  }
+
+  factory ConnectionUpdateMessage.fromMap(Map<String, dynamic> map) {
+    return ConnectionUpdateMessage(
+      payload: ConnectionPayload.fromMap(map['payload']),
+    );
+  }
+}
+
+class ConnectionPayload {
+  final Map<String, String> headers;
+  ConnectionPayload({required this.headers});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'headers': headers,
+    };
+  }
+
+  factory ConnectionPayload.fromMap(Map<String, dynamic> map) {
+    return ConnectionPayload(
+      headers: Map<String, String>.from(map['headers']),
+    );
+  }
+}
+
+class ConnectionAcknowledgeMessage extends Message {
+  const ConnectionAcknowledgeMessage();
+  @override
+  String get id => type.name;
+
+  @override
+  MessageType get type => MessageType.connectionAcknowledge;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    error                                   */
+/* -------------------------------------------------------------------------- */
+
+/// used when no message id is present
+const defaultErrorID = 'error';
+const defaultConnectionErrorID = 'connectionError';
+
+class ErrorMessage extends Message {
+  @override
+  final String id;
+  @override
+  final ErrorPayload payload;
+
+  final bool isConnectionError;
+
+  const ErrorMessage({
+    required this.id,
+    required this.payload,
+    this.isConnectionError = false,
+  });
+
+  @override
+  MessageType get type => MessageType.error;
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'type': type.name,
+      'isConnError': isConnectionError,
+      'payload': payload.toMap(),
+    };
+  }
+
+  factory ErrorMessage.fromMap(Map<String, dynamic> map) {
+    return ErrorMessage(
+      id: map['id'],
+      isConnectionError: map['isConnectionError'],
+      payload: ErrorPayload.fromMap(map['payload']),
+    );
+  }
+}
+
+class ErrorPayload {
+  final int errorCode;
+  final String errorMessage;
+  ErrorPayload({
+    required this.errorCode,
+    required this.errorMessage,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'errorCode': errorCode,
+      'errorMessage': errorMessage,
+    };
+  }
+
+  factory ErrorPayload.fromMap(Map<String, dynamic> map) {
+    return ErrorPayload(
+      errorCode: map['errorCode'],
+      errorMessage: map['errorMessage'],
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  subscribe                                 */
+/* -------------------------------------------------------------------------- */
+
+class SubscribeMessage extends Message {
+  const SubscribeMessage({required this.id, required this.payload});
+
+  @override
+  final String id;
+
+  @override
+  final SubscribePayload payload;
+
+  @override
+  MessageType get type => MessageType.subscribe;
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'type': type.name,
+      'payload': payload.toMap(),
+    };
+  }
+
+  factory SubscribeMessage.fromMap(Map<String, dynamic> map) {
+    return SubscribeMessage(
+      id: map['id'],
+      payload: SubscribePayload.fromMap(map['payload']),
+    );
+  }
+}
+
+class SubscribePayload {
+  final String route;
+  final Map<String, dynamic> args;
+  const SubscribePayload({required this.route, required this.args});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'route': route,
+      'args': args,
+    };
+  }
+
+  factory SubscribePayload.fromMap(Map<String, dynamic> map) {
+    return SubscribePayload(
+      route: map['route'],
+      args: Map<String, dynamic>.from(map['args']),
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    stop                                    */
+/* -------------------------------------------------------------------------- */
+
+class StopMessage extends Message {
+  const StopMessage({required this.id});
+
+  @override
+  final String id;
+
+  @override
+  MessageType get type => MessageType.stop;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  complete                                  */
+/* -------------------------------------------------------------------------- */
+
+class CompleteMessage extends Message {
+  const CompleteMessage({required this.id});
+
+  @override
+  final String id;
+
+  @override
+  MessageType get type => MessageType.complete;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    data                                    */
+/* -------------------------------------------------------------------------- */
+
+class DataMessage extends Message {
+  const DataMessage({required this.id, required this.payload});
+
+  @override
+  final String id;
+
+  /// The payload must be a json encoded string.
+  @override
+  final String payload;
+
+  @override
+  MessageType get type => MessageType.data;
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'type': type.name,
+      'payload': payload,
+    };
+  }
+
+  factory DataMessage.fromMap(Map<String, dynamic> map) {
+    return DataMessage(
+      id: map['id'],
+      payload: map['payload'],
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  endpoint                                  */
+/* -------------------------------------------------------------------------- */
+
+class EndpointMessage extends Message {
+  const EndpointMessage({required this.id, required this.payload});
+
+  @override
+  final String id;
+
+  @override
+  final EndpointPayload payload;
+
+  @override
+  MessageType get type => MessageType.endpoint;
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'type': type.name,
+      'payload': payload.toMap(),
+    };
+  }
+
+  factory EndpointMessage.fromMap(Map<String, dynamic> map) {
+    return EndpointMessage(
+      id: map['id'],
+      payload: EndpointPayload.fromMap(map['payload']),
+    );
+  }
+}
+
+class EndpointPayload {
+  final String route;
+  final Map<String, dynamic> args;
+
+  const EndpointPayload({required this.route, required this.args});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'route': route,
+      'args': args,
+    };
+  }
+
+  factory EndpointPayload.fromMap(Map<String, dynamic> map) {
+    return EndpointPayload(
+      route: map['route'],
+      args: Map<String, dynamic>.from(map['args']),
+    );
+  }
+}
+
+final reservedMessageIDs = [
+  ...MessageType.values.map((e) => e.name),
+  defaultErrorID,
+  defaultConnectionErrorID,
+];
