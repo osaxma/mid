@@ -1,3 +1,9 @@
+## 0.0.3+2
+
+ - **REFACTOR**: changed client project structure gen.
+ - **FIX**: single stream -> broadcast stream.
+ - **FIX**: fix stream error.
+
 ## 0.0.3+1
 
  - Update a dependency to the latest release.

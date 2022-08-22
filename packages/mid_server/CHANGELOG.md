@@ -1,3 +1,7 @@
+## 0.0.3+2
+
+ - **FIX**: wrong type check in websocket client.
+
 ## 0.0.3+1
 
  - Update a dependency to the latest release.

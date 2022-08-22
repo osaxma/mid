@@ -1,3 +1,10 @@
+## 0.0.3+2
+
+ - **REFACTOR**: changed client project structure gen.
+ - **REFACTOR**: use super.parameter in BaseClient gen.
+ - **FIX**: bug in toPascalCaseFromSnakeCase.
+ - **FIX**: generated mid_client code.
+
 ## 0.0.3+1
 
  - **FIX**: updated cli version output.
