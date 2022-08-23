@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mid_client/src/interceptor.dart';
 
-// TODO: figure out the best way to generate the server
-// - Should we use http.post directly
-//   - or create a single client? (if so, see: https://github.com/dart-lang/http/issues/422)
-class MidHttpClient {
+// TODO: test if this approach won't cause issues
+//       this is a long lived object so the client 
+//       may be alive the entire life of the app
+//       there are some issues mentioned here:
+//        https://github.com/dart-lang/http/issues/422)
+class MidHttpClient extends http.BaseClient {
   final Uri uri;
 
   late Map<String, String> _headers;
@@ -31,21 +33,36 @@ class MidHttpClient {
     _headers.removeWhere((key, value) => key.toLowerCase() == 'content-type');
     _headers['content-type'] = 'application/json';
 
-    final res = await http.post(
+    http.Response response = await post(
       uri.replace(path: route),
       headers: _headers,
       body: body,
     );
 
-    if (res.statusCode >= 400) {
-      throw Exception(res.body);
+    for (var interceptor in interceptors) {
+      response = await interceptor.onResponse(response);
     }
 
-    final data = json.decode(res.body);
+    if (response.statusCode >= 400) {
+      throw Exception(response.body);
+    }
+
+    final data = json.decode(response.body);
     return data;
   }
 
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    for (var interceptor in interceptors) {
+      request = await interceptor.onRequest(request as http.Request);
+    }
+    return request.send();
+  }
+
+  @override
+  // ignore: unnecessary_overrides
   void close() {
     // TODO: clean any resources here
+    super.close();
   }
 }
