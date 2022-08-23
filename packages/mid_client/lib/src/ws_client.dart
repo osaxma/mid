@@ -106,11 +106,11 @@ class MidWebSocketClient {
   }
 
   Message _clientIntercept(Message message) {
-    return interceptors.fold(message, (previousValue, element) => element.clientMessage(message));
+    return interceptors.fold(message, (previousValue, element) => element.clientMessage(previousValue));
   }
 
   Message _serverIntercept(Message message) {
-    return interceptors.fold(message, (previousValue, element) => element.serverMessage(message));
+    return interceptors.fold(message, (previousValue, element) => element.serverMessage(previousValue));
   }
 
   Stream<Message> _getStream(String messageID) {
