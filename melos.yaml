@@ -30,4 +30,4 @@ scripts:
 
   activate:pub:
     description: Activate the published version of mid.
-    run: dart pub global activate mid
+    run: dart pub global activate mid --overwrite
