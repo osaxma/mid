@@ -1,3 +1,7 @@
+## 0.0.3+3
+
+ - **REFACTOR**: added some docs and error handling.
+
 ## 0.0.3+2
 
  - **FIX**: wrong type check in websocket client.

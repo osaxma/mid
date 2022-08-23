@@ -1,3 +1,10 @@
+## 0.0.3+3
+
+ - **REFACTOR**: minor changes here and there.
+ - **REFACTOR**: pre-generate a `lib/src` folder.
+ - **REFACTOR**: pre-generate client folders/files.
+ - **FIX**: issue in generating default values.
+
 ## 0.0.3+2
 
  - **REFACTOR**: changed client project structure gen.
