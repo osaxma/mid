@@ -228,6 +228,11 @@ class ErrorMessage extends Message {
 }
 
 class ErrorPayload {
+  // TODO: create a set of error codes and decide which ones 
+  //       e.g. 0-100 -> error will be sent to the client and the connection will be terminated
+  //       e.g. 100-200 -> error will be sent to the client without terminating the connection
+  //       we might need to use the websocket standard error codes
+  //       also, look at graphql-ws protocol as a reference. 
   final int errorCode;
   final String errorMessage;
   ErrorPayload({

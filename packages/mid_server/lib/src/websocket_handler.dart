@@ -17,61 +17,53 @@ class WebsocketHandler {
     required this.interceptors,
   });
 
-  // a workaround to pass the request to the messageHandler
+  // a workaround to access the request
+  // this was needed previously to access the request headers
+  // but since [MessageType.connectionInit] and [MessageType.connectionUpdate]
+  // contains the headers now, this may not be needed anymore.
   FutureOr<Response> wsHandler(Request request) async {
-    return webSocketHandler((WebSocketChannel webSocket) {
-      _messagesHandler(webSocket, request);
-    })(request);
+    return webSocketHandler(_messagesHandler)(request);
   }
 
-  // The webSocket here is for a single client
-  void _messagesHandler(WebSocketChannel webSocket, Request request) {
-    final handler = _MessageHandler(
-      webSocket.stream, // this is a single sub stream! TODO: do same logic as in client
+  void _messagesHandler(WebSocketChannel webSocket) {
+    final handler = _ConnectionHandler(
+      webSocket.stream,
       webSocket.sink,
       _getHandler,
-      request,
       interceptors: interceptors,
     );
     handler.listen();
   }
 
-  StreamBaseHandler _getHandler(String route) {
+  StreamBaseHandler? _getHandler(String route) {
     for (final handler in handlers) {
       if (handler.route == route) {
         return handler;
       }
     }
 
-    throw Exception('Stream handler for $route not found');
+    // throw Exception('Stream handler for $route not found');
+    return null;
   }
 }
 
 // TODO: this class is a mess -- it's handling the connection as well as message requests.
 //       at least move all message requests out
-class _MessageHandler {
-  // note: the request may contains authentication token which may expire during the life of this connection
-  //       the client may request to update these headers solely to update the auth token.
-  //       The goal here is to provide the user of the library a way to intercept messages and therefore
-  //       decides whether the headers should be updated, or if the connection should terminate.
-  //       The interceptors should provide the request headers with each message.
-  final Request request;
+class _ConnectionHandler {
   final Stream stream;
   final WebSocketSink sink;
   late final StreamSubscription connSub;
-  StreamSubscription? _handlerSub;
-  final StreamBaseHandler Function(String) streamHandlerProvider;
+  final StreamBaseHandler? Function(String) streamHandlerProvider;
   final List<MessageInterceptor> interceptors;
 
   final List<_EndPointSubscription> activeSubs = [];
 
   bool initted = false;
 
-  _MessageHandler(
+  _ConnectionHandler(
     this.stream,
     this.sink,
-    this.streamHandlerProvider,
-    this.request, {
+    this.streamHandlerProvider, {
     this.interceptors = const [],
   });
 
@@ -87,34 +79,43 @@ class _MessageHandler {
 
   void _onConnDone() => _connDispose();
 
-  void _connDispose() async {
-    // this is causing an issue where the program does not exit :/
-    // see: https://github.com/dart-lang/sdk/issues/49777
+  // TODO: remove the default values so the caller must provide appropriate closeCode and closeReason.
+  void _connDispose([int closeCode = 1000, closeReason = 'normal closure']) async {
+    // TODO: re-evaluate if this is necessary since it may be causing a memory leak when called:
+    //       see: https://github.com/dart-lang/sdk/issues/49777
     // connSub.cancel();
-    await sink.close(1000, 'done');
+
+    // cancel any active subs
+    for (var activeSub in activeSubs) {
+      await activeSub.cancel();
+    }
+    await sink.close(closeCode, closeReason);
   }
 
   void onData(dynamic event) {
     try {
       final message = interceptClient(Message.fromJson(event));
+      // in case the interceptor returns an error message
+      if (message is ErrorMessage) {
+        throw message;
+      }
       switch (message.type) {
         case MessageType.ping:
           sendMessage(pongMsg);
           break;
         case MessageType.connectionInit:
+          // if the interceptClient didn't reject the message, then it's acknowledged
           sendMessage(ConnectionAcknowledgeMessage());
           break;
         case MessageType.connectionUpdate:
-          // TODO: Handle this case.
+          // if the interceptClient didn't reject the message, then it's acknowledged
+          sendMessage(ConnectionAcknowledgeMessage());
           break;
-
         case MessageType.pong:
-          // TODO: Handle this case.
+          handlePong(message);
           break;
-
         case MessageType.subscribe:
           handleSubscribe(message);
-          // TODO: Handle this case.
           break;
         case MessageType.stop:
           handleStop(message);
@@ -131,24 +132,48 @@ class _MessageHandler {
           sendMessage(
             ErrorMessage(
               id: message.id,
-              payload: ErrorPayload(errorCode: -1, errorMessage: 'Invalid MessageType ${message.type}'),
+              payload: ErrorPayload(
+                errorCode: -1, // TODO
+                errorMessage: 'Invalid MessageType ${message.type}',
+              ),
             ),
           );
       }
     } catch (e) {
-      // 'message: $event\nerror: $e'
-      final errorMessage = ErrorMessage(
+      late final Message errorMessage;
+      if (e is Message) {
+        errorMessage = e;
+      } else {
+        errorMessage = ErrorMessage(
+          id: defaultErrorID,
+          payload: ErrorPayload(
+            errorCode: -1, // TODO
+            errorMessage: 'message: $event\nerror: $e',
+          ),
+        );
+      }
+
+      sendMessage(errorMessage);
+
+      // TODO: decide when we neet to terminate the connection
+      // TODO: provide a meaningful close code and close reason
+      _connDispose();
+    }
+  }
+
+  void handlePong(Message message) {
+    // TODO: notifiy the ping sender
+  }
+
+  void handleEndpoint(Message message) {
+    if (message is! EndpointMessage) {
+      throw ErrorMessage(
         id: defaultErrorID,
         payload: ErrorPayload(
-          errorCode: -1,
-          errorMessage: 'message: $event\nerror: $e',
+          errorCode: -1, // TODO
+          errorMessage: 'MessageType.endpoint must have an EndpointMessage type',
         ),
       );
-      sendMessage(errorMessage);
-      connSub.cancel();
-      // TODO: provide a meaningful close code and close reason
-      sink.close(1000, 'TBD');
-      _handlerSub?.cancel();
     }
   }
 
@@ -171,7 +196,7 @@ class _MessageHandler {
         ErrorMessage(
           id: id,
           payload: ErrorPayload(
-            errorCode: -1,
+            errorCode: -1, // TODO
             errorMessage:
                 'the payload for ${message.type.name} must be a SubscribePayload but recived ${payload.runtimeType}',
           ),
@@ -180,28 +205,48 @@ class _MessageHandler {
       return;
     }
 
-    // TODO: make sure to check for duplicate ids at the client side
-    // the client should check for duplicate ids before sending them
-    // otherwise, returning a message with the same id would be received by the former subscription
-    //
-    // if (activeSubs.any((e) => e.id == message.id)) {
-    //   sendMessage(
-    //     Message(
-    //       id: message.id,
-    //       type: MessageType.error,
-    //       payload: 'An active subscription already exists with message id ${message.id}. Message must have a message id',
-    //     ),
-    //   );
-    // }
+    if (activeSubs.any((e) => e.messageID == id)) {
+      sendMessage(ErrorMessage(
+        id: id,
+        payload: ErrorPayload(
+          errorCode: -1, // TODO
+          errorMessage: 'An active subscription already exists with message id $id. Message must have a message id',
+        ),
+      ));
+      return;
+    }
 
     final route = payload.route;
     final data = payload.args;
 
     final handler = streamHandlerProvider(route);
 
-    final stream = handler.handler(data);
+    if (handler == null) {
+      sendMessage(ErrorMessage(
+        id: id,
+        payload: ErrorPayload(
+          errorCode: -1, // TODO
+          errorMessage: 'No handlers were found for the given route: $route',
+        ),
+      ));
+      return;
+    }
 
-    final sub = _handlerSub = stream.listen(
+    late final Stream<String> stream;
+    try {
+      stream = handler.handler(data);
+    } catch (e) {
+      sendMessage(ErrorMessage(
+        id: id,
+        payload: ErrorPayload(
+          errorCode: -1, // TODO
+          errorMessage: 'The handler for "$route" route failed to return.\nerror:\n$e',
+        ),
+      ));
+      return;
+    }
+
+    final sub = stream.listen(
       (event) {
         sink.add(
           DataMessage(
@@ -216,7 +261,13 @@ class _MessageHandler {
       onError: (err, s) {
         cancelActiveSub(id);
         sendMessage(
-          ErrorMessage(id: id, payload: ErrorPayload(errorCode: -1, errorMessage: 'Endpoint subscription error. $err')),
+          ErrorMessage(
+            id: id,
+            payload: ErrorPayload(
+              errorCode: -1, // TODO
+              errorMessage: 'Endpoint subscription error. $err',
+            ),
+          ),
         );
       },
     );
@@ -224,10 +275,10 @@ class _MessageHandler {
     activeSubs.add(_EndPointSubscription(message.id, sub));
   }
 
-  void cancelActiveSub(String id) {
+  Future<void> cancelActiveSub(String id) async {
     final idx = activeSubs.indexWhere((element) => element.messageID == id);
     if (idx != -1) {
-      activeSubs[idx].sub.cancel();
+      await activeSubs[idx].cancel();
       activeSubs.removeAt(idx);
     }
     if (activeSubs.isEmpty) {
@@ -236,7 +287,29 @@ class _MessageHandler {
   }
 
   void sendMessage(Message message) {
-    sink.add(interceptServer(message).toJson());
+    late final Message msg;
+    try {
+      msg = interceptServer(message);
+    } catch (e) {
+      if (e is Message) {
+        msg = e;
+      } else {
+        msg = ErrorMessage(
+          id: defaultErrorID,
+          payload: ErrorPayload(
+            errorCode: -1, // TODO,
+            errorMessage: e.toString(),
+          ),
+        );
+      }
+    }
+
+    sink.add(msg.toJson());
+
+    if (msg is ErrorMessage) { // && msg.payload.errorCode > x
+      // TODO: decide if the connection should be terminated after sending the message
+
+    }
   }
 
   Message interceptClient(Message message) {
@@ -258,6 +331,10 @@ const ackMsg = ConnectionAcknowledgeMessage();
 class _EndPointSubscription {
   final String messageID;
   final StreamSubscription<String> sub;
+
+  Future<void> cancel() async {
+    await sub.cancel();
+  }
 
   _EndPointSubscription(this.messageID, this.sub);
 

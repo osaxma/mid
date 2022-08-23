@@ -40,6 +40,9 @@ class ServerConfig {
   /// for more details.
   final bool shared;
 
+  /// Create a custom server config
+  ///
+  /// These configs will be passed to mid server (i.e. a shelf server). 
   ServerConfig({
     required this.handlers,
     required this.address,
