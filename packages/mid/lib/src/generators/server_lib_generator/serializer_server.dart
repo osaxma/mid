@@ -5,24 +5,26 @@ import 'package:dart_style/dart_style.dart';
 import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/serializer_common.dart';
 
-// note:
-// the choice to create separate serializers were for the following reasons:
-//  - prevent modifying the user code
-//  - support external components (e.g. auth API or storage API)
-//    - there's no way to generate code for an external package in such case.
+// Notes:
+// - The choice to create standalone serializers (i.e., not part of the type itself) 
+//  were for the following reasons:
+//    - Avoid modifying the user code
+//    - Support serializing external types (types from other packages)
+//    - Support the use of external components (e.g. auth API or storage API components)
 //
-// This introduces a limitation of course, all retrun types and arguments types must adhere to some rules:
-//  - The type must have unnamed constructor where all final fields are avaialble using `this` keyword.
-// that is all classes must be defined as follows:
-/* 
-class Data {
-  final int id;
-  final String name;
-  final MetaData metadata;
-
-  Data(this.id, this.name. this.metadata); // or named args using required. 
-}
- */
+// - To avoid complexity in serialization process, the user defined types in return statement 
+//   or arguments must adhere to some rules:
+//    - The type must have unnamed constructor with formal parameters (i.e., using `this` keyword).
+//      e.g.:
+//     ```dart
+//        class Data {
+//          final int id;
+//          final String name;
+//          final MetaData metadata; // must follow same rule including its members and their members, etc.
+//        
+//          Data(this.id, this.name. this.metadata); // or named args 
+//        }
+//    ```
 
 /// Generates serialization code for non-Dart Types (i.e. none of the core types) for the server
 ///

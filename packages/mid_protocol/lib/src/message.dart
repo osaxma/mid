@@ -4,10 +4,8 @@ import 'message_type.dart';
 
 /// The base class representing a message in mid websocket protocol
 ///
-/// Each [MessageType] has its own [Message] with a specific payload type
-/// Some [MessageType] such as `ping` and `pong` share the same type
-/// i.e. NoPayLoadMessage
-///
+/// Each [MessageType] has its own [Message] type and in some cases
+/// its own payload type (e.g., [SubscribeMessage] with [SubscribePayload])
 abstract class Message {
   const Message();
   String get id;
