@@ -4,7 +4,6 @@ import 'package:mid/src/common/io_utils.dart';
 import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/client_lib_generator/client_lib_generator.dart';
 import 'package:mid/src/generators/server_lib_generator/server_lib_generator.dart';
-import 'package:path/path.dart' as p;
 
 import 'base.dart';
 
