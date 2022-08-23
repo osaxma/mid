@@ -16,5 +16,4 @@ coverage/
 *.iml
 
 # osaxma local repo 
-.temp/
-temp.md
+/temp/
