@@ -63,7 +63,7 @@ String getServerProjectPath(String currentDirPath) {
   final currentDirName = p.basename(currentDirPath);
 
   // if within <project_name>_server/
-  if (isMidProject(currentDirPath)) {
+  if (currentDirName.endsWith('server')) {
     return currentDirPath;
   }
 
@@ -100,7 +100,7 @@ String getClientProjectPath(String currentDirPath) {
   if (currentDirName.endsWith('_server')) {
     final clientDirName = currentDirName.replaceFirst('_server', '_client');
     final clientDir = p.join(p.dirname(currentDirPath), clientDirName);
-    if (Directory(clientDir).existsSync()) {
+    if (isMidProject(clientDir)) {
       return clientDir;
     }
   }
@@ -110,13 +110,19 @@ String getClientProjectPath(String currentDirPath) {
   for (var element in dirElements) {
     final path = element.path;
     if (path.endsWith('_client')) {
-      return path;
+      if (isMidProject(path)) {
+        return path;
+      }
     }
   }
 
   throw Exception('could not find client project path');
 }
 
+/// This will check if the given [path] has: 'lib/mid' directory
+/// 
+/// This directory must be available in both client & server if
+/// this is a valid mid client or mid server generated project. 
 bool isMidProject(String path) {
   return FileSystemEntity.isDirectorySync(p.join(path, 'lib/mid'));
 }

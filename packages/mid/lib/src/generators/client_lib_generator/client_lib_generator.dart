@@ -102,15 +102,6 @@ class ClientLibGenerator {
     final clientContents = generateClientFileContents(_clientSources, projectName);
     final clientFile = File(p.join(clientLibProjectPath, 'lib', 'mid', 'client.dart'));
     _createOrOverwrite(clientFile, clientContents);
-
-    /* -------------------------------------------------------------------------- */
-    /*                              CREATE EXPORTERS                              */
-    /* -------------------------------------------------------------------------- */
-
-    final clientExporterFile = File(p.join(clientLibProjectPath, 'lib', '${projectName}_client.dart'));
-    _createOrOverwrite(clientExporterFile, clientLibraryFileContents);
-    final interceptorsExporterFile = File(p.join(clientLibProjectPath, 'lib', 'interceptors.dart'));
-    _createOrOverwrite(interceptorsExporterFile, clientInterceptorsDotDartContent);
   }
 }
 

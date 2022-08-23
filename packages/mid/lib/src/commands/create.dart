@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:mid/src/templates/client_templates.dart';
 import 'package:mid/src/templates/create.dart';
 import 'package:path/path.dart' as p;
 import 'package:mid/src/common/io_utils.dart';
@@ -85,7 +86,7 @@ class CreateCommand extends MIDCommand {
 
     final clientProjectDir = p.normalize(p.join(targetDir.path, '${projectName}_client'));
     prog = logger.progress('building client project');
-    await createClientProject(clientProjectDir);
+    await createClientProject(clientProjectDir, projectName);
     prog.finish();
     logger.stdout('done and dusted');
     return;
@@ -108,12 +109,31 @@ class CreateCommand extends MIDCommand {
     // TODO: add Dockerfile & .dockerignore (or use --template=server-shelf when creating dart project)
   }
 
-  Future<void> createClientProject(String path) async {
+  Future<void> createClientProject(String path, String projectName) async {
     await createDartProject(path, force: true);
     // delete bin folder, content of lib and content of test
     clearDirContent(p.join(path, 'bin'));
     clearDirContent(p.join(path, 'lib'));
     clearDirContent(p.join(path, 'test'));
+
+    // create `lib/mid/routes` & `lib/mid/models`
+    final routesDir = Directory(p.join(path, 'lib', 'mid', 'routes'));
+    final modelsDir = Directory(p.join(path, 'lib', 'mid', 'models'));
+    routesDir.createSync(recursive: true);
+    modelsDir.createSync();
+
+    final contents = '''
+/// this file will contain generated code after running `mid generate all` or `mid generate client`
+''';
+
+    // create `lib/routes.dart` , `lib/models.dart` (exporters)
+    createFileSync(p.join(path, 'lib', 'mid', 'models.dart'), contents: contents);
+    createFileSync(p.join(path, 'lib', 'mid', 'routes.dart'), contents: contents);
+    createFileSync(p.join(path, 'lib', 'mid', 'client.dart'), contents: contents);
+
+    // create `<project_name>_client.dart` and `interceptors.dart`
+    createFileSync(p.join(path, 'lib', '${projectName}_client.dart'), contents: clientLibraryFileContents);
+    createFileSync(p.join(path, 'lib', 'interceptors.dart'), contents: clientInterceptorsDotDartContent);
 
     await addPubDeps(path, ['http', 'collection', 'mid', 'mid_protocol', 'mid_client']);
   }
