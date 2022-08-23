@@ -219,17 +219,14 @@ class $handlerClassName extends StreamBaseHandler {
     for (final arg in methodInfo.argumentsInfo) {
       final name = arg.argName;
 
-      // the assigned value
-      final value = arg.hasDefaultValue ? '$name ?? ${arg.defaultValue}' : name;
-
       if (arg.isPositional) {
-        buffer.write(value);
+        buffer.write(name);
       } else if (arg.isNamed) {
         if (!hasOpeningCurlyBracket) {
           hasOpeningCurlyBracket = true;
           buffer.write('{');
         }
-        buffer.write('$name:$value');
+        buffer.write('$name:$name');
       }
 
       buffer.write(',');

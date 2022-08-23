@@ -35,7 +35,7 @@ class ClientEndPointGenerator {
     final lib = Library((b) {
       b.body.addAll([
         Code(generateIgnoreForFile([unusedImportLint, unusedFieldLint])),
-        // must be added to avoid an error 
+        // must be added to avoid an error
         Code('\n'),
         Directive.import('package:mid_client/mid_client.dart'),
         Directive.import('../models.dart'),
@@ -134,7 +134,7 @@ class ClientEndPointGenerator {
 
   ListBuilder<Parameter> _generateNamedParameters(MethodInfo method) {
     final paras = <Parameter>[];
-    for (var p in method.argumentsInfo.where((element) => element.isNamed)) {
+    for (var p in method.argumentsInfo.where((element) => element.isNamed || element.hasDefaultValue)) {
       paras.add(Parameter((b) {
         b.required = p.isRequired;
         b.name = p.argName;
@@ -151,13 +151,10 @@ class ClientEndPointGenerator {
 
   ListBuilder<Parameter> _generatePositionalParameters(MethodInfo method) {
     final paras = <Parameter>[];
-    for (var p in method.argumentsInfo.where((element) => element.isPositional)) {
+    for (var p in method.argumentsInfo.where((element) => element.isPositional && !element.hasDefaultValue)) {
       paras.add(Parameter((b) {
         b.name = p.argName;
         b.type = refer(p.type.getDisplayString(withNullability: true));
-        if (p.hasDefaultValue) {
-          b.defaultTo = Code(p.defaultValue!);
-        }
       }));
     }
 
