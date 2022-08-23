@@ -34,10 +34,22 @@ This is a quick start tutorial that's meant to show how `mid` works.
     import 'package:mid/endpoints.dart';
 
     class Example extends EndPoints {
+    
+      // Regular endpoint example
+      String hello(String name) => 'Hello $name!';
 
-        String hello(String name) => 'Hello $name!';
+      // Streaming endpoint example
+      Stream<int> countdown([int from = 10]) async* {
+        int i = 0;
+        while (from >= i) {
+          yield from - i;
+          i++;
+          await Future.delayed(Duration(seconds: 1));
+        }
+      }
+      
+      /* feel free to add other functions here */
 
-        // feel free to add other functions here 
     }
     ```
 
@@ -74,9 +86,15 @@ This is a quick start tutorial that's meant to show how `mid` works.
     void main() async {
         // initialize the client
         final client = QuickStartClient(url: 'localhost:8000'); 
-        // call the endpoint we created within `Example` route
+        
+        // call a regular endpoint
         final response = await client.example.hello('World');
         print(response);
+
+        // listen to a streaming endpoint
+        client.example.countdown().listen((event) {
+            print('countdown: $event');
+        });
     }
     ```
 6. Run the server (assuming you're still within `quick_start` directory):
@@ -96,11 +114,22 @@ This is a quick start tutorial that's meant to show how `mid` works.
     This should print the following:
     ```
     Hello World!
+    countdown: 10
+    countdown: 9
+    countdown: 8
+    countdown: 7
+    countdown: 6
+    countdown: 5
+    countdown: 4
+    countdown: 3
+    countdown: 2
+    countdown: 1
+    countdown: 0
     ```
 
 ---
 
-Extras:
+### Extras:
 
 - If you like to import the client project into a flutter project quickly, you can do so by running the following within the flutter project (replace `quick_start` with the created project name if different):
 
@@ -115,7 +144,7 @@ Extras:
 - Please note that the entire `client` library is generated code. You may create your own code within `lib/src` and add any export statements to `quick_starter_client.dart` but make sure not to modify the existing code or anything within `lib/mid`.  
 
 
-- Finaly the example above was pretty simple but really there isn't anything extra that should be covered here. Just create methods -- e.g.,:
+- Finaly the example above was pretty simple but really there isn't anything extra that should be covered here. Just create methods -- e.g:
     ```dart
     class App extends EndPoints {
         final Database database;
