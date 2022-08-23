@@ -107,6 +107,10 @@ class CreateCommand extends MIDCommand {
     createFileSync(p.join(path, 'lib/mid/generated/', 'handlers.dart'), contents: handlersDotDart, recursive: true);
     createFileSync(p.join(path, 'lib/mid/generated/', 'serializers.dart'), contents: '');
     // TODO: add Dockerfile & .dockerignore (or use --template=server-shelf when creating dart project)
+
+    // create an empty 'src' dir
+    final srcDir = Directory(p.join(path, 'lib', 'src'));
+    srcDir.createSync();
   }
 
   Future<void> createClientProject(String path, String projectName) async {
