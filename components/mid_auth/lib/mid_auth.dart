@@ -3,7 +3,6 @@
 /// More dartdocs go here.
 library mid_auth;
 
-
 export 'src/jwt/jwt.dart';
 export 'src/jwt/jwt_rsa256.dart';
 export 'src/models/session.dart';

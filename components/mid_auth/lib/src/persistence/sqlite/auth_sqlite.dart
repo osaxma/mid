@@ -6,8 +6,8 @@ import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
 
 // TODO(osaxma): handle error messages properly so they do not contain the entire query when returned to the user.
-//               during debug, the entire query of createUser including the hashedPassword was returned to the client. 
-//               This may be unsecure. To reproduce, create an existing which will produce an error similar to the following:               
+//               during debug, the entire query of createUser including the hashedPassword was returned to the client.
+//               This may be unsecure. To reproduce, create an existing which will produce an error similar to the following:
 /* 
   failed to decode request body Invalid argument(s): Response body "SqliteException(2067): UNIQUE constraint failed: auth_users.email, constraint failed (code 2067)
   * Connection #0 to host localhost left intact
@@ -115,10 +115,10 @@ class AuthSqlite implements AuthDB {
       return false;
     }
     final revoked = res.first['revoked'];
-   
+
     if (revoked is int && revoked == 0) {
       // In sqlite, boolean values are stored as integers 0 (false) and 1 (true).
-      // so 0 is not revoked and 1 is revoked. 
+      // so 0 is not revoked and 1 is revoked.
       return true;
     } else {
       return false;

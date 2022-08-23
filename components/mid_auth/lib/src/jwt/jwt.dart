@@ -18,7 +18,7 @@ abstract class JWTHandler {
   /// Determine if the JWT has a valid signature and is not expired
   bool isValid(String jwt);
 
-  /// Return the user id from the JWT claims 
-  // note: should this be nullable? 
+  /// Return the user id from the JWT claims
+  // note: should this be nullable?
   int getUserId(String jwt);
 }

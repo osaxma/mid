@@ -3,7 +3,6 @@ import 'dart:cli';
 import 'dart:io';
 import 'dart:isolate';
 
-
 // credit: https://stackoverflow.com/a/72333119/10976714
 String getAsset() {
   final packageUri = Uri.parse('package:mid_auth/src/persistence/sqlite/migrations/0001_init.sql');

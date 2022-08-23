@@ -11,7 +11,6 @@ const metadataClaimKey = 'metadata';
 // TODO: figure out if this is an appropriate way to generate a refresh token
 String generateRefreshToken() => generateRandomString(25);
 
-
 // this may not be needed at the server but its kept here until a client library is created
 // credit: https://gist.github.com/proteye/982d9991922276ccfb011dfc55443d74
 String convertJwkForRS256PublicKeyToPem(Map<String, dynamic> jwk) {
@@ -43,7 +42,7 @@ String convertJwkForRS256PublicKeyToPem(Map<String, dynamic> jwk) {
 
   final dataBase64 = base64
       .encode(topLevelSeq.encodedBytes)
-      // formatting so each line is 64 chars 
+      // formatting so each line is 64 chars
       .replaceAllMapped(RegExp('.{64}'), (match) => '${match.group(0)}\n');
 
   return '''-----BEGIN PUBLIC KEY-----\r\n$dataBase64\r\n-----END PUBLIC KEY-----''';

@@ -3,7 +3,6 @@ import 'package:mid_auth/src/email/email.dart';
 import 'package:mid_auth/src/tools/hashing.dart';
 import 'package:mid/mid.dart';
 
-
 /// a simple authentication API
 class Auth extends EndPoints {
   Auth({
