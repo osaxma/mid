@@ -45,15 +45,15 @@ const middleWaresDotDart = '''
 import 'package:shelf/shelf.dart';
 
 
-/// User defined middlewares
+/// User defined Middlewares for http requests and responses
 /// 
 /// 
 /// Important Note: 
-/// Any request for a websocket connection (i.e. `/ws` route), it will not contain client headers. 
-/// Make sure to skip such requests.
-/// 
-/// Alternatively, use [MessageInterceptor] to intercept incoming [Message]s where [Message.type] is
-/// [MessageType.updateHeaders] to authenticate client websocket connections. 
+///   Any request for a websocket connection (i.e. `/ws` route) will not contain client headers. 
+///   Make sure to skip such requests.
+///   
+///   Alternatively, use [MessageInterceptor] to intercept incoming [Message]s where [Message.type] is
+///   [MessageType.updateConnection] to authenticate client websocket connections. 
 List<Middleware> getMiddlewares() {
   return <Middleware>[
     // the default shelf logger 
