@@ -55,7 +55,7 @@ This is a quick start tutorial that's meant to show how `mid` works.
 
 4. Head to `quick_start_server/lib/mid/endpoints.dart` file:
     
-    4.1. Import the `package:quick_start_server/src/example.dart`
+    4.1. Import the endpoint (i.e., `package:quick_start_server/src/example.dart`)
     
     4.2 Add the endpoints to the list of returned endpoints such as:
 
@@ -76,9 +76,10 @@ This is a quick start tutorial that's meant to show how `mid` works.
     ```
 
 5. Now you can import the `client` library into your frotnend project.
+
     5.1 for simplicity, head to `quick_start_client/bin/` and create `frontend.dart`:
 
-    Assume this file is your frontend. Paste the following there:
+    Assume this file is your frontend and paste the following there:
     ```dart
     // import the client library
     import 'package:quick_start_client/quick_start_client.dart';
@@ -87,11 +88,11 @@ This is a quick start tutorial that's meant to show how `mid` works.
         // initialize the client
         final client = QuickStartClient(url: 'localhost:8000'); 
         
-        // call a regular endpoint
+        // call the regular endpoint
         final response = await client.example.hello('World');
         print(response);
 
-        // listen to a streaming endpoint
+        // listen to the streaming endpoint
         client.example.countdown().listen((event) {
             print('countdown: $event');
         });
@@ -144,13 +145,14 @@ This is a quick start tutorial that's meant to show how `mid` works.
 - Please note that the entire `client` library is generated code. You may create your own code within `lib/src` and add any export statements to `quick_starter_client.dart` but make sure not to modify the existing code or anything within `lib/mid`.  
 
 
-- Finaly the example above was pretty simple but really there isn't anything extra that should be covered here. Just create methods -- e.g:
+- Finally the example above was pretty simple but really there isn't anything extra that should be covered here. Just create methods and remember you can return custom types and `mid` will serialize them for both server and client -- e.g:
     ```dart
     class App extends EndPoints {
         final Database database;
 
         App(this.database);
 
+        // return a custom type of `UserData` and `mid` will serialize it
         Future<UserData> getUserData(int uid) async {
             final user = await database.getUserById(uid);
             return user;
@@ -160,6 +162,7 @@ This is a quick start tutorial that's meant to show how `mid` works.
             return database.timelineStream(uid);
         }
 
+        // Take `UserProfile` as an argument and `mid` will serialize it
         Future<void> updateProfile(UserProfile profile) {
             await database.updateProfile(profile);
         }
