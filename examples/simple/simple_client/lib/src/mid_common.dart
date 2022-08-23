@@ -1,1 +1,0 @@
-typedef HeadersProvider = Map<String, String> Function();
