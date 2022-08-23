@@ -1,3 +1,7 @@
+## 0.0.3+4
+
+ - Update a dependency to the latest release.
+
 ## 0.0.3+3
 
  - **REFACTOR**: added some docs and error handling.

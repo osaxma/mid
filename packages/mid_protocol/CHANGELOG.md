@@ -1,3 +1,7 @@
+## 0.0.2+3
+
+ - **DOCS**: modified comments.
+
 ## 0.0.2+2
 
  - **REFACTOR**: added some docs and error handling.

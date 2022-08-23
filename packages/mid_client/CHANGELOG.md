@@ -1,3 +1,8 @@
+## 0.0.3+4
+
+ - **FIX**: apply client http interceptors.
+ - **FIX**: client websocket interceptor bug.
+
 ## 0.0.3+3
 
  - Update a dependency to the latest release.

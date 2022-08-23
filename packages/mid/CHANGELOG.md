@@ -1,3 +1,8 @@
+## 0.0.3+4
+
+ - **DOCS**: modified generated code comment.
+ - **DOCS**: modified comments.
+
 ## 0.0.3+3
 
  - **REFACTOR**: minor changes here and there.
