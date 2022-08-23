@@ -7,11 +7,9 @@ export 'package:mid_client/mid_client.dart' show Interceptor;
 export 'package:http/http.dart' show Request, Response;
 ''';
 
-const clientLibraryFileContents = '''
-
+const clientLibraryFileContents = '''// Exporting client and data models
 export 'mid/client.dart';
 export 'mid/models.dart';
-
 ''';
 
 // TODO: create a common source holder 

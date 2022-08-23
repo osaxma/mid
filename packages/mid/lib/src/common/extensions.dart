@@ -1,4 +1,8 @@
-
+// TODO: change the methods to:
+//        - toPascalCase
+//        - toSnakeCase
+//        - toCamelCase 
+//  where each has to determine what's the current string is 
 extension StringUtils on String {
   String capitalizeFirst() => '${this[0].toUpperCase()}${substring(1)}';
   String lowerFirst() => '${this[0].toLowerCase()}${substring(1)}';

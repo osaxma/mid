@@ -126,6 +126,10 @@ class CreateCommand extends MIDCommand {
     routesDir.createSync(recursive: true);
     modelsDir.createSync();
 
+    // create an empty 'src' dir
+    final srcDir = Directory(p.join(path, 'lib', 'src'));
+    srcDir.createSync();
+
     final contents = '''
 /// this file will contain generated code after running `mid generate all` or `mid generate client`
 ''';
