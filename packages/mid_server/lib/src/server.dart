@@ -8,6 +8,7 @@ void midServer(ServerConfig config) async {
   final router = generateRouter(config);
 
   Pipeline pipeline = Pipeline();
+  // ignore: deprecated_member_use_from_same_package
   for (final middleware in config.middlewares) {
     pipeline = pipeline.addMiddleware(middleware);
   }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:mid_protocol/mid_protocol.dart';
+import 'package:mid_server/src/interceptor.dart';
 import 'package:shelf/shelf.dart';
 
 import 'package:mid_server/mid_server.dart';
@@ -11,10 +12,14 @@ class ServerConfig {
   final List<BaseHandler> handlers;
 
   /// A list of [Middleware]s that are passed to shelf server
+  @Deprecated('use httpInterceptors instead')
   final List<Middleware> middlewares;
 
   /// A list of of websocket messages interceptors
   final List<MessageInterceptor> messagesInterceptor;
+
+  /// A List of http interceptors
+  final List<ServerHttpInterceptor> httpInterceptors;
 
   /// The IP Address used for the server
   /// See the documentation for [HttpServer.bind] and [HttpServer.bindSecure]
@@ -42,12 +47,14 @@ class ServerConfig {
 
   /// Create a custom server config
   ///
-  /// These configs will be passed to mid server (i.e. a shelf server). 
+  /// These configs will be passed to mid server (i.e. a shelf server).
   ServerConfig({
     required this.handlers,
     required this.address,
     required this.port,
+    @Deprecated('use httpInterceptors instead')
     this.middlewares = const [],
+    this.httpInterceptors = const [],
     this.messagesInterceptor = const [],
     this.securityContext,
     this.backlog,
