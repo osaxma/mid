@@ -1,8 +1,8 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-import 'package:mid/src/common/extensions.dart';
 import 'package:mid/src/common/utils.dart';
+import 'package:mid_common/mid_common.dart';
 
 // TODO: re-evaluate if these wrappers since they were created in the early prototype
 //       some stuff are redundant and in many casses other part of the program needs access

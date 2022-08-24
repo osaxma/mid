@@ -1,4 +1,4 @@
-import 'package:mid/src/common/extensions.dart';
+import 'package:mid_common/mid_common.dart';
 import 'package:mid/src/common/models.dart';
 
 const clientInterceptorsDotDartContent = ''' 

@@ -17,6 +17,7 @@ dependencies:
   code_builder: ^4.2.0
   dart_style: ^2.2.3
   meta: ^1.8.0
+  mid_common: ^0.0.1
   path: ^1.8.2
 
 dev_dependencies:

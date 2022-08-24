@@ -2,7 +2,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:mid/src/common/utils.dart';
 
-import 'package:mid/src/common/extensions.dart';
+import 'package:mid_common/mid_common.dart';
 import 'package:mid/src/common/models.dart';
 import 'package:mid/src/templates/server_templates.dart';
 import 'package:mid/src/generators/serializer_common.dart';
