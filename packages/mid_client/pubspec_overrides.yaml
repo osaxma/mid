@@ -1,6 +1,8 @@
-# melos_managed_dependency_overrides: mid,mid_protocol
+# melos_managed_dependency_overrides: mid,mid_protocol,mid_common
 dependency_overrides:
   mid:
     path: ../mid
+  mid_common:
+    path: ../mid_common
   mid_protocol:
     path: ../mid_protocol
