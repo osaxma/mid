@@ -10,6 +10,7 @@ dependencies:
   http: ^0.13.5
   meta: ^1.8.0
   mid: ^0.0.3+4
+  mid_common: ^0.0.1
   mid_protocol: ^0.0.2+3
   web_socket_channel: ^2.2.0
 

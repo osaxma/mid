@@ -12,6 +12,7 @@ dev_dependencies:
   
 dependencies: 
   mid: ^0.0.3+4
+  mid_common: ^0.0.1
   mid_protocol: ^0.0.2+3
   shelf: ^1.3.2
   shelf_router: ^1.1.3
