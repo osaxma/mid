@@ -61,6 +61,11 @@ dart pub global activate mid
 
 - Examples will be added **SOON** to the [examples](https://github.com/osaxma/mid/tree/main/examples) folder. 
 
+### Documentation
+The documentation is being created incrementally within [docs](https://github.com/osaxma/mid/tree/main/docs) folder. Currently the following is available:
+    - [interceptors](https://github.com/osaxma/mid/blob/main/docs/interceptors.md)
+    - [project_structure](https://github.com/osaxma/mid/blob/main/docs/project_structure.md)
+    - [serialization](https://github.com/osaxma/mid/blob/main/docs/serialization.md)
 
 ## Motivation
 
