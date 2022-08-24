@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:mid_common/mid_common.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'package:mid_protocol/mid_protocol.dart';
@@ -118,7 +119,7 @@ class MidWebSocketClient {
   }
 
   Stream<dynamic> executeStream(Map<String, dynamic> args, String route) {
-    final id = _generateRandomID(10);
+    final id = generateRandomID(10);
     final subscribeMsg = SubscribeMessage(
       id: id,
       payload: SubscribePayload(args: args, route: route),
@@ -221,14 +222,3 @@ class EndPointStream {
   // maybe this should be handled at the endpoint handler itself
   // .map((event) => json.decode(event));
 }
-
-const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890-_';
-final _randomGenerator = Random();
-String _generateRandomID(int length) => String.fromCharCodes(
-      Iterable.generate(
-        length,
-        (_) => _chars.codeUnitAt(
-          _randomGenerator.nextInt(_chars.length),
-        ),
-      ),
-    );
