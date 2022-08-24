@@ -20,6 +20,16 @@ Future<void> main() async {
       "String midVersion = '$currentVersion';\n";
 
   await File(outputPath).writeAsString(fileContents);
+
+  // melos would not add the version file on its own
+  // see: https://github.com/invertase/melos/discussions/361
+  final versionRelativePath = p.relative(outputPath, from: Directory.current.path);
+  final process = await Process.run('git', ['add', versionRelativePath]);
+
+  if (process.exitCode != 0) {
+    throw Exception('generate version script failed to add version.dart');
+  }
+
   // ignore: avoid_print
   print('Updated version to $currentVersion in generated file $outputPath');
 }
