@@ -3,6 +3,10 @@ name: mid
 packages:
   - packages/**
 
+
+ide:
+  intellij: false
+
 command:
   bootstrap:
     usePubspecOverrides:
