@@ -1,10 +1,11 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:mid_common/mid_common.dart';
 import 'package:mid_client/src/interceptor.dart';
 
 // TODO: test if this approach won't cause issues
-//       this is a long lived object so the client 
+//       this is a long lived object so the client
 //       may be alive the entire life of the app
 //       there are some issues mentioned here:
 //        https://github.com/dart-lang/http/issues/422)
@@ -31,7 +32,8 @@ class MidHttpClient extends http.BaseClient {
   Future<dynamic> executeHttp(Map<String, dynamic> args, String route) async {
     final body = json.encode(args);
     _headers.removeWhere((key, value) => key.toLowerCase() == 'content-type');
-    _headers['content-type'] = 'application/json';
+    _headers[contentTypeKey] = 'application/json';
+    _headers[requestIdKey] = generateRandomID(20);
 
     http.Response response = await post(
       uri.replace(path: route),
