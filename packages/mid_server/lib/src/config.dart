@@ -19,7 +19,7 @@ class ServerConfig {
   final List<MessageInterceptor> messagesInterceptor;
 
   /// A List of http interceptors
-  final List<ServerHttpInterceptor> httpInterceptors;
+  final List<HttpInterceptor> httpInterceptors;
 
   /// The IP Address used for the server
   /// See the documentation for [HttpServer.bind] and [HttpServer.bindSecure]

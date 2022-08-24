@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:shelf/shelf.dart';
+
+import 'interceptor.dart';
 
 abstract class BaseHandler {
   /// the full route to the handler
@@ -29,25 +30,80 @@ final Map<String, String> _defaultHeaders = {
   // 'Access-Control-Allow-Origin': '*',
 };
 
-Future<Response> defaultHandler(Request request, FutureOrBaseHandler baseHandler) async {
-  final contentType = request.headers['content-type'];
+class DefaultHttpHandler {
+  final List<HttpInterceptor> interceptors;
 
-  if (contentType == null || !contentType.contains('application/json')) {
-    return Response.badRequest(body: 'content type must be application/json');
+  const DefaultHttpHandler(this.interceptors);
+
+  Future<Response> handle(
+    Request request,
+    FutureOrBaseHandler baseHandler,
+  ) async {
+    final requestID = request.getRequestID() ?? '';
+    try {
+      request = await _interceptRequests(request);
+    } catch (e) {
+      if (e is Response) {
+        return _interceptResponse(e, requestID);
+      } else {
+        throw _interceptResponse(Response.badRequest(body: e.toString()), requestID);
+      }
+    }
+
+    final contentType = request.headers['content-type'];
+
+    if (contentType == null || !contentType.contains('application/json')) {
+      return _interceptResponse(Response.badRequest(body: 'content type must be application/json'), requestID);
+    }
+
+    late final String body;
+    try {
+      body = await request.readAsString();
+    } catch (e) {
+      return _interceptResponse(Response.internalServerError(body: e.toString()), requestID);
+    }
+
+    if (body.isEmpty) {
+      return _interceptResponse(Response.badRequest(body: 'the request does not have a body'), requestID);
+    }
+
+    try {
+      final Map<String, dynamic> bodayMap = json.decode(body);
+      final result = await baseHandler.handler(bodayMap);
+      final response = Response.ok(result);
+      response.change(headers: _defaultHeaders);
+      return _interceptResponse(response, requestID);
+    } catch (e) {
+      return _interceptResponse(Response.badRequest(body: 'failed to decode request body $e'), requestID);
+    }
   }
 
-  final body = await request.readAsString();
-  if (body.isEmpty) {
-    return Response.badRequest(body: 'the request does not have a body');
+  Future<Request> _interceptRequests(Request request) async {
+    for (var interceptor in interceptors) {
+      request = await interceptor.onRequest(request);
+    }
+
+    return request;
   }
 
-  try {
-    final Map<String, dynamic> bodayMap = json.decode(body);
-    final result = await baseHandler.handler(bodayMap);
-    final response = Response.ok(result);
-    response.change(headers: _defaultHeaders);
+  Future<Response> _interceptResponse(Response response, String requestID) async {
+    response = response.injectRequestID(requestID);
+    for (var interceptor in interceptors) {
+      try {
+        response = await interceptor.onResponse(response);
+      } catch (e) {
+        // it would be wild if a response interceptor throws a response instead of returning one
+        // but who knows.
+        if (e is Response) {
+          response = e;
+        } else {
+          // TODO: document that the logger response should be the last one in the list of
+          //       interceptors in order to log any error that may be caused by the interceptor
+          //       itself and supress error messages that should not be returned to the client
+          response = Response.internalServerError(body: e.toString());
+        }
+      }
+    }
     return response;
-  } catch (e) {
-    return Response.badRequest(body: 'failed to decode request body $e');
   }
 }

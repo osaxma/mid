@@ -1,6 +1,7 @@
-import 'dart:async';
-
 import 'package:shelf/shelf.dart';
+
+export 'package:shelf/shelf.dart' show Request, Response;
+export 'extensions.dart';
 
 /// A base server Interceptor for intercepting requests and responses
 /// between the client and the server
@@ -9,10 +10,10 @@ import 'package:shelf/shelf.dart';
 /// the interceptor return the same request or response.
 ///
 /// When modifying
-abstract class BaseInterceptor {
+abstract class HttpInterceptor {
   /// Intercept a client request before it's sent to the handler.
-  FutureOr<Request> onRequest(Request request) => request;
+  Future<Request> onRequest(Request request) async => request;
 
   /// Intercept a response before it's sent to the client.
-  FutureOr<Response> onResponse(Response response) => response;
+  Future<Response> onResponse(Response response) async => response;
 }

@@ -4,8 +4,16 @@ import 'package:shelf_router/shelf_router.dart';
 
 Router generateRouter(ServerConfig config) {
   final router = Router();
+  final httpHandler = DefaultHttpHandler(config.httpInterceptors);
   for (final handler in config.handlers.whereType<FutureOrBaseHandler>()) {
-    router.add(handler.verb, handler.route, (Request request) => defaultHandler(request, handler));
+    router.add(
+      handler.verb,
+      handler.route,
+      (Request request) => httpHandler.handle(
+        request,
+        handler,
+      ),
+    );
   }
 
   // add websocket handler
