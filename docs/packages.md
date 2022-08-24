@@ -17,3 +17,7 @@ The `mid` project currently contains the following packages:
 - [`mid_protocol`](https://github.com/osaxma/mid/blob/main/packages/mid_protocol)
 
     This package contains the websocket messaging protocol, the message interceptor definition, messages definition and messages types. This package is used by both `mid_client` and `mid_server` and it's also imported by both the generated server and the generated client.  
+
+- [`mid_common`](https://github.com/osaxma/mid/blob/main/packages/mid_common)
+
+    A common package that contains functions, constants and other utilities that  are used by all the other packages.   
