@@ -64,6 +64,8 @@ dart pub global activate mid
 ### Documentation
 The documentation is being created incrementally within [docs](https://github.com/osaxma/mid/tree/main/docs) folder. Currently the following is available:
 
+- [client](https://github.com/osaxma/mid/blob/main/docs/client.md)
+- [server](https://github.com/osaxma/mid/blob/main/docs/server.md)
 - [interceptors](https://github.com/osaxma/mid/blob/main/docs/interceptors.md)
 - [project_structure](https://github.com/osaxma/mid/blob/main/docs/project_structure.md)
 - [serialization](https://github.com/osaxma/mid/blob/main/docs/serialization.md)
@@ -101,27 +103,27 @@ Any class of an `EndPoints`\* type. `mid` will only expose the public methods of
 - Collections (i.e., `Map`, `Set`, `List`) of any of the above.
 - `Future` or `Stream` for any of the above. 
 
-\* `mid` is able to serialize user defined classes and their members recursively as long as they have an unnamed generative constructor with formal parameters only (i.e. all parameters using `this`). An example class would be:
-
-```dart
-class UserData {
-  final int id;
-  final String name;
-  final bool isAdmin;
-  // `MetaData` must follow the same rules including its members.
-  final MetaData? metadata;
-
-  // this is what `mid` is looking for (i.e. no assignment in initializer list or constructor body):
-  UserData({
-    required this.id,
-    required this.name,
-    this.metadata,
-    this.isAdmin = false,
-  });
-
-  /* you can define your own methods, factory constructors, and whatnot */
-}
-```
+    \* `mid` is able to serialize user defined classes and their members recursively as long as they have an unnamed generative constructor with formal parameters only (i.e. all parameters using `this`). An example class would be:
+    
+    ```dart
+    class UserData {
+      final int id;
+      final String name;
+      final bool isAdmin;
+      // `MetaData` must follow the same rules including its members.
+      final MetaData? metadata;
+    
+      // this is what `mid` is looking for (i.e. no assignment in initializer list or constructor body):
+      UserData({
+        required this.id,
+        required this.name,
+        this.metadata,
+        this.isAdmin = false,
+      });
+    
+      /* you can define your own methods, factory constructors, and whatnot */
+    }
+    ```
 
 
 
