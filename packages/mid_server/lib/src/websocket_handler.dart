@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:shelf/shelf.dart';
+import 'package:mid_server/src/interceptor.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -11,7 +11,7 @@ import 'handlers.dart';
 class WebsocketHandler {
   final List<StreamBaseHandler> handlers;
 
-  final List<MessageInterceptor> interceptors;
+  final List<MessageInterceptorServer> interceptors;
   WebsocketHandler({
     required this.handlers,
     required this.interceptors,
@@ -54,9 +54,11 @@ class _ConnectionHandler {
   final WebSocketSink sink;
   late final StreamSubscription connSub;
   final StreamBaseHandler? Function(String) streamHandlerProvider;
-  final List<MessageInterceptor> interceptors;
+  final List<MessageInterceptorServer> interceptors;
 
   final List<_EndPointSubscription> activeSubs = [];
+
+  Map<String, String> _headers = {};
 
   bool initted = false;
 
@@ -94,7 +96,15 @@ class _ConnectionHandler {
 
   void onData(dynamic event) {
     try {
-      final message = interceptClient(Message.fromJson(event));
+      Message message = Message.fromJson(event);
+
+      // we need to extract the headers so they are available for the interceptors
+      if (message is ConnectionInitMessage || message is ConnectionUpdateMessage) {
+        _headers = (message as ConnectionInitMessage).payload.headers;
+      }
+
+      // intercept message
+      message = interceptClient(Message.fromJson(event));
       // in case the interceptor returns an error message
       if (message is ErrorMessage) {
         throw message;
@@ -306,14 +316,15 @@ class _ConnectionHandler {
 
     sink.add(msg.toJson());
 
-    if (msg is ErrorMessage) { // && msg.payload.errorCode > x
+    if (msg is ErrorMessage) {
+      // && msg.payload.errorCode > x
       // TODO: decide if the connection should be terminated after sending the message
 
     }
   }
 
   Message interceptClient(Message message) {
-    return interceptors.fold(message, (previousValue, element) => element.clientMessage(previousValue));
+    return interceptors.fold(message, (previousValue, element) => element.clientMessage(previousValue, _headers));
   }
 
   Message interceptServer(Message message) {

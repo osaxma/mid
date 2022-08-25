@@ -31,7 +31,7 @@ final Map<String, String> _defaultHeaders = {
 };
 
 class DefaultHttpHandler {
-  final List<HttpInterceptor> interceptors;
+  final List<HttpInterceptorServer> interceptors;
 
   const DefaultHttpHandler(this.interceptors);
 

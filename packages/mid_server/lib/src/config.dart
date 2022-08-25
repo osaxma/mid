@@ -1,9 +1,6 @@
 import 'dart:io';
 
-import 'package:mid_protocol/mid_protocol.dart';
 import 'package:mid_server/src/interceptor.dart';
-import 'package:shelf/shelf.dart';
-
 import 'package:mid_server/mid_server.dart';
 
 /// Server Configuration that will be passed to the shelf server
@@ -11,15 +8,11 @@ class ServerConfig {
   /// The list of handlers for handling http and websocket requests
   final List<BaseHandler> handlers;
 
-  /// A list of [Middleware]s that are passed to shelf server
-  @Deprecated('use httpInterceptors instead')
-  final List<Middleware> middlewares;
-
   /// A list of of websocket messages interceptors
-  final List<MessageInterceptor> messagesInterceptor;
+  final List<MessageInterceptorServer> messagesInterceptor;
 
   /// A List of http interceptors
-  final List<HttpInterceptor> httpInterceptors;
+  final List<HttpInterceptorServer> httpInterceptors;
 
   /// The IP Address used for the server
   /// See the documentation for [HttpServer.bind] and [HttpServer.bindSecure]
@@ -45,6 +38,15 @@ class ServerConfig {
   /// for more details.
   final bool shared;
 
+  /// If `true`, then upon the start of the server, the following message is printed:
+  /// ```shell
+  ///   Server listening on port XXXX
+  /// ```
+  /// Where XXXX is the [port] number. 
+  /// 
+  /// Defaults to `true`.
+  final bool printServerListeningOnPortMessage;
+
   /// Create a custom server config
   ///
   /// These configs will be passed to mid server (i.e. a shelf server).
@@ -52,12 +54,11 @@ class ServerConfig {
     required this.handlers,
     required this.address,
     required this.port,
-    @Deprecated('use httpInterceptors instead')
-    this.middlewares = const [],
     this.httpInterceptors = const [],
     this.messagesInterceptor = const [],
     this.securityContext,
     this.backlog,
     this.shared = false,
+    this.printServerListeningOnPortMessage = true,
   });
 }
