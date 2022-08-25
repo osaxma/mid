@@ -19,7 +19,7 @@ class MidHttpClient extends http.BaseClient {
     _headers.removeWhere((key, value) => key.toLowerCase() == 'content-type');
   }
 
-  final List<Interceptor> interceptors;
+  final List<HttpInterceptorClient> interceptors;
 
   MidHttpClient({
     required this.uri,

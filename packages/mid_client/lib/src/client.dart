@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:mid_client/src/interceptor.dart';
-import 'package:mid_protocol/mid_protocol.dart';
 
 import 'http_client.dart';
 import 'package:meta/meta.dart';
@@ -26,27 +25,27 @@ class BaseClient {
   /// time. Alternatively, the headers for http requests can be modified by intercepting
   /// the requests (does not apply for websocket connection -- see [updateHeaders])
   ///
-  /// [interceptors] a List of Interceptors that intercept http requests and responses
+  /// [httpInterceptors] a List of Interceptors that intercept http requests and responses
   ///
-  /// Each [Interceptor.onRequest] is invoked before sending the request.
-  /// And each [Interceptor.onResponse] is invoked before returning a response.
+  /// Each [HttpInterceptorClient.onRequest] is invoked before sending the request.
+  /// And each [HttpInterceptorClient.onResponse] is invoked before returning a response.
   ///
-  /// The [interceptors] are invoked based on their order in the list starting from index 0.
+  /// The [httpInterceptors] are invoked based on their order in the list starting from index 0.
   ///
   /// Important Notes:
   /// - Avoid changing ['content-type'] header as it'll be overwritten by the client.
   ///   For now, all requests will have "'content-type': 'application/json'".
   /// - All requests are sent using `http.post` at the time being.
-  /// - The [interceptors] are not invoked on endpoints with a [Stream] retruen type
+  /// - The [httpInterceptors] are not invoked on endpoints with a [Stream] retruen type
   ///   - see [updateHeaders] for more info.
   ///
-  /// [messageInterceptors] -- a list of interceptors to intercept messages between
+  /// [messagesInterceptors] -- a list of interceptors to intercept messages between
   /// the server and the client of the websocket connection.
   BaseClient({
     required String url,
     Map<String, String>? initialHeaders,
-    List<Interceptor> interceptors = const [],
-    List<MessageInterceptor> messageInterceptors = const [],
+    List<HttpInterceptorClient> httpInterceptors = const [],
+    List<MessageInterceptorClient> messagesInterceptors = const [],
   }) : _headers = initialHeaders ?? {} {
     if (!url.contains('http')) {
       url = 'http://$url';
@@ -65,13 +64,13 @@ class BaseClient {
       wsURI = httpURI.replace(scheme: 'ws', path: 'ws');
     }
 
-    _wsClient = MidWebSocketClient(uri: wsURI, headers: headers, interceptors: messageInterceptors);
-    _httpClient = MidHttpClient(uri: httpURI, headers: headers, interceptors: interceptors);
+    _wsClient = MidWebSocketClient(uri: wsURI, headers: headers, interceptors: messagesInterceptors);
+    _httpClient = MidHttpClient(uri: httpURI, headers: headers, interceptors: httpInterceptors);
   }
 
   /// Updates a previously provided headers
   ///
-  /// While the headers for http request can be updated using [Interceptor],
+  /// While the headers for http request can be updated using [HttpInterceptorClient],
   /// this is the only method to update the headers for an active websocket connection.
   ///
   /// This method is useful for updating expirable values such as Authentication headers.
@@ -93,7 +92,7 @@ class BaseClient {
   Future<dynamic> executeHttp(Map<String, dynamic> args, String route) => _httpClient.executeHttp(args, route);
 
   @protected
-  Stream<dynamic> executeStream(Map<String, dynamic> args, String route) => _wsClient.executeStream(args, route);
+  Stream<dynamic> getStream(Map<String, dynamic> args, String route) => _wsClient.getStream(args, route);
 
   @mustCallSuper
   void close() {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:mid_client/mid_client.dart';
 import 'package:mid_common/mid_common.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -10,7 +11,7 @@ import 'package:mid_protocol/mid_protocol.dart';
 class MidWebSocketClient {
   final Uri uri;
 
-  final List<MessageInterceptor> interceptors;
+  final List<MessageInterceptorClient> interceptors;
 
   final List<EndPointStream> _activeStreams = [];
 
@@ -113,11 +114,11 @@ class MidWebSocketClient {
     return interceptors.fold(message, (previousValue, element) => element.serverMessage(previousValue));
   }
 
-  Stream<Message> _getStream(String messageID) {
+  Stream<Message> _filterStream(String messageID) {
     return stream.map((event) => Message.fromJson(event)).map(_serverIntercept).where((event) => event.id == messageID);
   }
 
-  Stream<dynamic> executeStream(Map<String, dynamic> args, String route) {
+  Stream<dynamic> getStream(Map<String, dynamic> args, String route) {
     final id = generateRandomID(10);
     final subscribeMsg = SubscribeMessage(
       id: id,
@@ -131,7 +132,7 @@ class MidWebSocketClient {
     late final Stream<Message> stream;
     // an error could occur here if the connection failed.
     try {
-      stream = _getStream(id);
+      stream = _filterStream(id);
     } catch (e) {
       // TODO: handle different cases, retry to connect, etc. 
       rethrow;
