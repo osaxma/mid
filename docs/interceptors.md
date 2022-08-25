@@ -1,35 +1,64 @@
 # Interceptors
 
-Since a `mid` project is part a server project and another part a client project, there are interceptors for each side. In additon, given that `mid` runs both an http server for handling regular requests and a websocket server for handling streams, there are interceptors for each. Therefore, in total there can be four interceptors:
+Since a `mid` project is part a server project and another part a client project, there are interceptors for each side. In additon, given that `mid` runs both an http server for handling regular requests and a websocket server for handling streams, there are in total there four interceptors:
 
 - [Server HTTP interceptor](#server-http-interceptor) (from `mid_server`)
-- [Server Websocket Messages Interceptor](#server-websocket-messages-interceptor) (from `mid_protocol`)
+- [Server Websocket Messages Interceptor](#server-websocket-messages-interceptor) (from `mid_server`)
 - [Client HTTP interceptor](#client-http-interceptor) (from `mid_client`)
-- [Client Websocket Messages Interceptor](#client-websocket-messages-interceptor) (from `mid_protocol`)
+- [Client Websocket Messages Interceptor](#client-websocket-messages-interceptor) (from `mid_client`)
+
+
+It's important to understand that if a server exposes both regular endpoints and stream endpoints, then handling authentication will require creating an `HttpInterceptorServer` and a `MessageInterceptorServer` to handle the authentication for http and websocket respectively. For more details, read the [headers][] documentation.
+
+[headers]: https://github.com/osaxma/mid/blob/main/docs/headers.md
 
 
 ## Server Interceptors 
 
 ### Server HTTP interceptor
-At the time being, the HTTP server interceptors are not yet implemented. Though, the `Middleware` from the `shelf` package can be utilized instead. In order to create middlewares for intercepting http requests and responses, you can add such middlewares in the `mid` server project in the following file:
 
-```
-|- <project_name>_server
-        |- mid
-            |- middlewares.dart 
+To intercept http requests and responses on the server side, the `mid_server` package provides an [HttpInterceptorServer][] type. The type is exported by the generated client library to facilitate its usage. The interceptor types can be imported from your frontend project as follow:
+```dart
+import 'package:<project_name>_server/interceptors.dart'; 
 ```
 
-When the project is first created, the file includes an example middleware from the shelf package (i.e. `logRequests`).
+[HttpInterceptorServer]: https://github.com/osaxma/mid/blob/main/packages/mid_server/lib/src/interceptor.dart
 
-> It's still unclear whether to keep using shelf's `Middleware` or use an interceptor pattern. The main difference is that interceptors will intercept requests and responses independently. Middelwares, on the other hand, can wait for the response after intercepting a request (look at [logRequests][] implementation)
+Here are two simple examples for http interceptor on the server:
 
-[logRequests]: https://pub.dev/documentation/shelf/latest/shelf/logRequests.html
+```dart
+class VerifyTokenHttpInterceptor extends HttpInterceptorServer {
+  @override
+  Future<Request> onRequest(Request request) async {
+    final token = request.headers['your-token-id'];
+    final isVerified = auth.verifyToken(token);
+    if (isVerified) {
+      return request;
+    } else {
+      // `mid` will return this response to the client
+      //  the response will also pass through the response interceptors
+      throw Response(401, body: 'Invalid Token');
+    }
+  }
+}
 
-### Server Websocket Messages Interceptor
 
-For streaming endpoints, the websocket messages between the server and client can be intercepted using [MessageInterceptor][] from the `mid_protocol` package which is automatically added to every `mid_server` project. 
+class HttpLogInterceptor extends HttpInterceptorServer {
+  @override
+  Future<Request> onRequest(Request request) async {
+    print('--> request received from client for url: ${request.url}');
+    return request;
+  }
 
-You can add a list of `MessageInterceptor` in the `ServerConfig` located at:
+  @override
+  Future<Response> onResponse(Response response) async {
+    print('<-- resposne is being sent to the client with status: ${response.statusCode}');
+    return response;
+  }
+}
+```
+
+You can add a list of `HttpInterceptorServer` in the `ServerConfig` located at:
 
 ```
 |- <project_name>_server
@@ -37,33 +66,53 @@ You can add a list of `MessageInterceptor` in the `ServerConfig` located at:
             |- server.dart 
 ```
 
-[MessageInterceptor]: https://github.com/osaxma/mid/blob/main/packages/mid_protocol/lib/src/message_interceptor.dart
-
-An example interceptor would be:
+The interceptor(s) can be added to the `ServerConfig` (using [Quick Start Tutorial][] as an example) such as:
 
 ```dart
-class AuthInterceptor extends MessageInterceptor {
+Future<void> main(List<String> args) async {
+  final handlers = await getHandlers();
+  final serverConfig = ServerConfig(
+    handlers: handlers, 
+    httpInterceptors: [VerifyTokenHttpInterceptor(), HttpLogInterceptor()], 
+    address: InternetAddress.anyIPv4,
+    port: int.parse(Platform.environment['PORT'] ?? '8000'),
+  );
+
+  midServer(serverConfig);
+}
+```
+
+
+### Server Websocket Messages Interceptor
+
+For streaming endpoints, the websocket messages between the server and client can be intercepted using [MessageInterceptorServer][] from the `mid_server` package which is automatically added to every generated server project. 
+
+[MessageInterceptorServer]: https://github.com/osaxma/mid/blob/main/packages/mid_server/lib/src/interceptor.dart
+
+Here are simple examples of messages interceptors:
+
+```dart
+class VerifyMessagesToken extends MessageInterceptorServer {
   @override // intercept messages from client to server
-  Message clientMessage(Message message) {
-    if (message is ConnectionInitMessage || message is ConnectionUpdateMessage) {
-      final isVerified = auth.verifyToken(message.payload as ConnectionPayload);
+  Message clientMessage(Message message, Map<String, String> headers) {
+   final token = headers['your-auth-token-id'];
+   final isVerified = auth.verifyToken(token);
       if (isVerified) {
         return message;
       } else {
         return ErrorMessage(
           id: defaultErrorID,
-          payload: ErrorPayload(errorCode: -1, errorMessage: 'Invalid Token'),
+          payload: ErrorPayload(errorCode: 401, errorMessage: 'Invalid Token'),
         );
       }
-    }
     return message;
   }
 }
 
 
-class LogInterceptor extends MessageInterceptor {
+class LogInterceptor extends MessageInterceptorServer {
   @override // intercept messages from client to server
-  Message clientMessage(Message message) {
+  Message clientMessage(Message message, Map<String, String> headers) {
     log(message);
     return message;
   }
@@ -71,23 +120,32 @@ class LogInterceptor extends MessageInterceptor {
   @override // intercept messages from server to client
   Message serverMessage(Message message) {
     if (message is ErrorMessage) {
-      log.error('error occured ${message.payload.errorMessage}');
+      log.error(message.payload.errorMessage);
     } else {
-      log(message.toJson());
+      log.trace(message.toJson());
     }
     return message;
   }
 }
 ```
 
-Now both interceptors can be added to the `ServerConfig` within `bin/server.dart`:
+You can add a list of `MessageInterceptorServer` in the `ServerConfig` located at:
+
+```
+|- <project_name>_server
+        |- bin
+            |- server.dart 
+```
+
+The interceptor(s) can be added to the `ServerConfig` (using [Quick Start Tutorial][] as an example) such as:
 
 ```dart
 Future<void> main(List<String> args) async {
+  final handlers = await getHandlers();
   final serverConfig = ServerConfig(
-    handlers: getHandlers(await getEndPoints()), 
-    middlewares: getMiddlewares(), 
-    messagesInterceptor: [LogInterceptor(), AuthInterceptor()], // <~~~ here
+    handlers: handlers, 
+    httpInterceptors: [VerifyTokenHttpInterceptor(), HttpLogInterceptor()], 
+    messagesInterceptors: [LogInterceptor(), VerifyMessagesToken()], // <~~~ here
     address: InternetAddress.anyIPv4,
     port: int.parse(Platform.environment['PORT'] ?? '8000'),
   );
@@ -101,28 +159,21 @@ Future<void> main(List<String> args) async {
 ## Client Interceptors 
 
 ### Client HTTP Interceptor
-To intercept http requests and responses on the client side, the `mid_client` package provides an [Interceptor][] type. The type is exported by the generated client library to facilitate its usage. The interceptor types can be imported from your frontend project as follow:
+To intercept http requests and responses on the client side, the `mid_client` package provides an [HttpInterceptorClient][] type. The type is exported by the generated client library to facilitate its usage. The interceptor types can be imported from your frontend project as follow:
 ```
 import 'package:<project_name>_client/interceptors.dart'; 
 ```
 
-[Interceptor]: https://github.com/osaxma/mid/blob/main/packages/mid_client/lib/src/interceptor.dart
+[HttpInterceptorClient]: https://github.com/osaxma/mid/blob/main/packages/mid_client/lib/src/interceptor.dart
 
 Here is an example http interceptor:
 
 ```dart
-class HttpLogInterceptor extends Interceptor {
+class AddAuthTokenInterceptor extends HttpInterceptorClient {
   @override
-  Request onRequest(Request request) {
-    print('--> request sent to ${request.url}');
+  Future<Request> onRequest(Request request) async {
+    request.headers['your-auth-token-id'] = 'the-user-auth-token';
     return request;
-  }
-
-  @override
-  Response onResponse(Response response) {
-    print('<-- resposne received with status: sent to ${response.statusCode}');
-    // TODO: implement onResponse
-    return response;
   }
 }
 ```
@@ -132,22 +183,22 @@ The interceptor(s) can be added to the client upon instantiation (using [Quick S
 ```dart
   final client = QuickStartClient(
     url: 'localhost:8000',
-    interceptors: [HttpLogInterceptor()] // <~~~ here
+    httpInterceptors: [AddAuthTokenInterceptor()] // <~~~ here
   );
 ```
 
 ### Client Websocket Messages Interceptor
 
-To intercept Messages on the client side, the same [MessageInterceptor][] type used in the [Server Websocket Messages Interceptor](#server-websocket-messages-interceptor) can also be used in the client side. Similarly, `mid_protocol` is automatically added to the client project. 
+To intercept Messages on the client side, the [MessageInterceptorClient][] type can be used in the client side. 
 
-[MessageInterceptor]: https://github.com/osaxma/mid/blob/main/packages/mid_protocol/lib/src/message_interceptor.dart
+[MessageInterceptorClient]: https://github.com/osaxma/mid/blob/main/packages/mid_client/lib/src/interceptor.dart
 
-The only difference is that the interceptors are added to the generated client. Taking the [Quick Start tutorial][] as an example, the interceptors can be added as follows:
+Taking the [Quick Start tutorial][] as an example, the interceptors can be added as follows:
 
 ```dart
   final client = QuickStartClient(
     url: 'localhost:8000',
-    interceptors: [HttpLogInterceptor()], // i.e. http interceptor
+    httpInterceptors: [AddAuthTokenInterceptor()], // i.e. http interceptor
     messageInterceptors: [ModifyMessagesInterceptor()] // <~~~ here
   );
 ```

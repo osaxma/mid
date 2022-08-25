@@ -14,8 +14,8 @@ class FooClient extends BaseClient {
   FooClient({
     required super.url, // <~ the server URL
     super.initialHeaders, // <~ the initial headers to be sent with any requests 
-    super.interceptors, // <~ http interceptors
-    super.messageInterceptors, // <~ web socket messages interceptors
+    super.httpInterceptors, // <~ http interceptors
+    super.messagesInterceptors, // <~ web socket messages interceptors
   });
 }
 
@@ -44,6 +44,6 @@ Important Note:
 - `mid` in itself does not handle authentication and it's unaware of it. Therefore, `ConnectionInitMessage` & `ConnectionUpdateMessage`are expected to be intercepted by the server to verify the headers. See the [server documentation] for more details. 
 
 
-[server documentation]: https://github.com/osaxma/mid/blob/main/docs/interceptors.md
+[server documentation]: https://github.com/osaxma/mid/blob/main/docs/server.md
 [`ConnectionInitMessage`]: https://github.com/osaxma/mid/blob/main/packages/mid_protocol/lib/src/message.dart
 [`ConnectionUpdate`]: https://github.com/osaxma/mid/blob/main/packages/mid_protocol/lib/src/message.dart

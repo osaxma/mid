@@ -25,7 +25,6 @@ When creating a `mid` project using `mid create <project_name>`, the following s
                     |- handlers.dart
                     |- serializers.dart
                 |- endpoints.dart
-                |- middlewares.dart
 ```
 
 As it can be seen above, there are two projects created:
@@ -51,7 +50,6 @@ Let's take a closer look at the server project:
                 |- handlers.dart
                 |- serializers.dart
             |- endpoints.dart
-            |- middlewares.dart
 ```
 
 - `bin/server.dart` 
@@ -63,7 +61,6 @@ Let's take a closer look at the server project:
     - `handlers.dart` is a generated file and should not be modified. It contains the handlers for endpoints (both regular and streams).
     - `serializers.dart` contains the serialization for User Defined Types (e.g. `UserData`) that were found in any return statement or an argument of any `EndPoints` method
     - `endpoints.dart` this file contains a single function async `getEndPoints`. The function is mainly intended to allow the developer to perform any initializations as well as creating the instances of each `EndPoints` class. This function is the first function called upon starting the server. 
-    - `middlewares.dart` is where `MiddleWare` from the shelf package can be added. (this may change -- see [interceptors docs](interceptors.md) 
 
 Except for `lib/mid`, source files can be created anywhere within `lib` or within the `project`.  
 
