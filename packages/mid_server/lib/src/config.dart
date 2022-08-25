@@ -9,7 +9,7 @@ class ServerConfig {
   final List<BaseHandler> handlers;
 
   /// A list of of websocket messages interceptors
-  final List<MessageInterceptorServer> messagesInterceptor;
+  final List<MessageInterceptorServer> messagesInterceptors;
 
   /// A List of http interceptors
   final List<HttpInterceptorServer> httpInterceptors;
@@ -55,7 +55,7 @@ class ServerConfig {
     required this.address,
     required this.port,
     this.httpInterceptors = const [],
-    this.messagesInterceptor = const [],
+    this.messagesInterceptors = const [],
     this.securityContext,
     this.backlog,
     this.shared = false,
