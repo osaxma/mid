@@ -26,7 +26,7 @@ This is a quick start tutorial that's meant to show how `mid` works.
 
 3. Create your first endpoints within `quick_start_server` project:
 
-    3.1 Create a file in under `quick_start_server/lib/src` called `quick_start.dart`
+    3.1 Create a file in under `quick_start_server/lib/src` called `example.dart`
     > you can create the file anywhere within lib but avoid creating files within `lib/mid/`
 
     3.2 Add the following code:
