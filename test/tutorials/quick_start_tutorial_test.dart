@@ -4,10 +4,22 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as p;
 
-// Quick and dirty way to test the quick start tutorial 
-// 
-// make sure to activate the latest `mid` from path 
-//  i.e. melos activate 
+// Quick and dirty way to test the quick start tutorial
+//
+// make sure to activate the latest `mid` from by running
+//    melos activate
+//
+// TODO: create a script to generate the tutorial
+//       share all code snippets and file names between the tutorial and test in the script
+//       so when updating the tutorial, we don't need to update the test.
+//
+// TODO: to truly simulate the entire tutorial, maybe we should test this within a docker container
+//       since the steps also include `dart pub global activate mid`
+//
+// TODO: remove all print statement and use a test logger.
+//
+// note: this test takes more than 30 seconds (running the frontend alone is minimum 10 seconds)
+//       so the time out was modified at the end of the test
 void main() async {
   Process? frontendProcess;
   Process? serverProcess;
@@ -21,6 +33,7 @@ void main() async {
     final tempDir = Directory.systemTemp.path;
     final time = DateTime.now().microsecondsSinceEpoch;
     final projectName = 'mid_quick_start_tutorial_test_$time';
+    // TODO: use the converter from snake_case to PascalCase
     final clientName = 'MidQuickStartTutorialTest${time}Client';
     final dirName = p.join(tempDir, projectName);
 
@@ -98,16 +111,14 @@ void main() async {
     );
 
     final result = [];
-    final sub = frontendProcess!.stdout
-        .map((e) => utf8.decode(e).replaceAll('\n', ''))
-        .where((event) => event.isNotEmpty)
+    final sub = frontendProcess!.stdout.transform(Utf8Decoder()).transform(LineSplitter())
+        // .where((event) => event.isNotEmpty)
         .listen((event) {
       result.add(event);
     });
 
     await sub.asFuture().timeout(Duration(seconds: 15));
 
-    print('got results $result');
     expect(result, expectedResult);
   }, timeout: Timeout(Duration(seconds: 60)));
 }
@@ -121,6 +132,7 @@ int runPubGet(String path) {
 }
 
 // $serverProject/lib/src/quick_start.dart
+// TODO: remove the delay or reduce it 
 void createEndPointFile(String serverProjectPath) {
   final content = r'''
     import 'package:mid/endpoints.dart';
@@ -200,7 +212,6 @@ final expectedResult = [
   'countdown: 1',
   'countdown: 0',
 ];
-
 
 const pubspecOverridesClientContents = '''
 dependency_overrides:
