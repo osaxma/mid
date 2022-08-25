@@ -1,6 +1,8 @@
 # mid 
 
-> ⚠️ warning: the project is still experimental! 
+> ⚠️ warning: the project is still experimental!
+>
+> so things may change often until a stable version is released.
 
 `mid` is a tool to build an end-to-end typesafe API in dart. The tool generates an API server and a client library in addition to handling requests and managing communication between the server and the client. 
 
