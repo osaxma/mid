@@ -58,6 +58,9 @@ class HttpLogInterceptor extends HttpInterceptorServer {
 }
 ```
 
+> Note: the `Response` and `Request` types of the `HttpInterceptorServer` are from the [shelf] package. They are not the same as the ones used in the client http interceptors.
+
+
 You can add a list of `HttpInterceptorServer` in the `ServerConfig` located at:
 
 ```
@@ -66,7 +69,7 @@ You can add a list of `HttpInterceptorServer` in the `ServerConfig` located at:
             |- server.dart 
 ```
 
-The interceptor(s) can be added to the `ServerConfig` (using [Quick Start Tutorial][] as an example) such as:
+Using [Quick Start Tutorial][] as an example), the interceptors can be added as follows:
 
 ```dart
 Future<void> main(List<String> args) async {
@@ -86,6 +89,8 @@ Future<void> main(List<String> args) async {
 ### Server Websocket Messages Interceptor
 
 For streaming endpoints, the websocket messages between the server and client can be intercepted using [MessageInterceptorServer][] from the `mid_server` package which is automatically added to every generated server project. 
+
+For client messages, the server interceptor has an extra `headers` argument. These headers are passed by the server to the interceptor to facilitate any authorization and validation of the connection. The headers are either from [ConnectionInitMessage] or [ConnectionUpdateMessage], the former would be the initial headers when the connection was established, whearas the latter will be any subsequent headers that were sent to the server by the client (i.e. `Client.updateHeaders`). Read the [headers][] documentation for more details. 
 
 [MessageInterceptorServer]: https://github.com/osaxma/mid/blob/main/packages/mid_server/lib/src/interceptor.dart
 
@@ -160,7 +165,7 @@ Future<void> main(List<String> args) async {
 
 ### Client HTTP Interceptor
 To intercept http requests and responses on the client side, the `mid_client` package provides an [HttpInterceptorClient][] type. The type is exported by the generated client library to facilitate its usage. The interceptor types can be imported from your frontend project as follow:
-```
+```dart
 import 'package:<project_name>_client/interceptors.dart'; 
 ```
 
@@ -178,6 +183,9 @@ class AddAuthTokenInterceptor extends HttpInterceptorClient {
 }
 ```
 
+> Note: the `Response` and `Request` types of `HttpInterceptorClient` are from the [http] package. They are not the same as the one used in the server http interceptors. 
+
+
 The interceptor(s) can be added to the client upon instantiation (using [Quick Start Tutorial][] as an example):
 
 ```dart
@@ -193,15 +201,46 @@ To intercept Messages on the client side, the [MessageInterceptorClient][] type 
 
 [MessageInterceptorClient]: https://github.com/osaxma/mid/blob/main/packages/mid_client/lib/src/interceptor.dart
 
+For example, to keep track of active subscription, one can create the following interceptor:
+
+```dart
+class TrackSubscriptions extends MessageInterceptorClient {
+  int currentSubs = 0;
+
+  @override
+  Message clientMessage(Message message) {
+    if (message is SubscribeMessage) {
+      currentSubs++;
+    }
+    if (message is StopMessage) {
+      currentSubs--;
+    }
+    return message;
+  }
+
+  @override
+  Message serverMessage(Message message) {
+    // assuming this is an error that'll terminate the connection
+    if (message is ErrorMessage) {
+      currentSubs = 0;
+    }
+    return message;
+  }
+} 
+```
+
+
 Taking the [Quick Start tutorial][] as an example, the interceptors can be added as follows:
 
 ```dart
   final client = QuickStartClient(
     url: 'localhost:8000',
     httpInterceptors: [AddAuthTokenInterceptor()], // i.e. http interceptor
-    messageInterceptors: [ModifyMessagesInterceptor()] // <~~~ here
+    messageInterceptors: [TrackSubscriptions()] // <~~~ here
   );
 ```
 
 
 [Quick Start Tutorial]: https://github.com/osaxma/mid/tree/main/tutorials/quick_start
+[shelf]: https://pub.dev/packages/shelf
+[http]: https://pub.dev/packages/http
