@@ -1,3 +1,11 @@
+## 0.1.0
+
+> Note: This release has breaking changes.
+
+ - **DOCS**: modified comments.
+ - **DOCS**: modified comments.
+ - **BREAKING** **CHORE**: removed interceptors from protocol lib.
+
 ## 0.0.2+3
 
  - **DOCS**: modified comments.

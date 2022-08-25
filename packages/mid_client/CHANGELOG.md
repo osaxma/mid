@@ -1,3 +1,16 @@
+## 0.1.0
+
+> Note: This release has breaking changes.
+
+ - **REFACTOR**: remove unused import.
+ - **FIX**: try/catch ws connection failing.
+ - **FIX**: apply client http interceptors.
+ - **FIX**: client websocket interceptor bug.
+ - **FIX**: apply client http interceptors.
+ - **FIX**: client websocket interceptor bug.
+ - **FEAT**: add randomly generated request id to headers.
+ - **BREAKING** **FEAT**: changed interceptors definitions.
+
 ## 0.0.3+4
 
  - **FIX**: apply client http interceptors.

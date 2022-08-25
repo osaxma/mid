@@ -1,6 +1,6 @@
 name: mid_client
 description: a package for supporting clients that are built using the mid package
-version: 0.0.3+4
+version: 0.1.0
 homepage: https://github.com/osaxma/mid/
 
 environment:
@@ -9,9 +9,9 @@ environment:
 dependencies:
   http: ^0.13.5
   meta: ^1.8.0
-  mid: ^0.0.3+4
-  mid_common: ^0.0.1
-  mid_protocol: ^0.0.2+3
+  mid: ^0.1.0
+  mid_common: ^0.0.2
+  mid_protocol: ^0.1.0
   web_socket_channel: ^2.2.0
 
 dev_dependencies:

@@ -1,3 +1,14 @@
+## 0.1.0
+
+> Note: This release has breaking changes.
+
+ - **FEAT**: new project created w new config & structure.
+ - **DOCS**: modified generated code comment.
+ - **DOCS**: modified comments.
+ - **DOCS**: modified generated code comment.
+ - **DOCS**: modified comments.
+ - **BREAKING** **FEAT**: getEndPoints moved to getHandlers.
+
 ## 0.0.3+4
 
  - **DOCS**: modified generated code comment.
