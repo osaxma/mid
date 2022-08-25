@@ -39,7 +39,7 @@ class DefaultHttpHandler {
     Request request,
     FutureOrBaseHandler baseHandler,
   ) async {
-    final requestID = request.getRequestID() ?? '';
+    final requestID = request.requestID ?? '';
     try {
       request = await _interceptRequests(request);
     } catch (e) {

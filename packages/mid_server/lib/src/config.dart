@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:mid_server/src/interceptor.dart';
 import 'package:mid_server/mid_server.dart';
 
 /// Server Configuration that will be passed to the shelf server

@@ -1,5 +1,4 @@
 import 'package:mid_server/mid_server.dart';
-import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 Router generateRouter(ServerConfig config) {

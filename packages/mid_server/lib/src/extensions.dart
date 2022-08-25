@@ -8,14 +8,10 @@ extension ResponsEx on Response {
   }
 
   /// get the request id that came from the client request 
-  String? getRequestID() {
-    return headers[requestIdKey];
-  }
+  String? get requestID => headers[requestIdKey];
 }
 
 extension RequestEx on Request {
   /// get the request id that came with the client side
-  String? getRequestID() {
-    return headers[requestIdKey];
-  }
+  String? get requestID => headers[requestIdKey];
 }
