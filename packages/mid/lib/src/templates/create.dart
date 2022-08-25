@@ -29,7 +29,7 @@ Future<void> main(List<String> args) async {
 const endpointsDotDart = '''
 import 'package:mid/mid.dart';
 
-Future<List<EndPoints>> getEndPoints() async async {
+Future<List<EndPoints>> getEndPoints() async {
 
   /* do any initializations here */
 
@@ -53,16 +53,9 @@ $generatedCodeMessage
 
 import 'package:mid/mid.dart';
 import 'package:mid_server/mid_server.dart';
-import 'package:shelf_router/shelf_router.dart';
 import '../endpoints.dart';
 
-Future<List<BaseHandler>> getHandlers() {
-  final endpoints = await getEndPoints();
-  return [
-    ..._getFutureOrHandlers(endpoints),
-    ..._getStreamHandlers(endpoints),
-  ];
-}
+$getHandlersFunction
 
 List<FutureOrBaseHandler> _getFutureOrHandlers(List<EndPoints> endpoints) {
   final handlers = <FutureOrBaseHandler>[];
@@ -76,8 +69,18 @@ List<StreamBaseHandler> _getStreamHandlers(List<EndPoints> endpoints) {
   return handlers;
 }
 
-
 ''';
+
+const getHandlersFunction = '''
+Future<List<BaseHandler>> getHandlers() async {
+  final endpoints = await getEndPoints();
+  return [
+    ..._getFutureOrHandlers(endpoints),
+    ..._getStreamHandlers(endpoints),
+  ];
+}
+''';
+
 
 const generatedCodeMessage = '''
 /* 

@@ -24,7 +24,7 @@ class EndPointsSourceGenerator {
     _imports.add(generatedCodeMessage);
 
     _addDefaultImports();
-    _source.writeln(_generateGetHandlers());
+    _source.writeln(getHandlersFunction);
 
     int i = 0;
     for (final route in routes) {
@@ -47,10 +47,9 @@ class EndPointsSourceGenerator {
     _imports.add(asyncImport);
     _imports.add(dartConvertImport);
     _imports.add(midPkgImport);
-    _imports.add(shelfImport);
     _imports.add(midServerPkgImport);
-    _imports.add(endpointsImport);
     _imports.add(serializersImport);
+    _imports.add(endpointsImport);
   }
 
   void _addImport(String packageURI) {
@@ -264,17 +263,6 @@ List<StreamBaseHandler> _getStreamHandlers(List<EndPoints> endpoints) {
   ];
 
   return handlers;
-}
-''';
-  }
-
-  String _generateGetHandlers() {
-    return '''
-List<BaseHandler> getHandlers(List<EndPoints> endpoints) {
-  return [
-    ..._getFutureOrHandlers(endpoints),
-    ..._getStreamHandlers(endpoints),
-  ];
 }
 ''';
   }
