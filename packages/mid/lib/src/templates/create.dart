@@ -3,14 +3,16 @@ String getServerDotDartContent(String projectName) => '''
 import 'dart:io';
 
 import 'package:mid_server/mid_server.dart';
-import 'package:${projectName}_server/mid/endpoints.dart';
-import 'package:${projectName}_server/mid/middlewares.dart';
 import 'package:${projectName}_server/mid/generated/handlers.dart';
 
 Future<void> main(List<String> args) async {
+
+  // Get the generated server handlers 
+  final handlers = await getHandlers(); 
+
+  // Create the server configurations
   final serverConfig = ServerConfig(
-    handlers: getHandlers(await getEndPoints()), // don't modify this line
-    middlewares: getMiddlewares(), // // don't modify
+    handlers: handlers, 
 
     // Use any available host or container IP (usually `0.0.0.0`).
     address: InternetAddress.anyIPv4,
@@ -27,7 +29,7 @@ Future<void> main(List<String> args) async {
 const endpointsDotDart = '''
 import 'package:mid/mid.dart';
 
-Future<List<EndPoints>> getEndPoints() async {
+Future<List<EndPoints>> getEndPoints() async async {
 
   /* do any initializations here */
 
@@ -38,30 +40,6 @@ Future<List<EndPoints>> getEndPoints() async {
      */
   ];
 }
-''';
-
-/// `project/mid/middlewares.dart` file
-const middleWaresDotDart = '''
-import 'package:shelf/shelf.dart';
-
-
-/// User defined Middlewares for http requests and responses
-/// 
-/// 
-/// Important Note: 
-///   Any request for a websocket connection (i.e. `/ws` route) will not contain client headers. 
-///   Make sure to skip such requests.
-///   
-///   Alternatively, use [MessageInterceptor] to intercept incoming [Message]s where [Message.type] is
-///   [MessageType.updateConnection] to authenticate client websocket connections. 
-List<Middleware> getMiddlewares() {
-  return <Middleware>[
-    // the default shelf logger 
-    logRequests(), 
-    /* add any other middlewares here */
-  ];
-}
-
 ''';
 
 /// `project/mid/handlers.dart` file
@@ -76,8 +54,10 @@ $generatedCodeMessage
 import 'package:mid/mid.dart';
 import 'package:mid_server/mid_server.dart';
 import 'package:shelf_router/shelf_router.dart';
+import '../endpoints.dart';
 
-List<BaseHandler> getHandlers(List<EndPoints> endpoints) {
+Future<List<BaseHandler>> getHandlers() {
+  final endpoints = await getEndPoints();
   return [
     ..._getFutureOrHandlers(endpoints),
     ..._getStreamHandlers(endpoints),

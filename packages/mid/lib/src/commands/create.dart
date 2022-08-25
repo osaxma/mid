@@ -103,7 +103,6 @@ class CreateCommand extends MIDCommand {
     // create server default files
     createFileSync(p.join(path, 'bin', 'server.dart'), contents: getServerDotDartContent(projectName));
     createFileSync(p.join(path, 'lib/mid/', 'endpoints.dart'), contents: endpointsDotDart, recursive: true);
-    createFileSync(p.join(path, 'lib/mid/', 'middlewares.dart'), contents: middleWaresDotDart);
     createFileSync(p.join(path, 'lib/mid/generated/', 'handlers.dart'), contents: handlersDotDart, recursive: true);
     createFileSync(p.join(path, 'lib/mid/generated/', 'serializers.dart'), contents: '');
     // TODO: add Dockerfile & .dockerignore (or use --template=server-shelf when creating dart project)
