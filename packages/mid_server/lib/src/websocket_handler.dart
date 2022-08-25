@@ -100,7 +100,7 @@ class _ConnectionHandler {
 
       // we need to extract the headers so they are available for the interceptors
       if (message is ConnectionInitMessage || message is ConnectionUpdateMessage) {
-        _headers = (message as ConnectionInitMessage).payload.headers;
+        _headers = (message.payload as ConnectionPayload).headers;
       }
 
       // intercept message
