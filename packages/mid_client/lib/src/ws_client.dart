@@ -128,11 +128,20 @@ class MidWebSocketClient {
       id: id,
     );
 
+    late final Stream<Message> stream;
+    // an error could occur here if the connection failed.
+    try {
+      stream = _getStream(id);
+    } catch (e) {
+      // TODO: handle different cases, retry to connect, etc. 
+      rethrow;
+    }
+
     final endpointStream = EndPointStream(
       id: id,
       route: route,
       args: args,
-      rootStream: _getStream(id),
+      rootStream: stream,
     );
 
     endpointStream.onListen = () {
