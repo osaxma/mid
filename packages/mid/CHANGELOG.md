@@ -1,3 +1,7 @@
+## 0.1.0+1
+
+ - **FIX**: removed hand written paths to be normalized.
+
 ## 0.1.0
 
 > Note: This release has breaking changes.
