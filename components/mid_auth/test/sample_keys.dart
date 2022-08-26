@@ -1,31 +1,7 @@
-
-
-## RSA Key Generation 
-Under "Run JWT Server" section in the article below:
-
-```sh 
-# Generate the RSA keys
-[~]$ openssl genrsa -out private.pem 2048
-[~]$ openssl rsa -in private.pem -pubout > public.pem
-
-# print the keys in an escaped format
-[~]$ awk -v ORS='\\n' '1' private.pem
-[~]$ awk -v ORS='\\n' '1' public.pem
-```
-_article: [Add Authentication and Authorization to Next.js 8 Serverless Apps using JWT and GraphQL](https://hasura.io/blog/add-authentication-and-authorization-to-next-js-8-serverless-apps-using-jwt-and-graphql/#Run-JWT-Server)_
-
-_for more details about openssl, see [Generate OpenSSL RSA Key Pair from the Command Line](https://rietta.com/blog/openssl-generating-rsa-key-from-command/)_
-
-
-
-## Example output 
-
-
- > DO NOT USE THESE KEYS IN YOUR APP<br>
- > THEY ARE MEANT TO BE AN EXAMPLE ONLY<br>
-
-- `public.pem`
-```pem
+// DO NOT USE THESE KEYS IN YOUR APP -- THEY ARE MEANT FOR TESTING
+//                  DO NOT DO LIKE HYUNDAI  
+// SEE THE GUIDE AT https://github.com/osaxma/mid/blob/main/components/mid_auth/KEY_GENERATION.md
+const sampleRsa256PublicKey = '''
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvtPgdJmf6+wTVAPAenSS
 ex364uZjI3CnhDKeTqx8dac0/Y5U16f76SohiC+ub/mX25+Tn9brazJ7C8wZZGsb
@@ -35,11 +11,9 @@ SRZCP0GcrfxRCDFlkHNgfpL1DWbThgV0PBV3AfqwhQDQOSFwmNB4RsSB2V1AZZAj
 Huc5g3rMbl7QDaTeLv02QnXqcJ5UcNN4oRYCS5WHxuyIGW6J9IyTkfgXoRCC8A1j
 hQIDAQAB
 -----END PUBLIC KEY-----
-```
+''';
 
-- `private.pem`
-
-```pem
+const sampleRsa256PrivateKey = '''
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEAvtPgdJmf6+wTVAPAenSSex364uZjI3CnhDKeTqx8dac0/Y5U
 16f76SohiC+ub/mX25+Tn9brazJ7C8wZZGsb1SPxdv7oK+JmeYCk5xi/fv23pftK
@@ -67,7 +41,4 @@ HCMerAECgYEA0yGevtYoCLW+38Uz5Hvrn/F5U2C7ssDJqFdanSHqLGkbmNHPKMZq
 svlxykObKHTFbpfQXUdUJNktOeUK7nrjujvFC3IWzKox/ctZPPJP6WdnytzGMl3G
 u/UVqw5L71D/7iiMbetHvvd6vLMAD13XxiRSM4J+mvAv/sE4+BVu0yY=
 -----END RSA PRIVATE KEY-----
-```
-
-
-
+''';
