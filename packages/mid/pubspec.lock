@@ -186,10 +186,10 @@ packages:
   mid_common:
     dependency: "direct main"
     description:
-      path: "../mid_common"
-      relative: true
-    source: path
-    version: "0.0.1"
+      name: mid_common
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.2"
   mime:
     dependency: transitive
     description:

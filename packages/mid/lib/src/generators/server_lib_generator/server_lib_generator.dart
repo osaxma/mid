@@ -36,8 +36,8 @@ class ServerLibGenerator {
   }
 
   Future<void> commit() async {
-    final endpointsFile = File(p.join(serverProjectPath, 'lib/mid/generated', 'handlers.dart'));
-    final serializersFile = File(p.join(serverProjectPath, 'lib/mid/generated', 'serializers.dart'));
+    final endpointsFile = File(p.join(serverProjectPath, 'lib', 'mid', 'generated', 'handlers.dart'));
+    final serializersFile = File(p.join(serverProjectPath, 'lib', 'mid', 'generated', 'serializers.dart'));
     endpointsFile.writeAsStringSync(_endpointsSource);
     serializersFile.writeAsStringSync(_serializersSource);
   }

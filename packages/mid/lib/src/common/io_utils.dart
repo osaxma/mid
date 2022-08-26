@@ -124,5 +124,5 @@ String getClientProjectPath(String currentDirPath) {
 /// This directory must be available in both client & server if
 /// this is a valid mid client or mid server generated project. 
 bool isMidProject(String path) {
-  return FileSystemEntity.isDirectorySync(p.join(path, 'lib/mid'));
+  return FileSystemEntity.isDirectorySync(p.join(path, 'lib', 'mid'));
 }
