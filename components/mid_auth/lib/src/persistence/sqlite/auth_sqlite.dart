@@ -14,6 +14,8 @@ import 'package:sqlite3/sqlite3.dart';
   Causing statement: insert into auth_users (email, password) values ('example@example.com', '$2b$10$Da30XkhHwppsvpuJG3KRzeNhwo9VZt49OW7eRoq7RpU1FdgzHSTBq') RETURNING *" must be a String or a Stream.⏎
    */
 
+// TODO(osaxma): UPDATE ALL QUERIES TO BE PARAMETERIZED
+
 // TODO(osaxma): figure out an appropriate default path
 final defaultPath = p.join(p.current, 'auth.db');
 
@@ -44,7 +46,7 @@ class AuthSqlite implements AuthDB {
   @override
   Future<User> createUser(String email, String hashedPassword) {
     final res =
-        _database.select("insert into auth_users (email, password) values ('$email', '$hashedPassword') RETURNING *");
+        _database.select('insert into auth_users (email, password) values (?, ?) RETURNING *', [email, hashedPassword]);
     if (res.isEmpty) {
       throw Exception('could not create new user');
     }
@@ -53,7 +55,7 @@ class AuthSqlite implements AuthDB {
 
   @override
   Future<String> getHashedPasswordByEmail(String email) {
-    final res = _database.select("select password from auth_users where email = '$email'");
+    final res = _database.select('select password from auth_users where email = ? ', [email]);
     if (res.isEmpty) {
       throw Exception('User not found');
     }
@@ -63,7 +65,7 @@ class AuthSqlite implements AuthDB {
 
   @override
   Future<User> getUserByEmail(String email) {
-    final res = _database.select("select * from auth_users where email = '$email'");
+    final res = _database.select('select * from auth_users where email = ?', [email]);
     if (res.isEmpty) {
       throw Exception('User not found');
     }
@@ -72,7 +74,7 @@ class AuthSqlite implements AuthDB {
 
   @override
   Future<User> getUserByID(int userID) {
-    final res = _database.select('select * from auth_users where id = $userID');
+    final res = _database.select('select * from auth_users where id = ?', [userID]);
     if (res.isEmpty) {
       throw Exception('User not found');
     }
@@ -82,35 +84,29 @@ class AuthSqlite implements AuthDB {
   @override
   Future<void> persistRefreshToken(Session session, [String? parentRefreshToken]) async {
     if (parentRefreshToken != null) {
-      _database.execute(
-        "insert into refresh_tokens (token, user_id, parent) values ('${session.refreshToken}', ${session.user.id}, '$parentRefreshToken')",
-      );
+      _database.execute('insert into refresh_tokens (token, user_id, parent) values (?, ?, ?)',
+          [session.refreshToken, session.user.id, parentRefreshToken]);
     } else {
       _database.execute(
-        "insert into refresh_tokens (token, user_id) values ('${session.refreshToken}', ${session.user.id})",
-      );
+          'insert into refresh_tokens (token, user_id) values (?, ?)', [session.refreshToken, session.user.id]);
     }
   }
 
   @override
   Future<void> revokeRefreshToken(int userID, String refreshToken) async {
-    _database.execute(
-      "update refresh_tokens set revoked = true where user_id = $userID and token = '$refreshToken'",
-    );
+    _database
+        .execute('update refresh_tokens set revoked = true where user_id = ? and token = ?', [userID, refreshToken]);
   }
 
   @override
   Future<void> revokeAllRefreshTokens(int userID) async {
-    _database.execute(
-      'update refresh_tokens set revoked = true where user_id = $userID',
-    );
+    _database.execute('update refresh_tokens set revoked = true where user_id = ?', [userID]);
   }
 
   @override
   Future<bool> isRefreshTokenValid(int userID, String refreshToken) async {
-    final res = _database.select(
-      "select revoked from refresh_tokens where user_id = $userID and token = '$refreshToken'",
-    );
+    final res =
+        _database.select('select revoked from refresh_tokens where user_id = ? and token = ?', [userID, refreshToken]);
     if (res.isEmpty) {
       return false;
     }
