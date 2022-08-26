@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'package:mid_auth/src/models/user_data.dart';
 import 'package:meta/meta.dart';
 
+/// A model represents an active session for a [User].
+///
+/// The model contains the [accessToken] (e.g., JWT), the [refreshToken],
+/// the [expiryTime] of the [accessToken] and the [user] of the session.
 @immutable
 class Session {
   const Session({
@@ -11,9 +15,18 @@ class Session {
     required this.user,
   });
 
+  /// The access token of the given [user]
+  ///
+  /// e.g. JWT (Json Web Token)
   final String accessToken;
+
+  /// The token that can be used to refresh the session
   final String refreshToken;
+
+  /// The expiry time of the [accessToken]
   final DateTime expiryTime;
+
+  /// The user of this [accessToken]
   final User user;
 
   Session copyWith({

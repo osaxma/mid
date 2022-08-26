@@ -25,7 +25,7 @@ void main() {
     final tempFolder = Directory.systemTemp.path;
     final dbPath = p.join(tempFolder, dbName);
     authDB = AuthDbSqlite(dbPath: dbPath);
-    jwtHandler = JWTHandlerRsa256(
+    jwtHandler = JWTHandlerRS256(
         jwtPrivateKey: sampleRsa256PrivateKey,
         jwtPublicKey: sampleRsa256PublicKey,
         aud: 'aud',
@@ -166,6 +166,25 @@ void main() {
         session2.refreshToken,
       );
       expect(isSession2RefreshTokenValid, false);
+    });
+
+    test('refresh token invalidates previous token', () async {
+      final session = await auth.signInWithEmailAndPassword(email, password);
+      await Future.delayed(Duration(seconds: 2)); // to allow different expiry time, hence different access token
+      final newSession = await auth.refreshSession(session);
+
+      final isOldSessionRefreshTokenValid = await authDB.isRefreshTokenValid(
+        session.user.id,
+        session.refreshToken,
+      );
+      expect(isOldSessionRefreshTokenValid, false, reason: 'old token must be revoked');
+
+      final isNewSessionRefreshTokenValid = await authDB.isRefreshTokenValid(
+        newSession.user.id,
+        newSession.refreshToken,
+      );
+
+      expect(isNewSessionRefreshTokenValid, true, reason: 'new token should be valid');
     });
   });
 }

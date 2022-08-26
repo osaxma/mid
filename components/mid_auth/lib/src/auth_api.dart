@@ -3,23 +3,53 @@ import 'package:mid_auth/src/email/email.dart';
 import 'package:mid_auth/src/tools/hashing.dart';
 import 'package:mid/mid.dart';
 
-/// a simple authentication API
-// TODO: change this file and folder names to `api`
+/// A simple and composable Authentication API
 class Auth extends EndPoints {
-  Auth({
-    required AuthDB authDB,
-    required JWTHandler jwtHandler,
-    EmailHandler? emailHandler,
-  })  : _authDB = authDB,
-        _jwtHandler = jwtHandler,
-        _emailHandler = emailHandler;
+  /// Called to validate the email format when creating an account only
+  ///
+  /// When the callback returns `true`, then the process is continued.
+  /// When it return `false`, then an [AuthException] is thrown.
+  final bool Function(String email)? emailFormatValidator;
+
+  /// Used to validate the password format when creating an account only
+  ///
+  /// When the callback returns `true`, then the process is continued.
+  /// When it return `false`, then an [AuthException] is thrown.
+  final bool Function(String email)? passwordFormatValidator;
 
   final AuthDB _authDB;
   final JWTHandler _jwtHandler;
   final EmailHandler? _emailHandler;
 
+  /// Creates an authentication API
+  ///
+  /// [authDB] is used to persist the data. One can provide their own
+  /// implementation or can use the existing [AuthDbSqlite] implementation.
+  ///
+  /// [jwtHandler] is the [JWTHandler] used to generate and validate the
+  /// jwt tokens. One can provide their own implementation or use the existing
+  /// [JWTHandlerRS256] one.
+  ///
+  /// [emailFormatValidator] and [passwordFormatValidator] are callbacks that
+  /// are used to verify the format of email and password respectively when
+  /// the [createUserWithEmailAndPassword] is invoked only.
+  ///
+  /// The [emailHandler] is used for sending the email conformation instruction, or
+  /// the password reset instructions. One needs to create their own implementation.
+  /// When [emailHandler] is not provided, then all invokation to methods related to
+  /// email confirmation or password resets will be fail silently.
+  Auth({
+    required AuthDB authDB,
+    required JWTHandler jwtHandler,
+    EmailHandler? emailHandler,
+    this.emailFormatValidator,
+    this.passwordFormatValidator,
+  })  : _authDB = authDB,
+        _jwtHandler = jwtHandler,
+        _emailHandler = emailHandler;
+
   Future<Session> createUserWithEmailAndPassword(String email, String password) async {
-    if (!_verifyEmailAndPasswordFormat(email, password)) {
+    if (!_isValidEmailAndPassword(email, password)) {
       throw AuthException('Email or Password has bad format');
     }
 
@@ -76,21 +106,23 @@ class Auth extends EndPoints {
   }
 
   /// Creates a new session after validating the jwt and refresh token
-  Future<Session> refreshSession(String jwt, String refreshToken) async {
-    if (!_jwtHandler.hasValidSignature(jwt)) {
+  ///
+  /// This will revoke the refresh token used to refresh the session
+  Future<Session> refreshSession(Session session) async {
+    if (!_jwtHandler.hasValidSignature(session.accessToken)) {
       throw AuthException('Invalid JWT');
     }
 
-    final userID = _jwtHandler.getUserId(jwt);
-    final isValid = await _authDB.isRefreshTokenValid(userID, refreshToken);
+    final userID = _jwtHandler.getUserId(session.accessToken);
+    final isValid = await _authDB.isRefreshTokenValid(userID, session.refreshToken);
     if (!isValid) {
       throw AuthException('Invalid Refresh Token');
     }
     // revoke the old refresh token
-    await _authDB.revokeRefreshToken(userID, refreshToken);
+    await _authDB.revokeRefreshToken(userID, session.refreshToken);
 
     final user = await _authDB.getUserByID(userID);
-    return _createSession(user, refreshToken);
+    return _createSession(user, session.refreshToken);
   }
 
   Future<void> sendConfirmationEmail(User user) async {
@@ -110,41 +142,37 @@ class Auth extends EndPoints {
     throw UnimplementedError();
   }
 
-  bool _verifyEmailAndPasswordFormat(String email, String password) {
-    return true;
+  bool _isValidEmailAndPassword(String email, String password) {
+    bool validEmail;
+    if (emailFormatValidator != null) {
+      validEmail = emailFormatValidator!(email);
+    } else {
+      validEmail = true;
+    }
+
+    bool validPassword;
+    if (passwordFormatValidator != null) {
+      validPassword = passwordFormatValidator!(email);
+    } else {
+      validPassword = true;
+    }
+
+    return validEmail && validPassword;
   }
 
-  /// Returns the Public JSON Web Key (JWK) for verifying JWT produced by an RS256
-  ///
-  /// Since RSA is an asymmetric algorithm, the signature of the JWT can be
-  /// verified using the public key by 3rd party APIs. On the other hand,
-  /// symmetric algorithms such as HMAC (e.g. HS256), requires the secret key
-  /// to verify the signature.
-  ///
-  /// Currently, this method will only return a valid JWK for [JWTHandlerRsa256].
-  /// Otherwise, it'll return an empty map.
-  ///
-  /// Typically, the JWK is kept at a public endpoint so 3rd party APIs can retrieve
-  /// the key for verifying JWT produced by this servers.
-  ///
-  /// References:
-  /// - [RFC7517 JSON Web Key by IETF](https://datatracker.ietf.org/doc/html/rfc7517)
-  /// - [Navigating RS256 and JWKS by Auth0](https://auth0.com/blog/navigating-rs256-and-jwks/)
-  /// - [RS256 vs HS256 in SO](https://stackoverflow.com/a/39239395/10976714)
-  /// - [JWKs manual creator](https://russelldavies.github.io/jwk-creator/)
-  /// - [Googles JWK example format](https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com)
+  /// Returns the Public JSON Web Key (JWK) for verifying the JWT
   Map<String, dynamic> getPublicJWK() {
-    if (_jwtHandler is JWTHandlerRsa256) {
-      return (_jwtHandler as JWTHandlerRsa256).getPublicJWK();
+    if (_jwtHandler is JWTHandlerRS256) {
+      return (_jwtHandler as JWTHandlerRS256).getPublicJWK();
     }
 
     return {};
   }
 
-  /// Returns the public key in PEM format when the [JWTHandler] is [JWTHandlerRsa256] is used.
+  /// Returns the public key in PEM format when the [JWTHandler] is [JWTHandlerRS256] is used.
   String getPublicKeyInPemFormat() {
-    if (_jwtHandler is JWTHandlerRsa256) {
-      return (_jwtHandler as JWTHandlerRsa256).jwtPublicKey;
+    if (_jwtHandler is JWTHandlerRS256) {
+      return (_jwtHandler as JWTHandlerRS256).jwtPublicKey;
     }
     return '';
   }

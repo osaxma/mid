@@ -15,7 +15,7 @@ String generateRefreshToken() => generateRandomID(25);
 // credit: https://gist.github.com/proteye/982d9991922276ccfb011dfc55443d74
 String convertJwkForRS256PublicKeyToPem(Map<String, dynamic> jwk) {
   if (jwk['kty'] != 'RSA' || jwk['alg'] != 'RS256') {
-    throw Exception('The JWK does not represent a RSA256');
+    throw Exception('The JWK does not represent an RS256');
   }
 
   final exponent = _convertBase64toBigInt(jwk['e'] as String);

@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 
 import 'package:meta/meta.dart';
 
+/// a model representing a user
 @immutable
 class User {
   const User({
@@ -14,12 +15,21 @@ class User {
     required this.metadata,
   });
 
+  /// Unique user id
+  // TODO: maybe this is better as a String for flexiblity since an int can be convertd into a String
+  //       but not the other way around. 
   final int id;
+
+  /// Unique user eail
   final String email;
 
+  /// The time at which the user was created in UTC.
   final DateTime createdAt;
+
+  /// The time at which the user's email was confirmed in UTC.
   final DateTime? emailConfirmedAt;
 
+  /// any metadata related to the user such as 'firstName', 'lastName', or 'photoURL'.
   final Map<String, dynamic> metadata;
 
   User copyWith({

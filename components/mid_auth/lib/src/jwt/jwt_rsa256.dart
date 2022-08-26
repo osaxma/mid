@@ -5,9 +5,9 @@ import 'package:mid_auth/mid_auth.dart';
 import 'package:mid_auth/src/jwt/common.dart';
 import 'package:x509/x509.dart' as x509;
 
-/// A [JWTHandler] based on RSA256 algorithm
-class JWTHandlerRsa256 implements JWTHandler {
-  JWTHandlerRsa256({
+/// A [JWTHandler] based on RS256 algorithm
+class JWTHandlerRS256 implements JWTHandler {
+  JWTHandlerRS256({
     required String jwtPrivateKey,
     required this.jwtPublicKey,
     required this.aud,
@@ -86,6 +86,7 @@ class JWTHandlerRsa256 implements JWTHandler {
     }
   }
 
+  @override 
   Map<String, dynamic> getPublicJWK() {
     final parsedKey = x509.parsePem(jwtPublicKey).first;
     if (parsedKey is x509.SubjectPublicKeyInfo) {
