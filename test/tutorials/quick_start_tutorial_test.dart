@@ -8,6 +8,8 @@ import 'package:path/path.dart' as p;
 //
 // make sure to activate the latest `mid` from by running
 //    melos activate
+// or the latest from pub using:
+//    melos activate:pub
 //
 // TODO: create a script to generate the tutorial
 //       share all code snippets and file names between the tutorial and test in the script
@@ -57,10 +59,9 @@ void main() async {
     print('adding pubspec_overrides.yaml');
     final pubspecOverridesClientFile = File(p.join(clientPath, 'pubspec_overrides.yaml'));
     final pubspecOverridesServerFile = File(p.join(serverPath, 'pubspec_overrides.yaml'));
-    pubspecOverridesClientFile.writeAsString(pubspecOverridesClientContents);
-    pubspecOverridesServerFile.writeAsString(pubspecOverridesServerContents);
+    pubspecOverridesClientFile.writeAsStringSync(pubspecOverridesClientContents);
+    pubspecOverridesServerFile.writeAsStringSync(pubspecOverridesServerContents);
 
-    await Future.delayed(Duration(seconds: 3));
     print('running dart pub get for client');
     if (runPubGet(clientPath) != 0) {
       throw 'failed to run dart pub get on client project';
@@ -117,7 +118,13 @@ void main() async {
       result.add(event);
     });
 
-    await sub.asFuture().timeout(Duration(seconds: 15));
+    await sub.asFuture().timeout(Duration(seconds: 15)); // the stream count down takes 10 seconds min
+
+    final exitcode = await frontendProcess!.exitCode;
+    if (exitcode != 0) {
+      final err = await frontendProcess!.stderr.transform(Utf8Decoder()).transform(LineSplitter()).toList();
+      throw 'frontend process had an error ${err.join()}';
+    }
 
     expect(result, expectedResult);
   }, timeout: Timeout(Duration(seconds: 60)));
@@ -132,7 +139,7 @@ int runPubGet(String path) {
 }
 
 // $serverProject/lib/src/quick_start.dart
-// TODO: remove the delay or reduce it 
+// TODO: remove the delay or reduce it
 void createEndPointFile(String serverProjectPath) {
   final content = r'''
     import 'package:mid/endpoints.dart';
