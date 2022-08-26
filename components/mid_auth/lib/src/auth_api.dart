@@ -4,6 +4,7 @@ import 'package:mid_auth/src/tools/hashing.dart';
 import 'package:mid/mid.dart';
 
 /// a simple authentication API
+// TODO: change this file and folder names to `api`
 class Auth extends EndPoints {
   Auth({
     required AuthDB authDB,
@@ -19,7 +20,7 @@ class Auth extends EndPoints {
 
   Future<Session> createUserWithEmailAndPassword(String email, String password) async {
     if (!_verifyEmailAndPasswordFormat(email, password)) {
-      throw Exception('Email or Password has bad format');
+      throw AuthException('Email or Password has bad format');
     }
 
     final hashedPassword = hashPasswordByDBcrypt(password);
@@ -32,7 +33,7 @@ class Auth extends EndPoints {
   Future<Session> signInWithEmailAndPassword(String email, String password) async {
     final hashedPassword = await _authDB.getHashedPasswordByEmail(email);
     if (!verifyDBcryptPassword(password, hashedPassword)) {
-      throw Exception('email or password is incorrect');
+      throw AuthException('email or password is incorrect');
     }
 
     final user = await _authDB.getUserByEmail(email);
@@ -45,12 +46,12 @@ class Auth extends EndPoints {
   /// This method is called when a user decides to sign out from one device only, for instance.
   ///
   /// The JWT will still be valid until it expires.
-  Future<void> signOut(String jwt, String refreshToken) async {
-    if (!_jwtHandler.hasValidSignature(jwt)) {
-      throw Exception('Invalid JWT');
+  Future<void> signOut(Session session) async {
+    if (!_jwtHandler.hasValidSignature(session.accessToken)) {
+      throw AuthException('Invalid JWT');
     }
-    final userID = _jwtHandler.getUserId(jwt);
-    await _authDB.revokeRefreshToken(userID, refreshToken);
+    final userID = _jwtHandler.getUserId(session.accessToken);
+    await _authDB.revokeRefreshToken(userID, session.refreshToken);
   }
 
   /// This will revoke all the refresh tokens for the given user
@@ -58,11 +59,11 @@ class Auth extends EndPoints {
   /// This method is called when a user decides to sign out from all devices, for instance.
   ///
   /// The JWT will still be valid until it expires.
-  Future<void> signOutAll(String jwt) async {
-    if (!_jwtHandler.hasValidSignature(jwt)) {
-      throw Exception('Invalid JWT');
+  Future<void> signOutAll(Session session) async {
+    if (!_jwtHandler.hasValidSignature(session.accessToken)) {
+      throw AuthException('Invalid JWT');
     }
-    final userID = _jwtHandler.getUserId(jwt);
+    final userID = _jwtHandler.getUserId(session.accessToken);
     await _authDB.revokeAllRefreshTokens(userID);
   }
 
@@ -70,20 +71,20 @@ class Auth extends EndPoints {
     final session = _jwtHandler.generate(user);
     // the refreshtoken must be persisted before returning the session
     // otherwise there would be no way to recover the session later.
-    await _authDB.persistRefreshToken(session);
+    await _authDB.persistRefreshToken(session, parentRefreshToken);
     return session;
   }
 
   /// Creates a new session after validating the jwt and refresh token
   Future<Session> refreshSession(String jwt, String refreshToken) async {
     if (!_jwtHandler.hasValidSignature(jwt)) {
-      throw Exception('Invalid JWT');
+      throw AuthException('Invalid JWT');
     }
 
     final userID = _jwtHandler.getUserId(jwt);
     final isValid = await _authDB.isRefreshTokenValid(userID, refreshToken);
     if (!isValid) {
-      throw Exception('Invalid Refresh Token');
+      throw AuthException('Invalid Refresh Token');
     }
     // revoke the old refresh token
     await _authDB.revokeRefreshToken(userID, refreshToken);
