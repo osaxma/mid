@@ -1,8 +1,4 @@
-# `mid_auth` 
-
-A simple authentication api components that can be used with your mid server and client projects. 
-
-This package is intended to be use with the [mid][] projects as a component. 
+This package is intended to be use with the [mid][] package as a component. 
 
 [mid]: https://pub.dev/packages/mid
 
