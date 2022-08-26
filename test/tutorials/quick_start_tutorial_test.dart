@@ -164,7 +164,7 @@ void createEndPointFile(String serverProjectPath) {
     }
 ''';
 
-  File(p.join(serverProjectPath, 'lib/src/example.dart')).writeAsStringSync(content);
+  File(p.join(serverProjectPath, 'lib', 'src', 'example.dart')).writeAsStringSync(content);
 }
 
 void updateGetEndPointFunction(String projectName, String serverProjectPath) {
@@ -179,7 +179,7 @@ void updateGetEndPointFunction(String projectName, String serverProjectPath) {
     }
 ''';
 
-  File(p.join(serverProjectPath, 'lib/mid/endpoints.dart')).writeAsStringSync(content);
+  File(p.join(serverProjectPath, 'lib', 'mid', 'endpoints.dart')).writeAsStringSync(content);
 }
 
 void createFrontend(String projectName, String clientProjectPath, String clientName) {
