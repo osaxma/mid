@@ -64,28 +64,18 @@ void main() {
     });
 
     test('create an account on existing email fails', () async {
-      // This is to test account creation separate from the account used by the rest of the tests.
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-      } catch (e) {
-        expect(e, isA<SqliteException>);
-      }
+      final future = auth.createUserWithEmailAndPassword(email, password);
+      expectLater(future, throwsA(isA<SqliteException>()));
     });
 
     test('sign in with wrong password throws an exception', () async {
-      try {
-        await auth.signInWithEmailAndPassword(email, 'wrong-password');
-      } catch (e) {
-        expect(e, isA<AuthException>());
-      }
+      final future = auth.signInWithEmailAndPassword(email, 'wrong-password');
+      expectLater(future, throwsA(isA<AuthException>()));
     });
 
     test('sign in with non-existing email throws an exception', () async {
-      try {
-        await auth.signInWithEmailAndPassword('non-existing-email@example.com', 'no-password');
-      } catch (e) {
-        expect(e, isA<AuthException>());
-      }
+      final future = auth.signInWithEmailAndPassword('non-existing-email@example.com', 'no-password');
+      expectLater(future, throwsA(isA<AuthException>()));
     });
 
     test('sign in successful with new tokens', () async {
