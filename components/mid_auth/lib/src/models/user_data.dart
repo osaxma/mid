@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 
 import 'package:meta/meta.dart';
 
-/// a model representing a user
+/// A model representing a user
 @immutable
 class User {
   const User({
