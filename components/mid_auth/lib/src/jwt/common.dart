@@ -2,14 +2,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:asn1lib/asn1lib.dart';
-import 'package:mid_auth/src/tools/random_string.dart';
+import 'package:mid_common/mid_common.dart';
 
 const userIdClaimKey = 'user_id';
 const emailClaimKey = 'email';
 const metadataClaimKey = 'metadata';
 
 // TODO: figure out if this is an appropriate way to generate a refresh token
-String generateRefreshToken() => generateRandomString(25);
+String generateRefreshToken() => generateRandomID(25);
 
 // this may not be needed at the server but its kept here until a client library is created
 // credit: https://gist.github.com/proteye/982d9991922276ccfb011dfc55443d74
