@@ -5,7 +5,7 @@ import 'package:mid_auth/mid_auth.dart';
 import 'package:mid_auth/src/jwt/common.dart';
 import 'package:x509/x509.dart' as x509;
 
-/// - [Generate RS256 Keys] TODO(@osaxma): how to generate RS256 keys
+/// A [JWTHandler] based on RSA256 algorithm
 class JWTHandlerRsa256 implements JWTHandler {
   JWTHandlerRsa256({
     required String jwtPrivateKey,
@@ -61,7 +61,7 @@ class JWTHandlerRsa256 implements JWTHandler {
     final parsedToken = JWT.parse(jwt);
     final expiresAt = parsedToken.expiresAt;
     if (expiresAt == null) {
-      throw Exception('invalid jwt token');
+      throw AuthException('invalid jwt token');
     }
     final hasExpired = DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000).isBefore(DateTime.now().toUtc());
     return hasExpired;
@@ -82,7 +82,7 @@ class JWTHandlerRsa256 implements JWTHandler {
     if (id is int) {
       return id;
     } else {
-      throw Exception('user_id was not found in the jwt');
+      throw AuthException('user_id was not found in the jwt');
     }
   }
 
@@ -101,7 +101,7 @@ class JWTHandlerRsa256 implements JWTHandler {
         };
       }
     }
-    throw Exception('Invalid RSA Public Key');
+    throw AuthException('Invalid RSA Public Key');
   }
 }
 

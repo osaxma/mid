@@ -1,3 +1,4 @@
+import 'package:mid_auth/src/exceptions.dart';
 import 'package:mid_auth/src/models/session.dart';
 import 'package:mid_auth/src/models/user_data.dart';
 import 'package:mid_auth/src/persistence/auth_db.dart';
@@ -17,18 +18,17 @@ import 'package:sqlite3/sqlite3.dart';
 // TODO(osaxma): UPDATE ALL QUERIES TO BE PARAMETERIZED
 
 // TODO(osaxma): figure out an appropriate default path
-final defaultPath = p.join(p.current, 'auth.db');
 
-class AuthSqlite implements AuthDB {
-  AuthSqlite({this.dbPath}) {
-    _database = sqlite3.open(dbPath ?? defaultPath);
+class AuthDbSqlite implements AuthDB {
+  AuthDbSqlite({required this.dbPath}) {
+    _database = sqlite3.open(dbPath);
     init();
   }
 
   /// The sqlite file path
   ///
   /// if not given, <????>
-  final String? dbPath;
+  final String dbPath;
 
   late final Database _database;
 
@@ -48,7 +48,7 @@ class AuthSqlite implements AuthDB {
     final res =
         _database.select('insert into auth_users (email, password) values (?, ?) RETURNING *', [email, hashedPassword]);
     if (res.isEmpty) {
-      throw Exception('could not create new user');
+      throw AuthException('could not create new user');
     }
     return Future.value(_userFromSqliteRow(res.first));
   }
@@ -57,7 +57,7 @@ class AuthSqlite implements AuthDB {
   Future<String> getHashedPasswordByEmail(String email) {
     final res = _database.select('select password from auth_users where email = ? ', [email]);
     if (res.isEmpty) {
-      throw Exception('User not found');
+      throw AuthException('User not found');
     }
     final password = res.first['password'] as String;
     return Future.value(password);
@@ -67,7 +67,7 @@ class AuthSqlite implements AuthDB {
   Future<User> getUserByEmail(String email) {
     final res = _database.select('select * from auth_users where email = ?', [email]);
     if (res.isEmpty) {
-      throw Exception('User not found');
+      throw AuthException('User not found');
     }
     return Future.value(_userFromSqliteRow(res.first));
   }
@@ -76,7 +76,7 @@ class AuthSqlite implements AuthDB {
   Future<User> getUserByID(int userID) {
     final res = _database.select('select * from auth_users where id = ?', [userID]);
     if (res.isEmpty) {
-      throw Exception('User not found');
+      throw AuthException('User not found');
     }
     return Future.value(_userFromSqliteRow(res.first));
   }
@@ -124,7 +124,7 @@ class AuthSqlite implements AuthDB {
   User _userFromSqliteRow(Row row) {
     final map = row.toTableColumnMap();
     if (map == null) {
-      throw Exception('received an empty user map');
+      throw AuthException('received an empty user map');
     }
     return User.fromMap(Map<String, dynamic>.from(map['auth_users']!));
   }
@@ -137,7 +137,7 @@ class AuthSqlite implements AuthDB {
     if (version is int) {
       return version;
     } else {
-      throw Exception('could not count the number of migrations from auth_migrations table');
+      throw AuthException('could not count the number of migrations from auth_migrations table');
     }
   }
 
