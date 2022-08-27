@@ -1,3 +1,7 @@
+## 0.1.0+2
+
+ - **FIX**: remove comma from path.
+
 ## 0.1.0+1
 
  - **FIX**: removed hand written paths to be normalized.
