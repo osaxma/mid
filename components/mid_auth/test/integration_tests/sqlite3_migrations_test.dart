@@ -20,14 +20,19 @@ final migrationsDuplicate = <SqliteMigration>[
 ];
 
 void main() {
-  late final Database database;
+  final timeNow = DateTime.now().toUtc();
+  final dbName = 'auth_${timeNow.millisecondsSinceEpoch}';
+  final tempFolder = Directory.systemTemp.path;
+  final dbPath = p.join(tempFolder, dbName);
 
-  setUpAll(() {
-    final timeNow = DateTime.now().toUtc();
-    final dbName = 'auth_${timeNow.millisecondsSinceEpoch}';
-    final tempFolder = Directory.systemTemp.path;
-    final dbPath = p.join(tempFolder, dbName);
+  late Database database;
+  setUp(() {
     database = sqlite3.open(dbPath);
+  });
+
+  tearDown(() {
+    database.dispose();
+    File(dbPath).deleteSync();
   });
 
   bool tableExists(String tableName) {
@@ -52,16 +57,12 @@ void main() {
       expect(tableExists('test3'), false);
       expect(tableExists('test4'), false);
 
-      final loggedStrings = <String>[];
-      applyMigrations(database, migrations, logger: (string) {
-        loggedStrings.add(string);
-      });
+      applyMigrations(database, migrations);
 
       expect(tableExists('test1'), true);
       expect(tableExists('test2'), true);
       expect(tableExists('test3'), true);
       expect(tableExists('test4'), true);
-      expect(loggedStrings.length, 4);
     });
 
     test('- applying the migrations multiple times has no effect', () {
@@ -73,7 +74,16 @@ void main() {
       expect(() => applyMigrations(database, migrationsDuplicate), throwsException);
     });
 
-    test('- logger is called for new migration', () {
+    test('- logger is called for each migration', () {
+      final loggedStrings = <String>[];
+      applyMigrations(database, migrations, logger: (string) {
+        loggedStrings.add(string);
+      });
+      expect(loggedStrings.length, 4);
+    });
+
+    test('- logger is called for new migration(s) only', () {
+      // apply some migrations (total 4)
       applyMigrations(database, migrations);
       final newMigration = SqliteMigration(
         id: 42,
@@ -93,7 +103,6 @@ void main() {
 
       final res = database.select('select id from $migrationsTable');
       final ids = res.rows.map((row) => row.first as int);
-      
 
       expect(ids, containsAll(migrations.map((m) => m.id)));
     });

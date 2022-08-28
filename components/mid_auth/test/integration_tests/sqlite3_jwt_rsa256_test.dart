@@ -35,6 +35,10 @@ void main() {
     print('db created at $dbPath');
   });
 
+  tearDownAll(() async {
+    await authDB.dispose();
+  });
+
   group('AuthSqliteDB persistance with JWTRsa256Handler', () {
     // this allows running tests separetly
     setUp(() async {
