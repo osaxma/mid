@@ -12,6 +12,8 @@ class InterfaceTypeMock extends Mock implements InterfaceType {}
 // dynamic, function, never, void, ,etc.
 class NonInterfaceType extends Mock implements DartType {}
 
+class EnumElementMock extends Mock implements EnumElement {}
+
 /// This should be called at the beginning of each test to avoid `Null` return.
 /// [type] must be both [Mock] and [DartType]
 /// The functions we are testing uses these values to determine the type.
@@ -25,7 +27,7 @@ class NonInterfaceType extends Mock implements DartType {}
 ///   when(() => type.nullabilitySuffix).thenReturn(NullabilitySuffix.question);
 ///   // to set the type name, mock this:
 ///    setTypeDisplayString('String');
-void setDefaultValuesForMock(DartType type, {required String name, required bool nullable}) {
+void setDefaultValuesForMock(DartType type, {required String name, required bool nullable, bool isEnum = false}) {
   when(() => type.isBottom).thenReturn(false);
   when(() => type.isDartAsyncFuture).thenReturn(false);
   when(() => type.isDartAsyncFutureOr).thenReturn(false);
@@ -52,6 +54,11 @@ void setDefaultValuesForMock(DartType type, {required String name, required bool
   /// and as both could be used in the code, we set the name for both methods.
   when(() => type.getDisplayString(withNullability: true)).thenReturn(name);
   when(() => type.getDisplayString(withNullability: false)).thenReturn(name.replaceAll('?', ''));
+  if (isEnum) {
+    when(() => type.element2).thenReturn(EnumElementMock());
+  } else {
+    when(() => type.element2).thenReturn(InterfaceElementMock());
+  }
 }
 
 void setTypDisplayString(DartType type, String name) {}
@@ -149,8 +156,8 @@ void main() {
         var expectedValue = 'value?.inMicroseconds';
         expect(serialiedValue, expectedValue);
 
-        final deserialiedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false).replaceAll(' ', '');
-        expectedValue = 'value == null ? null : Duration(microseconds: value)'.replaceAll(' ', '');
+        final deserialiedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false);
+        expectedValue = 'value == null ? null : Duration(microseconds: value)';
         expect(expectedValue, deserialiedValue);
       });
 
@@ -169,8 +176,8 @@ void main() {
         var expectedValue = 'value';
         expect(serialiedValue, expectedValue);
 
-        final deserialiedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false).replaceAll(' ', '');
-        expectedValue = 'List<int>.from(value.map((x) => x as int))'.replaceAll(' ', '');
+        final deserialiedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false);
+        expectedValue = 'List<int>.from(value.map((x) => x as int))';
         expect(expectedValue, deserialiedValue);
       });
 
@@ -189,8 +196,8 @@ void main() {
         var expectedValue = 'value?.toList()';
         expect(serialiedValue, expectedValue);
 
-        final deserialiedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false).replaceAll(' ', '');
-        expectedValue = 'value == null ? null : Set<num>.from(value.map((x) => x as num))'.replaceAll(' ', '');
+        final deserialiedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false);
+        expectedValue = 'value == null ? null : Set<num>.from(value.map((x) => x as num))';
         expect(expectedValue, deserialiedValue);
       });
 
@@ -280,7 +287,7 @@ void main() {
 
         final valueAssignment = 'value';
         final serialiedValue = serializeValue(type, valueAssignment, useToMapFromMap: false);
-        var expectedValue = 'value == null ? null : DataSerializer.toMap(value)';
+        var expectedValue = 'value == null ? null : DataSerializer.toMap(value!)';
         expect(serialiedValue, expectedValue);
 
         final deserializedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false);
@@ -297,12 +304,12 @@ void main() {
         when(() => type.typeArguments).thenReturn([typeArg]);
 
         final valueAssignment = 'value';
-        final serialiedValue = serializeValue(type, valueAssignment, useToMapFromMap: false).replaceAll(' ', '');
-        var expectedValue = 'value.map((x) => DataSerializer.toMap(x)).toList()'.replaceAll(' ', '');
+        final serialiedValue = serializeValue(type, valueAssignment, useToMapFromMap: false);
+        var expectedValue = 'value.map((x) => DataSerializer.toMap(x)).toList()';
         expect(serialiedValue, expectedValue);
 
-        final deserializedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false).replaceAll(' ', '');
-        expectedValue = 'List<Data>.from(value.map((x) => DataSerializer.fromMap(x)))'.replaceAll(' ', '');
+        final deserializedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false);
+        expectedValue = 'List<Data>.from(value.map((x) => DataSerializer.fromMap(x)))';
         expect(deserializedValue, expectedValue);
       });
 
@@ -315,13 +322,13 @@ void main() {
         when(() => type.typeArguments).thenReturn([typeArg]);
 
         final valueAssignment = 'value';
-        final serialiedValue = serializeValue(type, valueAssignment, useToMapFromMap: false).replaceAll(' ', '');
-        var expectedValue = 'value?.map((x) => DataSerializer.toMap(x)).toList()'.replaceAll(' ', '');
+        final serialiedValue = serializeValue(type, valueAssignment, useToMapFromMap: false);
+        var expectedValue = 'value?.map((x) => DataSerializer.toMap(x)).toList()';
         expect(serialiedValue, expectedValue);
 
-        final deserializedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false).replaceAll(' ', '');
+        final deserializedValue = deserializeValue(type, valueAssignment, useToMapFromMap: false);
         expectedValue =
-            'value == null ? null : Set<Data>.from(value.map((x) => DataSerializer.fromMap(x)))'.replaceAll(' ', '');
+            'value == null ? null : Set<Data>.from(value.map((x) => DataSerializer.fromMap(x)))';
         expect(deserializedValue, expectedValue);
       });
 
@@ -336,12 +343,12 @@ void main() {
         when(() => type.typeArguments).thenReturn([typeArg1, typeArg2]);
 
         final valueAssignment = 'value';
-        final serialiedValue = serializeValue(type, valueAssignment, useToMapFromMap: true).replaceAll(' ', '');
-        var expectedValue = 'value.map((k, v) => MapEntry(k.toMap(), v.toMap()))'.replaceAll(' ', '');
+        final serialiedValue = serializeValue(type, valueAssignment, useToMapFromMap: true);
+        var expectedValue = 'value.map((k, v) => MapEntry(k.toMap(), v.toMap()))';
         expect(serialiedValue, expectedValue);
 
-        final deserializedValue = deserializeValue(type, valueAssignment, useToMapFromMap: true).replaceAll(' ', '');
-        expectedValue = 'value.map((k, v) => MapEntry(KeyData.fromMap(k), ValueData.fromMap(v)))'.replaceAll(' ', '');
+        final deserializedValue = deserializeValue(type, valueAssignment, useToMapFromMap: true);
+        expectedValue = '(value as Map).map((k, v) => MapEntry(KeyData.fromMap(k), ValueData.fromMap(v)))';
         expect(deserializedValue, expectedValue);
       });
 
@@ -356,12 +363,12 @@ void main() {
         when(() => type.typeArguments).thenReturn([typeArg1, typeArg2]);
 
         final valueAssignment = 'value';
-        final serialiedValue = serializeValue(type, valueAssignment, useToMapFromMap: true).replaceAll(' ', '');
-        var expectedValue = 'value?.map((k, v) => MapEntry(k.toMap(), v.toMap()))'.replaceAll(' ', '');
+        final serialiedValue = serializeValue(type, valueAssignment, useToMapFromMap: true);
+        var expectedValue = 'value?.map((k, v) => MapEntry(k.toMap(), v.toMap()))';
         expect(serialiedValue, expectedValue);
 
-        final deserializedValue = deserializeValue(type, valueAssignment, useToMapFromMap: true).replaceAll(' ', '');
-        expectedValue = 'value?.map((k, v) => MapEntry(KeyData.fromMap(k), ValueData.fromMap(v)))'.replaceAll(' ', '');
+        final deserializedValue = deserializeValue(type, valueAssignment, useToMapFromMap: true);
+        expectedValue = '(value as Map?)?.map((k, v) => MapEntry(KeyData.fromMap(k), ValueData.fromMap(v)))';
         expect(deserializedValue, expectedValue);
       });
     });

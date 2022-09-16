@@ -43,7 +43,7 @@ String deserializeValue(DartType type, String value, {required bool useToMapFrom
     final t = type.typeArguments.first;
     final listOrSet = type.isDartCoreList ? 'List' : 'Set';
     final typeArg =
-        type.typeArguments.isEmpty ? '' : '<${type.typeArguments.first.getDisplayString(withNullability: true)} >';
+        type.typeArguments.isEmpty ? '' : '<${type.typeArguments.first.getDisplayString(withNullability: true)}>';
     final v = deserializeValue(t, 'x', useToMapFromMap: useToMapFromMap);
     if (isNullable) {
       return "$value == null ? null : $listOrSet$typeArg.from($value.map((x) => $v))";
