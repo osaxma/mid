@@ -5,6 +5,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:mid/annotations.dart';
 import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/serializer_common.dart';
 
@@ -28,8 +29,12 @@ class ClientClassesSerializer {
     buff.writeln("import '$_collectionImportUri';");
 
     for (final t in types) {
-      if (isEnum(t)) {
-        final source = copyEnum(t);
+      final copyAsIs = typeHasAnnotation(t, copyToClientAsIs.toString());
+      if (isEnum(t) || copyAsIs) {
+        var source = getTypeSourceCode(t);
+        if (copyAsIs) {
+          source = source.replaceAll('@${copyToClientAsIs.toString()}', '');
+        }
         buff.writeln(source);
       } else {
         final paras = getGenerativeUnnamedConstructorParameters(t, skipServerOnly: true);
@@ -45,7 +50,7 @@ class ClientClassesSerializer {
   }
 }
 
-String copyEnum(InterfaceType type) {
+String getTypeSourceCode(InterfaceType type) {
   final node = getAstNodeFromElement(type.element2);
 
   if (node == null) {

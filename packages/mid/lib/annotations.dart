@@ -1,3 +1,5 @@
+// TODO: either move to mid_common or mid_annotations package
+
 /// Indicates that a method or a member of a class is intended for server use only
 ///
 /// When a method of a class (i.e. route) has this annotation, the method will not be
@@ -18,6 +20,19 @@
 /// that `UserData` can be constructred from the client data which won't have `isBanned`.
 const Object serverOnly = _ServerOnly();
 
+/// Indicates that a class will be copied as is for serialization purposes.
+const Object copyToClientAsIs = _CopyToClientAsIs();
+
 class _ServerOnly {
   const _ServerOnly();
+
+  @override
+  String toString() => 'serverOnly';
+}
+
+class _CopyToClientAsIs {
+  const _CopyToClientAsIs();
+
+  @override
+  String toString() => 'copyToClientAsIs';
 }

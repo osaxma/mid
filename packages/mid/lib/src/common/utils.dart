@@ -143,6 +143,12 @@ bool elementHasAnnotation(Element element, String annotation) {
   });
 }
 
+bool typeHasAnnotation(InterfaceType type, String annotation) {
+  return type.element2.metadata.any((element) {
+    return element.element?.displayName == annotation;
+  });
+}
+
 String? getTypePackageURI(InterfaceType type) {
   return type.element2.librarySource.uri.toString();
 }
@@ -176,11 +182,11 @@ Future<List<ClassInfo>> parseRoutes(String endpointsPath, [Logger? logger]) asyn
 }
 
 bool hasFromMap(InterfaceType type) {
-  return type.element2.getNamedConstructor('fromMap') != null;
+  return type.element2.getNamedConstructor('fromMap') != null || type.getMethod('fromMap')?.isStatic == true;
 }
 
 bool hasFromJson(InterfaceType type) {
-  return type.element2.getNamedConstructor('fromJson') != null;
+  return type.element2.getNamedConstructor('fromJson') != null || type.getMethod('fromJson')?.isStatic == true;
 }
 
 bool hasToMap(InterfaceType type) {
