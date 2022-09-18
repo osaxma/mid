@@ -212,8 +212,6 @@ class $handlerClassName extends StreamBaseHandler {
     }
     buffer.write('$classInstanceName.${methodInfo.methodName}(');
 
-    // if there are named arguments
-    bool hasOpeningCurlyBracket = false;
     // create variable assignments
     for (final arg in methodInfo.argumentsInfo) {
       final name = arg.argName;
@@ -221,19 +219,12 @@ class $handlerClassName extends StreamBaseHandler {
       if (arg.isPositional) {
         buffer.write(name);
       } else if (arg.isNamed) {
-        if (!hasOpeningCurlyBracket) {
-          hasOpeningCurlyBracket = true;
-          buffer.write('{');
-        }
         buffer.write('$name:$name');
       }
 
       buffer.write(',');
     }
 
-    if (hasOpeningCurlyBracket) {
-      buffer.write('}');
-    }
     buffer.writeln(");");
 
     return buffer.toString();
