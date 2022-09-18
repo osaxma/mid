@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:mid/annotations.dart';
 import 'package:mid/src/common/utils.dart';
 
 /// When [useToMapFromMap] is `true`, type.toMap() and Type.fromMap() (i.e. userData.toMap() & UserData.fromMap()).
@@ -265,7 +266,7 @@ List<ParameterElement> getGenerativeUnnamedConstructorParameters(InterfaceType t
     if (skipServerOnly) {
       return paras;
     } else {
-      return paras.where((element) => !elementHasAnnotation(element, 'serverOnly')).toList();
+      return paras.where((element) => !elementHasAnnotation(element, serverOnly.toString())).toList();
     }
   } catch (e) {
     final typeName = type.getDisplayString(withNullability: true);

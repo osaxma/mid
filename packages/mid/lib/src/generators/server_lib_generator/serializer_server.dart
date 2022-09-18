@@ -98,12 +98,19 @@ class ${getSerializerName(type)} {
   /// ```
   String _generateToMap(InterfaceType type) {
     final name = type.getDisplayString(withNullability: false);
-    final keyValues = _generateKeyValues(type, 'instance');
+    late final String returnString;
+    if (hasToMap(type)) {
+      returnString = 'instance.toMap()';
+    } else if (hasToJson(type)) {
+      returnString = 'instance.toJson()';
+    } else {
+      final keyValues = _generateKeyValues(type, 'instance');
+      returnString = '{$keyValues};';
+    }
+
     return '''
 static Map<String, dynamic> toMap($name instance) {
-  return {
-    $keyValues
-  };
+  return $returnString;
 }
 ''';
   }
@@ -135,12 +142,19 @@ static Map<String, dynamic> toMap($name instance) {
   /// ```
   String _generateFromMap(InterfaceType type) {
     final name = type.getDisplayString(withNullability: false);
-    final assignment = _generateFromMapAssignment(type);
+    late final String returnStatement;
+    if (hasFromMap(type)) {
+      returnStatement = '$name.fromMap(map)';
+    } else if (hasFromJson(type)) {
+      returnStatement = '$name.fromJson(map)';
+    } else {
+      final assignment = _generateFromMapAssignment(type);
+      returnStatement = '$name($assignment)';
+    }
+
     return ''' 
 static $name fromMap(Map<String, dynamic> map) {
-  return $name(
-    $assignment
-    );
+  return $returnStatement;
 }
     ''';
   }
