@@ -232,7 +232,14 @@ String serializeValue(DartType type, String value, {required bool useToMapFromMa
     }
   } else {
     if (isNullable) {
-      return '$value == null ? null : ${getSerializerName(type)}.toMap($value!)';
+      if (value.contains('.')) {
+        // dart does not promote members (e.g. instance.value == null ? null : Serializer.toMap(instance.value!))
+        return '$value == null ? null : ${getSerializerName(type)}.toMap($value!)';
+      } else {
+        // To avoid this lint warning:
+        //    The '!' will have no effect because the receiver can't be null. Try removing the '!' operator.
+        return '$value == null ? null : ${getSerializerName(type)}.toMap($value)';
+      }
     } else {
       return '${getSerializerName(type)}.toMap($value)';
     }
