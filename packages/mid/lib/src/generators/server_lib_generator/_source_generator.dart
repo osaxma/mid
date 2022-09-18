@@ -3,7 +3,7 @@ import 'package:dart_style/dart_style.dart';
 import 'package:mid/src/common/types_collector.dart';
 import 'package:mid/src/common/utils.dart';
 
-import 'package:mid_common/mid_common.dart';
+import 'package:dart3x/string3x.dart';
 import 'package:mid/src/common/models.dart';
 import 'package:mid/src/templates/server_templates.dart';
 import 'package:mid/src/generators/serializer_common.dart';
@@ -75,7 +75,7 @@ class EndPointsSourceGenerator {
     final classInstanceName = className.toLowerCase();
     final methodName = methodInfo.methodName;
 
-    final handlerClassName = '$className${methodName.capitalizeFirst()}Handler';
+    final handlerClassName = '$className${methodName.toUpperFirst()}Handler';
 
     // this is for the handler instance creation
     _futureOrHandlersInstances.add('$handlerClassName(endpoints[$index] as $className)');
@@ -129,7 +129,7 @@ class $handlerClassName extends FutureOrBaseHandler {
     final classInstanceName = className.toLowerCase();
     final methodName = methodInfo.methodName;
 
-    final handlerClassName = '$className${methodName.capitalizeFirst()}Handler';
+    final handlerClassName = '$className${methodName.toUpperFirst()}Handler';
 
     // this is for the handler instance creation
     _streamHandlersInstances.add('$handlerClassName(endpoints[$index] as $className)');

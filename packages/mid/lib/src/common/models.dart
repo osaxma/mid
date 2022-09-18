@@ -2,7 +2,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import 'package:mid/src/common/utils.dart';
-import 'package:mid_common/mid_common.dart';
+import 'package:dart3x/string3x.dart';
 
 // TODO: re-evaluate if these wrappers since they were created in the early prototype
 //       some stuff are redundant and in many casses other part of the program needs access
@@ -93,7 +93,7 @@ class MethodInfo {
   // we convert both to snake_case (this can be made optional)
   // TODO(@osaxma): figure out if we need to have a `/` at the end of the route
   // note: the route must start with `/`
-  String get routeName => '/${className.toSnakeCaseFromPascalCase()}/${methodName.toSnakeCaseFromCamelCase()}/';
+  String get routeName => '/${className.toSnakeCase()}/${methodName.toSnakeCase()}/';
 }
 
 class ArgumentInfo {

@@ -1,4 +1,4 @@
-import 'package:mid_common/mid_common.dart';
+import 'package:dart3x/string3x.dart';
 import 'package:mid/src/common/models.dart';
 
 const clientInterceptorsDotDartContent = ''' 
@@ -18,7 +18,7 @@ class ClientSource {
   final ClassInfo classInfo;
   final String source;
 
-  String get fileName => '${classInfo.className.toSnakeCaseFromPascalCase()}.dart';
+  String get fileName => '${classInfo.className.toSnakeCase()}.dart';
 
   ClientSource(this.classInfo, this.source);
 }
@@ -33,7 +33,7 @@ String generateClientFileContents(List<ClientSource> sources, String projectName
     final routeClassName = src.classInfo.routeNameForClient;
     fields.writeln('late final $fieldName = $routeClassName($args);');
   }
-  final className = '${projectName.toPascalCaseFromSnakeCase()}Client';
+  final className = '${projectName.toPascalCase()}Client';
 
   return '''
 import 'package:mid_client/mid_client.dart';
