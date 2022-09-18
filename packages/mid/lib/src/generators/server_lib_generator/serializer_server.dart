@@ -2,17 +2,18 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:mid/src/common/types_collector.dart';
 import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/serializer_common.dart';
 
 // Notes:
-// - The choice to create standalone serializers (i.e., not part of the type itself) 
+// - The choice to create standalone serializers (i.e., not part of the type itself)
 //  were for the following reasons:
 //    - Avoid modifying the user code
 //    - Support serializing external types (types from other packages)
 //    - Support the use of external components (e.g. auth API or storage API components)
 //
-// - To avoid complexity in serialization process, the user defined types in return statement 
+// - To avoid complexity in serialization process, the user defined types in return statement
 //   or arguments must adhere to some rules:
 //    - The type must have unnamed constructor with formal parameters (i.e., using `this` keyword).
 //      e.g.:
@@ -21,8 +22,8 @@ import 'package:mid/src/generators/serializer_common.dart';
 //          final int id;
 //          final String name;
 //          final MetaData metadata; // must follow same rule including its members and their members, etc.
-//        
-//          Data(this.id, this.name. this.metadata); // or named args 
+//
+//          Data(this.id, this.name. this.metadata); // or named args
 //        }
 //    ```
 
@@ -54,18 +55,20 @@ class ServerClassesSerializer {
 
   String generateCode() {
     final code = StringBuffer();
-    final imports = <String>{
-      "import 'package:collection/collection.dart';"
-    };
+    final imports = <String>{"import 'package:collection/collection.dart';"};
 
     for (final t in types) {
+      final packagesURIs = getTypesImports(t);
+      for (var p in packagesURIs) {
+        imports.add("import '$p';");
+      }
+
       if (isEnum(t)) {
         continue;
       }
       final toMap = _generateToMap(t);
       final fromMap = _generateFromMap(t);
       code.writeln(_classWrapper(t, toMap + '\n' + fromMap));
-      imports.add("import '${getTypePackageURI(t)}';");
     }
 
     final source = imports.join('\n').toString() + code.toString();

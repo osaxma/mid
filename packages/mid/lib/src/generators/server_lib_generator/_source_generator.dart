@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:mid/src/common/types_collector.dart';
 import 'package:mid/src/common/utils.dart';
 
 import 'package:mid_common/mid_common.dart';
@@ -50,6 +51,7 @@ class EndPointsSourceGenerator {
     _imports.add(midServerPkgImport);
     _imports.add(serializersImport);
     _imports.add(endpointsImport);
+    _imports.add(collectionImport);
   }
 
   void _addImport(String packageURI) {
@@ -182,14 +184,11 @@ class $handlerClassName extends StreamBaseHandler {
     for (final arg in methodInfo.argumentsInfo) {
       final name = arg.argName;
       final value = deserializeValue(arg.type as InterfaceType, "$mapVariableName['$name']", useToMapFromMap: false);
-      buffer.writeln("final $name = $value;");
-
-      if (!isDartType(arg.type)) {
-        final typePackageURI = getTypePackageURI(arg.type as InterfaceType);
-        if (typePackageURI != null) {
-          _addImport(typePackageURI);
-        }
+      final packagesURIs = getTypesImports(arg.type);
+      for (var p in packagesURIs) {
+        _addImport(p);
       }
+      buffer.writeln("final $name = $value;");
     }
     return buffer.toString();
   }

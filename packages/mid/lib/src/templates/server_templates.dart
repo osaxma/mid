@@ -5,5 +5,6 @@ const serializersImport = "import 'serializers.dart';";
 const shelfImport = "import 'package:shelf/shelf.dart';";
 const shelfRouterImport = "import 'package:shelf_router/shelf_router.dart';";
 const asyncImport = "import 'dart:async';";
+const collectionImport = "import 'package:collection/collection.dart';";
 const dartConvertImport = "import 'dart:convert';";
 const handlersListName = "handlers";

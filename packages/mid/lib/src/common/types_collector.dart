@@ -147,3 +147,21 @@ void _collectNonDartTypesFromType(DartType type, Set<InterfaceType> set) {
   }
   return;
 }
+
+List<String> getTypesImports(DartType type) {
+  final types = <String>[];
+  if (!isDartType(type) || isEnum(type)) {
+    final typePackageURI = getTypePackageURI(type as InterfaceType);
+    if (typePackageURI != null) {
+      types.add(typePackageURI);
+    }
+  }
+  // for List<Data> we want to get `Data` package import
+  if (type is InterfaceType && type.typeArguments.isNotEmpty) {
+    for (var arg in type.typeArguments) {
+      types.addAll(getTypesImports(arg));
+    }
+  }
+
+  return types;
+}
