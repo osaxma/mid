@@ -174,3 +174,19 @@ Future<List<ClassInfo>> parseRoutes(String endpointsPath, [Logger? logger]) asyn
 
   return visitor.routes;
 }
+
+bool hasFromMap(InterfaceType type) {
+  return type.element2.getNamedConstructor('fromMap') != null;
+}
+
+bool hasFromJson(InterfaceType type) {
+  return type.element2.getNamedConstructor('fromJson') != null;
+}
+
+bool hasToMap(InterfaceType type) {
+  return type.getMethod('toMap') != null;
+}
+
+bool hasToJson(InterfaceType type) {
+  return type.getMethod('toJson') != null;
+}

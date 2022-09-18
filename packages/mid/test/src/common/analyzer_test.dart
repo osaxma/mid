@@ -8,7 +8,7 @@ import '../../helpers/ast_helpers.dart';
 void main() async {
   final sample = await getResolvedSample('endpoints.dart');
   final collector = RoutesCollectorFromEndpointsFunction(filePath: '');
-  sample.visitChildren(collector);
+  sample.unit.visitChildren(collector);
 
   group('functions tests', () {
     test('find all non-Dart types', () {
