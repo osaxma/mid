@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:mid_common/mid_common.dart';
+import 'package:dart3x/random3x.dart';
 import 'package:mid_client/src/interceptor.dart';
 
 // TODO: test if this approach won't cause issues

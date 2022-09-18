@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:mid_client/mid_client.dart';
-import 'package:mid_common/mid_common.dart';
+import 'package:dart3x/random3x.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'package:mid_protocol/mid_protocol.dart';
