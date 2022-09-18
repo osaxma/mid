@@ -95,6 +95,7 @@ const generatedCodeMessage = '''
 
 const unusedFieldLint = 'unused_field';
 const unusedImportLint = 'unused_import';
+final unnecessaryImport = 'unnecessary_import';
 
 /// Generates the following string assuming [lints] contains `unused_import` and `unused_field`:
 ///

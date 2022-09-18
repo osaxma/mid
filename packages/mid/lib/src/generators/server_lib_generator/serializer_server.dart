@@ -5,6 +5,7 @@ import 'package:dart_style/dart_style.dart';
 import 'package:mid/src/common/types_collector.dart';
 import 'package:mid/src/common/utils.dart';
 import 'package:mid/src/generators/serializer_common.dart';
+import 'package:mid/src/templates/create.dart';
 
 // Notes:
 // - The choice to create standalone serializers (i.e., not part of the type itself)
@@ -55,6 +56,7 @@ class ServerClassesSerializer {
 
   String generateCode() {
     final code = StringBuffer();
+    final ignores = generateIgnoreForFile([unnecessaryImport, unusedImportLint]) + '\n';
     final imports = <String>{"import 'package:collection/collection.dart';"};
 
     for (final t in types) {
@@ -71,7 +73,7 @@ class ServerClassesSerializer {
       code.writeln(_classWrapper(t, toMap + '\n' + fromMap));
     }
 
-    final source = imports.join('\n').toString() + code.toString();
+    final source = ignores + imports.join('\n').toString() + code.toString();
 
     return DartFormatter(pageWidth: 120).format(source);
   }
