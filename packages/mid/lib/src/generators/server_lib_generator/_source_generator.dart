@@ -202,8 +202,9 @@ class $handlerClassName extends StreamBaseHandler {
   String _generateMethodInvocation(MethodInfo methodInfo, String classInstanceName, {required String resultName}) {
     final buffer = StringBuffer();
 
-    // TODO: this is not working as intended -- the type argument could be void.
-    if (!methodInfo.returnType.isVoid) {
+    final returnType = methodInfo.returnType;
+    // e.g. void or Future<void>
+    if (!returnType.isVoid && !isFutureVoid(returnType)) {
       buffer.write('final $resultName = ');
     }
     if (methodInfo.returnType.isDartAsyncFuture) {

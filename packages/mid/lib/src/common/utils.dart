@@ -115,6 +115,9 @@ bool isAsyncType(DartType type) => type.isDartAsyncStream || type.isDartAsyncFut
 bool isDuration(DartType type) => type.getDisplayString(withNullability: false) == 'Duration';
 bool isDateTime(DartType type) => type.getDisplayString(withNullability: false) == 'DateTime';
 
+bool isFutureVoid(DartType type) =>
+    type is InterfaceType && type.isDartAsyncFuture && type.typeArguments.isNotEmpty && type.typeArguments.first.isVoid;
+
 AstNode? getAstNodeFromElement(Element element) {
   final session = element.session;
   if (session == null) {
