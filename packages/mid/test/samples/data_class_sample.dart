@@ -34,7 +34,8 @@ class Sample {
 
   String toJson() => json.encode(toMap());
 
-  factory Sample.fromJson(String source) => Sample.fromMap(json.decode(source) as Map<String, dynamic>);
+  // keep static for testing hasFromJson & hasFromMap tests
+  static Sample fromJson(String source) => Sample.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
   String toString() => 'Sample(string: $string, integer: $integer)';
