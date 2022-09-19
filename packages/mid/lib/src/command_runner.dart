@@ -23,7 +23,7 @@ class MIDCommandRunner extends CommandRunner<void> {
       'version',
       abbr: 'v',
       negatable: false,
-      help: 'Print the current Melos version.',
+      help: 'Print the current mid version.',
     );
 
     addCommand(GenerateCommand(workingDirectoryPath));
