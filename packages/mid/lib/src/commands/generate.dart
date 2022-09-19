@@ -16,9 +16,9 @@ import 'base.dart';
 class GenerateCommand extends MIDCommand {
   GenerateCommand() {
     // TODO: combine into one tht generates both endpoints and client.
-    addSubcommand(GenerateEndPointsCommand(workingDirectoryPath));
-    addSubcommand(GenerateClientLibCommand(workingDirectoryPath));
-    addSubcommand(GenerateAllCommand(workingDirectoryPath));
+    addSubcommand(GenerateEndPointsCommand());
+    addSubcommand(GenerateClientLibCommand());
+    addSubcommand(GenerateAllCommand());
   }
 
   @override
@@ -35,9 +35,8 @@ class GenerateCommand extends MIDCommand {
 }
 
 class GenerateEndPointsCommand extends MIDCommand {
-  GenerateEndPointsCommand(this.workingDirectoryPath) {/*  */}
+  GenerateEndPointsCommand() {/*  */}
 
-  final String workingDirectoryPath;
 
   @override
   final String name = 'server';
@@ -62,9 +61,7 @@ class GenerateEndPointsCommand extends MIDCommand {
 }
 
 class GenerateClientLibCommand extends MIDCommand {
-  GenerateClientLibCommand(this.workingDirectoryPath);
-
-  final String workingDirectoryPath;
+  GenerateClientLibCommand();
 
   @override
   final String name = 'client';
@@ -92,9 +89,7 @@ class GenerateClientLibCommand extends MIDCommand {
 }
 
 class GenerateAllCommand extends MIDCommand {
-  GenerateAllCommand(this.workingDirectoryPath);
-
-  final String workingDirectoryPath;
+  GenerateAllCommand();
 
   @override
   final String name = 'all';

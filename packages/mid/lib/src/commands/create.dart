@@ -54,14 +54,19 @@ class CreateCommand extends MIDCommand {
 
   @override
   FutureOr<void>? run() async {
-    if (argResults!.rest.isEmpty) {
+    late String targetDirPath;
+
+    if (globalResults!.wasParsed('dir')) {
+      targetDirPath = workingDirectoryPath;
+    } else if (argResults!.rest.isNotEmpty) {
+      targetDirPath = argResults!.rest.first;
+    } else {
       logger.stdout('No targert <directory> was provided');
       printUsage();
       return;
     }
 
-    // TODO: should thsi be relative to `workingDirectoryPath`
-    final targetDir = Directory(argResults!.rest.first).absolute;
+    final targetDir = Directory(targetDirPath);
     final dir = targetDir.path;
     if (targetDir.existsSync() && !argResults!['force']) {
       logger.stderr("Directory '$dir' already exists (use `--force` to force creation)");
