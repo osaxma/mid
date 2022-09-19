@@ -1,15 +1,16 @@
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:path/path.dart' as p;
+
 import 'package:mid/src/commands/generate.dart';
 
 import 'commands/create.dart';
 import '../version.dart';
 
 class MIDCommandRunner extends CommandRunner<void> {
-  /// The working directory of a mid project
-  final String workingDirectoryPath;
-
-  MIDCommandRunner(this.workingDirectoryPath)
+  MIDCommandRunner()
       : super(
           'mid',
           'mid - an API generation tool',
@@ -26,8 +27,15 @@ class MIDCommandRunner extends CommandRunner<void> {
       help: 'Print the current mid version.',
     );
 
-    addCommand(GenerateCommand(workingDirectoryPath));
-    addCommand(CreateCommand(workingDirectoryPath));
+    argParser.addOption(
+      'dir',
+      abbr: 'd',
+      help: 'the path to the working directory where the command should run',
+      defaultsTo: Directory.current.path,
+    );
+
+    addCommand(GenerateCommand());
+    addCommand(CreateCommand());
   }
 
   @override
@@ -37,6 +45,14 @@ class MIDCommandRunner extends CommandRunner<void> {
       print(midVersion);
       return;
     }
+
+    final dir = p.normalize(p.absolute(topLevelResults['dir'] as String));
+    if (dir != Directory.current.path) {
+      if (!Directory(dir).existsSync()) {
+        throw Exception('The given directory ($dir) does not exist');
+      }
+    }
+
     await super.runCommand(topLevelResults);
   }
 }

@@ -35,15 +35,13 @@ import 'base.dart';
 ///                         |- middlewares.dart
 ///         |- other files...
 class CreateCommand extends MIDCommand {
-  CreateCommand(this.workingDirectoryPath) {
+  CreateCommand() {
     argParser.addFlag(
       'force',
       negatable: false,
       help: 'Force project generation, even if the target directory already exists.',
     );
   }
-
-  final String workingDirectoryPath;
 
   @override
   final String name = 'create';

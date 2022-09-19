@@ -2,6 +2,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:mid/src/common/io_utils.dart';
+import 'package:path/path.dart' as p;
 
 abstract class MIDCommand extends Command<void> {
   /// see [ArgParser.allowTrailingOptions]
@@ -13,4 +14,6 @@ abstract class MIDCommand extends Command<void> {
     usageLineLength: terminalWidth,
     allowTrailingOptions: allowTrailingOptions,
   );
+
+  String get workingDirectoryPath => p.normalize(p.absolute(globalResults!['dir']));
 }

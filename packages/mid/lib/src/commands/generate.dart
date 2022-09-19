@@ -14,14 +14,12 @@ import 'base.dart';
 //                this will also allow using `--dry-run` for commands.
 
 class GenerateCommand extends MIDCommand {
-  GenerateCommand(this.workingDirectoryPath) {
+  GenerateCommand() {
     // TODO: combine into one tht generates both endpoints and client.
     addSubcommand(GenerateEndPointsCommand(workingDirectoryPath));
     addSubcommand(GenerateClientLibCommand(workingDirectoryPath));
     addSubcommand(GenerateAllCommand(workingDirectoryPath));
   }
-
-  final String workingDirectoryPath;
 
   @override
   final String name = 'generate';
